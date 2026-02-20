@@ -85,6 +85,16 @@
       "contributions": [
         "doc"
       ]
+    },
+    {
+      "login": "trajano",
+      "name": "trajano",
+      "avatar_url": "https://avatars.githubusercontent.com/u/26380?v=4",
+      "profile": "https://github.com/trajano",
+      "contributions": [
+        "code",
+        "doc"
+      ]
     }
   ],
   "contributorsPerLine": 7,
