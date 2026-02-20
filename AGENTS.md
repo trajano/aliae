@@ -44,6 +44,8 @@ If any file under `website/**` changed, run this command from the repo root:
 
 If both `src/**` and `website/**` changed, run both sets of checks.
 
+If neither `src/**` nor `website/**` changed, these scoped pre-commit checks are not required.
+
 ## Website documentation requirement
 
 When a new feature is added, the agent must also update the website documentation in the same change.
