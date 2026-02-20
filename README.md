@@ -34,8 +34,8 @@ This repo was made with love using GitKraken.
 [release]: https://github.com/JanDeDobbeleer/aliae/releases/latest
 [license]: https://img.shields.io/github/license/JanDeDobbeleer/aliae.svg
 [gh-downloads]: https://img.shields.io/github/downloads/jandedobbeleer/aliae/total?color=pink&label=GitHub%20Downloads
-[docs-badge]: https://img.shields.io/badge/Docs-aliae.dev-blue
-[docs]: https://aliae.dev
+[docs-badge]: https://img.shields.io/badge/Docs-GitHub%20Pages-blue
+[docs]: https://trajano.github.io/aliae/
 [kraken]: https://img.shields.io/badge/GitKraken-Legendary%20Git%20Tools-teal?style=plastic&logo=gitkraken
 [kraken-ref]: https://www.gitkraken.com/invite/nQmDPR9D
 [discord]: https://img.shields.io/discord/1023597603331526656
