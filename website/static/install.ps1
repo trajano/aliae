@@ -14,7 +14,7 @@ if ($IsMacOS) {
     Write-Host @"
 $installInstructions
 
-https://aliae.dev/docs/installation/macos
+https://trajano.github.io/aliae/docs/installation/macos
 "@
     exit
 }
@@ -22,7 +22,7 @@ if ($IsLinux) {
     Write-Host @"
 $installInstructions
 
-https://aliae.dev/docs/installation/linux
+https://trajano.github.io/aliae/docs/installation/linux
 "@
     exit
 }
@@ -59,7 +59,7 @@ if (Get-Command -Name New-TemporaryFile -ErrorAction SilentlyContinue) {
 else {
     $tmp = New-Item -Path $env:TEMP -Name ([System.IO.Path]::GetRandomFileName() -replace '\.\w+$', '.exe') -Force -ItemType File
 }
-$url = "https://github.com/JanDeDobbeleer/aliae/releases/latest/download/$installer"
+$url = "https://github.com/trajano/aliae/releases/latest/download/$installer"
 
 # check if we can make https requests and download the binary
 try {
@@ -85,5 +85,5 @@ Done!
 Restart your terminal and have a look at the
 documentation on how to proceed from here.
 
-https://aliae.dev/docs/setup/shell
+https://trajano.github.io/aliae/docs/setup/shell
 '@
