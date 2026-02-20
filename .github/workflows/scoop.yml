@@ -1,11 +1,72 @@
 name: Scoop
 on:
+  release:
+    types:
+      - published
   workflow_dispatch:
+    inputs:
+      version:
+        description: "Release version without leading v (for example: 0.2.0)"
+        required: false
+        type: string
+
+permissions:
+  contents: write
 
 jobs:
-  disabled:
-    if: ${{ false }}
+  update-manifest:
     runs-on: ubuntu-latest
     steps:
-      - name: Disabled
-        run: echo "Scoop publishing is disabled in this fork."
+      - name: Checkout code
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+
+      - name: Update bucket manifest
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          INPUT_VERSION: ${{ inputs.version }}
+        run: |
+          $ErrorActionPreference = "Stop"
+          $repo = "${{ github.repository }}"
+          $version = $env:INPUT_VERSION
+
+          if ([string]::IsNullOrWhiteSpace($version)) {
+            $latest = Invoke-RestMethod -Headers @{ Authorization = "Bearer $env:GH_TOKEN" } -Uri "https://api.github.com/repos/$repo/releases/latest"
+            $version = $latest.tag_name.TrimStart("v")
+            $release = $latest
+          }
+          else {
+            $release = Invoke-RestMethod -Headers @{ Authorization = "Bearer $env:GH_TOKEN" } -Uri "https://api.github.com/repos/$repo/releases/tags/v$version"
+          }
+
+          function Get-AssetHash([string]$assetName) {
+            $asset = $release.assets | Where-Object { $_.name -eq $assetName } | Select-Object -First 1
+            if ($null -eq $asset) {
+              throw "Missing release asset: $assetName"
+            }
+            return $asset.digest -replace "^sha256:", ""
+          }
+
+          $hashAmd64 = Get-AssetHash "aliae-windows-amd64.exe"
+          $hash386 = Get-AssetHash "aliae-windows-386.exe"
+          $hashArm64 = Get-AssetHash "aliae-windows-arm64.exe"
+
+          $content = Get-Content "bucket/aliae.template.json" -Raw
+          $content = $content.Replace("<VERSION>", $version)
+          $content = $content.Replace("<HASH-AMD64>", $hashAmd64)
+          $content = $content.Replace("<HASH-386>", $hash386)
+          $content = $content.Replace("<HASH-ARM64>", $hashArm64)
+          $content | Out-File -FilePath "bucket/aliae.json" -Encoding utf8NoBOM
+
+      - name: Commit and push changes
+        shell: pwsh
+        run: |
+          if ((git status --porcelain).Length -eq 0) {
+            Write-Host "No manifest changes to commit."
+            exit 0
+          }
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add bucket/aliae.json
+          git commit -m "chore(scoop): update bucket manifest"
+          git push
