@@ -3,6 +3,11 @@ on:
   release:
     types:
       - published
+  workflow_run:
+    workflows:
+      - Release
+    types:
+      - completed
   workflow_dispatch:
     inputs:
       version:
@@ -15,6 +20,7 @@ permissions:
 
 jobs:
   update-manifest:
+    if: ${{ github.event_name != 'workflow_run' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == github.event.repository.default_branch) }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
