@@ -2,6 +2,9 @@
 
 Cross platform shell management.
 
+> **THIS IS A PERSONAL FORK.**
+> **FOR THE OFFICIAL PROJECT, GO TO [aliae.dev](https://aliae.dev) AND [JanDeDobbeleer/aliae](https://github.com/JanDeDobbeleer/aliae).**
+
 [![License][license]](LISENCE)
 
 ![Release Status][release-status]
