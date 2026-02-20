@@ -26,16 +26,23 @@ Use Conventional Commit format and allowed types from `.commitlintrc.yml`:
 
 Before treating a branch as a merge candidate, the agent must rebase it onto `origin/HEAD`.
 
-## Pre-commit test requirement
+## Pre-commit checks
 
-Before each commit, the agent must run formatting and module tidy checks, then tests.
-Use these exact commands from the repo root:
+Run checks based on the files changed in the commit.
+
+If any file under `src/**` changed, run these commands from the repo root:
 
 `cd src && go fmt ./...`
 
 `cd src && go mod tidy`
 
 `cd src && go test ./...`
+
+If any file under `website/**` changed, run this command from the repo root:
+
+`cd website && npm ci && npm run build`
+
+If both `src/**` and `website/**` changed, run both sets of checks.
 
 ## Website documentation requirement
 
