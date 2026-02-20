@@ -81,7 +81,7 @@ validate_install_directory() {
 
     # check if we can write to the install directory
     if [ ! -w $install_dir ]; then
-        error "Cannot write to ${install_dir}. Please run the script with sudo and try again:\n  curl -s https://aliae.dev/install.sh | sudo bash -s\n\nAlternatively, you can set a different directory and try again: \n  curl -s https://aliae.dev/install.sh | bash -s -- -d {directory}"
+        error "Cannot write to ${install_dir}. Please run the script with sudo and try again:\n  curl -s https://trajano.github.io/aliae/install.sh | sudo bash -s\n\nAlternatively, you can set a different directory and try again: \n  curl -s https://trajano.github.io/aliae/install.sh | bash -s -- -d {directory}"
     fi
 
     # check if the directory is in the PATH
@@ -122,7 +122,7 @@ install() {
     info "\nℹ️  Installing aliae for ${target} in ${install_dir}"
 
     executable=${install_dir}/aliae
-    url=https://github.com/JanDeDobbeleer/aliae/releases/latest/download/aliae-${target}
+    url=https://github.com/trajano/aliae/releases/latest/download/aliae-${target}
 
     info "⬇️  Downloading aliae from ${url}"
 
@@ -133,7 +133,7 @@ install() {
 
     chmod +x $executable
 
-    info "🚀 Installation complete.\n\nYou can follow the instructions at https://aliae.dev/docs/setup/shell"
+    info "🚀 Installation complete.\n\nYou can follow the instructions at https://trajano.github.io/aliae/docs/setup/shell"
     info "to setup your shell to use aliae.\n"
 }
 
