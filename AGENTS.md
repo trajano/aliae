@@ -44,6 +44,8 @@ If any file under `website/**` changed, run this command from the repo root:
 
 If any file under `bucket/**` or `packages/scoop/**` changed, run this command from the repo root:
 
+`Get-Content bucket/aliae.template.json | ConvertFrom-Json | Out-Null`
+
 `Get-Content bucket/aliae.json | ConvertFrom-Json | Out-Null`
 
 If multiple scopes changed, run all applicable check sets.
