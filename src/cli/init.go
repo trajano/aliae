@@ -19,7 +19,8 @@ var (
 		Short: "Initialize your shell and config",
 		Long: `Initialize your shell and config.
 
-See the documentation to initialize your shell: https://aliae.dev/docs/setup/shell.`,
+See the documentation to initialize your shell: https://trajano.github.io/aliae/docs/setup/shell.
+This is a personal fork. For the official project and docs, see https://aliae.dev.`,
 		ValidArgs: []string{
 			"bash",
 			"zsh",
@@ -44,7 +45,7 @@ See the documentation to initialize your shell: https://aliae.dev/docs/setup/she
 
 func init() {
 	initCmd.Flags().BoolVarP(&printOutput, "print", "p", false, "print the init script")
-	initCmd.Flags().BoolVar(&ttyOnly, "tty-only", false, "only print if output is a TTY")
+	initCmd.Flags().BoolVar(&ttyOnly, "tty-only", true, "only print if output is a TTY (default: true)")
 	_ = initCmd.MarkPersistentFlagRequired("config")
 	RootCmd.AddCommand(initCmd)
 }

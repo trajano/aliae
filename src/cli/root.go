@@ -21,7 +21,8 @@ var RootCmd = &cobra.Command{
 	Long: `aliae is a tool to do cross platform shell management.
 It can use the same configuration everywhere to offer a consistent
 experience, regardless of where you are. For a detailed guide
-on getting started, have a look at the docs at https://aliae.dev`,
+on getting started, have a look at the docs at https://trajano.github.io/aliae.
+This is a personal fork. For the official project and docs, see https://aliae.dev`,
 	Run: func(cmd *cobra.Command, _ []string) {
 		if displayVersion {
 			fmt.Println(cliVersion)

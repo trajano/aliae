@@ -7,6 +7,14 @@ sidebar_label: 🐚 Shell
 import Tabs from "@theme/Tabs";
 import TabItem from "@theme/TabItem";
 
+:::info
+`aliae init` uses `--tty-only=true` by default. If you need output in a non-TTY context (for example in CI or scripted piping), run:
+
+```bash
+aliae init <shell> --tty-only=false
+```
+:::
+
 <Tabs
   defaultValue="powershell"
   groupId="shell"
