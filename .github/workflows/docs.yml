@@ -2,14 +2,13 @@ name: Azure Static Web Apps CI/CD
 
 on:
   push:
-    branches:
-      - main
     paths:
       - "website/**"
   workflow_dispatch:
 
 jobs:
   build_and_deploy_job:
+    if: ${{ github.event_name == 'workflow_dispatch' || github.ref_name == github.event.repository.default_branch }}
     runs-on: ubuntu-latest
     name: Build and Deploy Job
     steps:
