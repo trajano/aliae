@@ -32,7 +32,7 @@ winget install JanDeDobbeleer.Aliae -s winget
 Open a PowerShell prompt and run the following commands:
 
 ```powershell
-scoop bucket add trajano https://github.com/trajano/scoop-bucket
+scoop bucket add trajano https://github.com/trajano/aliae
 scoop install trajano/aliae
 ```
 
@@ -52,10 +52,9 @@ Set-ExecutionPolicy Bypass -Scope Process -Force; Invoke-Expression ((New-Object
 </TabItem>
 </Tabs>
 
-### Create your custom Scoop bucket (fork)
+### Use this repo as the custom Scoop bucket (fork)
 
-If `https://github.com/trajano/scoop-bucket` does not exist yet, create it and add a `bucket/aliae.json` manifest there.
-You can start from the manifest in this repo at `packages/scoop/aliae.json`, then update release URLs to your fork.
+This fork already contains `bucket/aliae.json`, so you can use `trajano/aliae` directly as your custom Scoop bucket.
 
 ## Update
 

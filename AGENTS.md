@@ -42,10 +42,19 @@ If any file under `website/**` changed, run this command from the repo root:
 
 `cd website && npm ci && npm run build`
 
-If both `src/**` and `website/**` changed, run both sets of checks.
+If any file under `bucket/**` or `packages/scoop/**` changed, run this command from the repo root:
+
+`Get-Content bucket/aliae.json | ConvertFrom-Json | Out-Null`
+
+If multiple scopes changed, run all applicable check sets.
 
 If neither `src/**` nor `website/**` changed, these scoped pre-commit checks are not required.
 
 ## Website documentation requirement
 
 When a new feature is added, the agent must also update the website documentation in the same change.
+
+## PR update requirement
+
+When updating an open PR, the agent must ensure the PR description still matches the current change scope.
+The agent must also add an update comment on the PR summarizing what changed in the update.
