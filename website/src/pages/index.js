@@ -58,31 +58,20 @@ function Home() {
         <div className="container">
           <h1 className="hero__title">{siteConfig.title}</h1>
           <p className="hero__subtitle">{siteConfig.tagline}</p>
-          <p>
-            <strong>THIS IS A PERSONAL FORK.</strong>{" "}
-            <strong>
-              FOR THE OFFICIAL PROJECT, GO TO{" "}
-              <a href="https://aliae.dev">aliae.dev</a> AND{" "}
-              <a href="https://github.com/JanDeDobbeleer/aliae">
-                JanDeDobbeleer/aliae
-              </a>
-              .
-            </strong>
-          </p>
-          <div className={styles.buttons} style={{ marginBottom: "1rem" }}>
-            <a
-              className="button button--secondary button--sm"
-              href="https://aliae.dev"
-            >
-              Official docs
+          <p className={styles.forkNotice}>
+            <strong>THIS IS A PERSONAL FORK.</strong> Use the official project at{" "}
+            <a className={styles.noticeLink} href="https://aliae.dev">
+              aliae.dev
             </a>{" "}
+            and{" "}
             <a
-              className="button button--secondary button--sm"
+              className={styles.noticeLink}
               href="https://github.com/JanDeDobbeleer/aliae"
             >
-              Official GitHub repo
+              JanDeDobbeleer/aliae
             </a>
-          </div>
+            .
+          </p>
           <div className={styles.buttons}>
             <Link
               className={classnames(
