@@ -3,8 +3,8 @@ const path = require('path');
 module.exports = {
   title: 'aliae',
   tagline: 'Cross platform shell management.',
-  url: 'https://aliae.dev',
-  baseUrl: '/',
+  url: process.env.DOCS_URL || 'https://aliae.dev',
+  baseUrl: process.env.DOCS_BASE_URL || '/',
   favicon: 'img/favicon.ico',
   organizationName: 'jandedobbeleer',
   projectName: 'aliae',
