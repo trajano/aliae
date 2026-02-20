@@ -48,8 +48,8 @@ git push --force
 
 **I added more than commit**
 
-If all of your commits need to go to main because it makes sense to treat these as atomic units, you can use git's interactive rebase
-functionality to reword any commit between `main` and your `HEAD`. To start an interactive rebase, type `git rebase -i main`.
+If all of your commits need to go to the default branch because it makes sense to treat these as atomic units, you can use git's interactive rebase
+functionality to reword any commit between `origin/HEAD` and your `HEAD`. To start an interactive rebase, type `git rebase -i origin/HEAD`.
 
 This will open your `$EDITOR` and you can mark the commits you want to reword with `reword` (or `r`) rather than `pick`.
 Exiting that file will start the rebase and spwan your `$EDITOR` to alter the commit message for each commit you marked as `reword`.
@@ -66,8 +66,8 @@ Start Rebase to continue.
 
 ## My branch is out of date with the remote
 
-This means the main branch of aliae contains commits your branch does not (could be your main branch, or the branch you created to work on).
-To remedy this, we need to rebase (add the new commits of aliae's main branch underneath your new commits) so the pull request can get merged.
+This means the default branch of aliae contains commits your branch does not (could be your default branch, or the branch you created to work on).
+To remedy this, we need to rebase (add the new commits of aliae's default branch underneath your new commits) so the pull request can get merged.
 
 The first thing to do is to add the aliae codebase as a remote to your local git repository. By default, your fork is a standalone copy
 of aliae with its own remote on GitHub that's not connected to the aliae codebase. Forks and Pull Requests are a feature GitHub introduced
@@ -88,7 +88,7 @@ on top of git functionality, so we need to mimic that situation ourselves.
 
 Hover over `Remote` on the left hand side, this will show a `+` button. Click it and select GitHub. There you have the ability to select
 `jandedobbeleer/aliae` and name it `upstream`. GitKraken will fetch the remote and you will see all branches underneath `upstream` as
-you do for your own branches. Right click `upstream`'s `main` branch and select `Rebase <branch> onto upstream/main`.
+you do for your own branches. Right click `upstream`'s default branch and select `Rebase <branch> onto upstream/HEAD`.
 
 Click Push on the top of the screen and select `Force Push` to bring the changes to the Pull Request.
 
@@ -103,7 +103,7 @@ git fetch upstream
 </TabItem>
 </Tabs>
 
-### Rebase your branch onto upstream/main
+### Rebase your branch onto upstream/HEAD
 
 <Tabs
   defaultValue="kraken"
@@ -115,14 +115,14 @@ git fetch upstream
 }>
 <TabItem value="kraken">
 
-Right click `upstream`'s `main` branch and select `Rebase <branch> onto upstream/main`. Click Push on the top of the screen and select
+Right click `upstream`'s default branch and select `Rebase <branch> onto upstream/HEAD`. Click Push on the top of the screen and select
 `Force Push` to bring the changes to the Pull Request.
 
 </TabItem>
 <TabItem value="cli">
 
 ```bash
-git rebase upstream/main
+git rebase upstream/HEAD
 git push --force
 ```
 

@@ -22,6 +22,7 @@ Thanks goes to these wonderful people ([emoji key][acek]):
     </tr>
     <tr>
       <td align="center" valign="top" width="14.28%"><a href="https://tylerbutler.com"><img src="https://avatars.githubusercontent.com/u/19589?v=4?s=100" width="100px;" alt="Tyler Butler"/><br /><sub><b>Tyler Butler</b></sub></a><br /><a href="https://github.com/JanDeDobbeleer/aliae/commits?author=tylerbutler" title="Documentation">📖</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/trajano"><img src="https://avatars.githubusercontent.com/u/26380?v=4?s=100" width="100px;" alt="trajano"/><br /><sub><b>trajano</b></sub></a><br /><a href="https://github.com/JanDeDobbeleer/aliae/commits?author=trajano" title="Code">💻</a> <a href="https://github.com/JanDeDobbeleer/aliae/commits?author=trajano" title="Documentation">📖</a></td>
     </tr>
   </tbody>
 </table>
