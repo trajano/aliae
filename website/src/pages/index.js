@@ -69,6 +69,20 @@ function Home() {
               .
             </strong>
           </p>
+          <div className={styles.buttons} style={{ marginBottom: "1rem" }}>
+            <a
+              className="button button--secondary button--sm"
+              href="https://aliae.dev"
+            >
+              Official docs
+            </a>{" "}
+            <a
+              className="button button--secondary button--sm"
+              href="https://github.com/JanDeDobbeleer/aliae"
+            >
+              Official GitHub repo
+            </a>
+          </div>
           <div className={styles.buttons}>
             <Link
               className={classnames(
