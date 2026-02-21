@@ -38,6 +38,12 @@ If any file under `src/**` changed, run these commands from the repo root:
 
 `cd src && go test ./...`
 
+`cd src && go run github.com/golangci/golangci-lint/cmd/golangci-lint@latest run`
+
+If any Markdown or MDX files changed, run this command from the repo root:
+
+`npx --yes markdownlint-cli $(rg --files -g "*.md" -g "*.mdx")`
+
 If any file under `website/**` changed, run this command from the repo root:
 
 `cd website && npm ci && npm run build`
