@@ -35,6 +35,7 @@ focused on Git Bash support and fork-specific distribution.
   - Fixed Git Bash PATH delimiter handling on Windows.
 - Template features:
   - Added `homeFileExists` and `homeDirExists` template helpers.
+  - Added `progress` template helper for OSC progress output and reset.
   - Added `.AliaeConfig` and `.AliaeConfigDir` template variables.
 - Fork packaging and automation:
   - Pointed installer/docs flows to fork-owned release assets where appropriate.

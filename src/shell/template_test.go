@@ -325,3 +325,62 @@ func TestHomeDirExists(t *testing.T) {
 		assert.Equal(t, tc.Expected, got, tc.Case)
 	}
 }
+
+func TestProgress(t *testing.T) {
+	text := `{{ progress .Value }}`
+	cases := []struct {
+		Case     string
+		Shell    string
+		Value    any
+		Expected string
+	}{
+		{
+			Case:     "bash percentage",
+			Shell:    BASH,
+			Value:    71,
+			Expected: `printf '\033]9;4;1;71\007'`,
+		},
+		{
+			Case:     "bash reset",
+			Shell:    BASH,
+			Value:    "reset",
+			Expected: `printf '\033]9;4;0;0\007'`,
+		},
+		{
+			Case:     "pwsh percentage",
+			Shell:    PWSH,
+			Value:    71,
+			Expected: `[Console]::Out.Write("$([char]27)]9;4;1;71$([char]7)")`,
+		},
+		{
+			Case:     "powershell reset",
+			Shell:    POWERSHELL,
+			Value:    "reset",
+			Expected: `[Console]::Out.Write("$([char]27)]9;4;0;0$([char]7)")`,
+		},
+		{
+			Case:     "string percentage",
+			Shell:    BASH,
+			Value:    "100",
+			Expected: `printf '\033]9;4;1;100\007'`,
+		},
+		{
+			Case:     "invalid input",
+			Shell:    BASH,
+			Value:    "abc",
+			Expected: ``,
+		},
+		{
+			Case:     "out of range",
+			Shell:    BASH,
+			Value:    101,
+			Expected: ``,
+		},
+	}
+
+	for _, tc := range cases {
+		context.Current = &context.Runtime{Shell: tc.Shell}
+		got, _ := parse(text, tc)
+		assert.Equal(t, tc.Expected, got, tc.Case)
+	}
+}
