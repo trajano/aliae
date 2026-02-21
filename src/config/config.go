@@ -7,8 +7,10 @@ import (
 	"io"
 	"net"
 	"net/http"
+	"net/url"
 	"os"
 	"path"
+	"path/filepath"
 	"runtime"
 	"strings"
 	"time"
@@ -37,18 +39,45 @@ var (
 
 func LoadConfig(configPath string) (*Aliae, error) {
 	configPathCache = resolveConfigPath(configPath)
+	setTemplateConfigContext(configPathCache)
 
 	if strings.HasPrefix(configPathCache, "http://") || strings.HasPrefix(configPathCache, "https://") {
 		return getRemoteConfig(configPathCache)
 	}
 
-	if filepath, err := os.Stat(configPathCache); os.IsNotExist(err) || filepath.IsDir() {
+	if stat, err := os.Stat(configPathCache); os.IsNotExist(err) || stat.IsDir() {
 		return nil, fmt.Errorf("config file not found: %s", configPathCache)
 	}
 
 	data, _ := os.ReadFile(configPathCache)
 
 	return parseConfig(data)
+}
+
+func setTemplateConfigContext(configPath string) {
+	if context.Current == nil {
+		return
+	}
+
+	context.Current.AliaeConfig = configPath
+	context.Current.AliaeConfigDir = resolveConfigDir(configPath)
+}
+
+func resolveConfigDir(configPath string) string {
+	if !strings.HasPrefix(configPath, "http://") && !strings.HasPrefix(configPath, "https://") {
+		return filepath.Dir(configPath)
+	}
+
+	parsed, err := url.Parse(configPath)
+	if err != nil {
+		return filepath.Dir(configPath)
+	}
+
+	parsed.Path = path.Dir(parsed.Path)
+	parsed.RawQuery = ""
+	parsed.Fragment = ""
+
+	return parsed.String()
 }
 
 func home() string {
