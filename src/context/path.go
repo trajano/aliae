@@ -58,34 +58,12 @@ func cleanPath(path string) string {
 	}
 
 	if isMSYS2Shell() {
-		if normalized, OK := windowsToMSYSPath(path); OK {
+		if normalized, err := runCygpath(path); err == nil && normalized != "" {
 			path = normalized
 		}
 	}
 
 	return strings.TrimRight(path, `/\`)
-}
-
-func windowsToMSYSPath(path string) (string, bool) {
-	if len(path) < 3 || path[1] != ':' {
-		return "", false
-	}
-
-	drive := path[0]
-	if !isASCIIAlpha(drive) {
-		return "", false
-	}
-
-	if path[2] != '\\' && path[2] != '/' {
-		return "", false
-	}
-
-	if converted, err := runCygpath(path); err == nil && converted != "" {
-		return converted, true
-	}
-
-	rest := strings.ReplaceAll(path[2:], `\`, `/`)
-	return fmt.Sprintf("/%s%s", strings.ToLower(string(drive)), rest), true
 }
 
 func isASCIIAlpha(value byte) bool {

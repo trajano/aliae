@@ -2,7 +2,6 @@ package context
 
 import (
 	"os"
-	"os/exec"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -28,6 +27,15 @@ func TestPathContainsEquivalentWindowsAndMSYS2Forms(t *testing.T) {
 	t.Setenv("MSYSTEM", "MINGW64")
 	t.Setenv("PATH", "")
 	Current = &Runtime{OS: WINDOWS, Shell: "bash"}
+
+	originalRunCygpath := runCygpath
+	t.Cleanup(func() { runCygpath = originalRunCygpath })
+	runCygpath = func(path string) (string, error) {
+		if path == `C:\Users\trajano\AppData\Local\Android\Sdk\platform-tools` {
+			return "/c/Users/trajano/AppData/Local/Android/Sdk/platform-tools", nil
+		}
+		return "", assert.AnError
+	}
 
 	path := &Path{}
 	path.Append(`C:\Users\trajano\AppData\Local\Android\Sdk\platform-tools`)
@@ -64,11 +72,7 @@ func TestGetPathDoesNotMutateEnvironmentPath(t *testing.T) {
 	assert.Equal(t, original, os.Getenv("PATH"))
 }
 
-func TestWindowsToMSYSPathUsesCygpath(t *testing.T) {
-	if _, err := exec.LookPath("cygpath"); err != nil {
-		t.Skip("cygpath not available")
-	}
-
+func TestCleanPathUsesCygpath(t *testing.T) {
 	t.Setenv("MSYSTEM", "MINGW64")
 	Current = &Runtime{OS: WINDOWS, Shell: "bash"}
 
@@ -76,20 +80,14 @@ func TestWindowsToMSYSPathUsesCygpath(t *testing.T) {
 	t.Cleanup(func() { runCygpath = originalRunCygpath })
 
 	runCygpath = func(path string) (string, error) {
-		assert.Equal(t, `C:\Users\trajano\bin`, path)
+		assert.Equal(t, `C:\Users\trajano\bin\`, path)
 		return "/c/Users/trajano/bin", nil
 	}
 
-	got, ok := windowsToMSYSPath(`C:\Users\trajano\bin`)
-	assert.True(t, ok)
-	assert.Equal(t, "/c/Users/trajano/bin", got)
+	assert.Equal(t, "/c/Users/trajano/bin", cleanPath(`C:\Users\trajano\bin\`))
 }
 
-func TestWindowsToMSYSPathFallsBackWhenCygpathFails(t *testing.T) {
-	if _, err := exec.LookPath("cygpath"); err != nil {
-		t.Skip("cygpath not available")
-	}
-
+func TestCleanPathKeepsWindowsPathWhenCygpathFails(t *testing.T) {
 	t.Setenv("MSYSTEM", "MINGW64")
 	Current = &Runtime{OS: WINDOWS, Shell: "bash"}
 
@@ -100,7 +98,5 @@ func TestWindowsToMSYSPathFallsBackWhenCygpathFails(t *testing.T) {
 		return "", assert.AnError
 	}
 
-	got, ok := windowsToMSYSPath(`C:\Users\trajano\bin`)
-	assert.True(t, ok)
-	assert.Equal(t, "/c/Users/trajano/bin", got)
+	assert.Equal(t, `C:\Users\trajano\bin`, cleanPath(`C:\Users\trajano\bin\`))
 }
