@@ -1,4 +1,66 @@
 const path = require('path');
+const childProcess = require('child_process');
+
+function run(command) {
+  try {
+    return childProcess.execSync(command, { stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim();
+  } catch (e) {
+    return '';
+  }
+}
+
+function parseRepositoryUrl(remote) {
+  if (!remote) {
+    return '';
+  }
+
+  // git@github.com:owner/repo.git
+  const ssh = remote.match(/^git@github\.com:([^/]+)\/(.+?)(?:\.git)?$/i);
+  if (ssh) {
+    return `https://github.com/${ssh[1]}/${ssh[2]}`;
+  }
+
+  // https://github.com/owner/repo.git
+  const https = remote.match(/^https?:\/\/github\.com\/([^/]+)\/(.+?)(?:\.git)?$/i);
+  if (https) {
+    return `https://github.com/${https[1]}/${https[2]}`;
+  }
+
+  return '';
+}
+
+function repositoryUrlFromActionsEnv() {
+  // GitHub Actions always provides owner/repo for the running repository.
+  if (process.env.GITHUB_REPOSITORY) {
+    const serverUrl = process.env.GITHUB_SERVER_URL || 'https://github.com';
+    return `${serverUrl}/${process.env.GITHUB_REPOSITORY}`;
+  }
+
+  return '';
+}
+
+function getDefaultBranch() {
+  // Prefer explicit env from workflow contexts when available.
+  if (process.env.DOCS_DEFAULT_BRANCH) {
+    return process.env.DOCS_DEFAULT_BRANCH;
+  }
+
+  if (process.env.GITHUB_REF_NAME) {
+    return process.env.GITHUB_REF_NAME;
+  }
+
+  const ref = run('git symbolic-ref --short refs/remotes/origin/HEAD');
+  if (!ref) {
+    return 'master';
+  }
+
+  const parts = ref.split('/');
+  return parts[parts.length - 1] || 'master';
+}
+
+const originRemote = run('git config --get remote.origin.url');
+const repositoryUrl = repositoryUrlFromActionsEnv() || parseRepositoryUrl(originRemote) || 'https://github.com/jandedobbeleer/aliae';
+const defaultBranch = getDefaultBranch();
 
 module.exports = {
   title: 'aliae',
@@ -6,8 +68,11 @@ module.exports = {
   url: process.env.DOCS_URL || 'https://aliae.dev',
   baseUrl: process.env.DOCS_BASE_URL || '/',
   favicon: 'img/favicon.ico',
-  organizationName: 'jandedobbeleer',
-  projectName: 'aliae',
+  organizationName: repositoryUrl.split('/')[3],
+  projectName: repositoryUrl.split('/')[4],
+  customFields: {
+    repositoryUrl,
+  },
   onBrokenLinks: 'ignore',
   plugins: [
     path.resolve(__dirname, 'plugins', 'appinsights'),
@@ -36,7 +101,7 @@ module.exports = {
           position: 'left',
         },
         {
-          href: 'https://github.com/jandedobbeleer/aliae',
+          href: repositoryUrl,
           className: 'header-github-link',
           'aria-label': 'GitHub repository',
           position: 'right',
@@ -82,7 +147,7 @@ module.exports = {
           items: [
             {
               label: 'GitHub',
-              href: 'https://github.com/jandedobbeleer/aliae',
+              href: repositoryUrl,
             },
             {
               label: 'Discord',
@@ -128,7 +193,7 @@ module.exports = {
       {
         docs: {
           sidebarPath: require.resolve('./sidebars.js'),
-          editUrl: 'https://github.com/jandedobbeleer/aliae/edit/main/website/',
+          editUrl: `${repositoryUrl}/edit/${defaultBranch}/website/`,
         },
         theme: {
           customCss: [
