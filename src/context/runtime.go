@@ -22,13 +22,16 @@ type Runtime struct {
 }
 
 func Init(shell string) {
+	home := Home()
+
 	Current = &Runtime{
 		Shell: shell,
 		OS:    runtime.GOOS,
 		Arch:  runtime.GOARCH,
-		Home:  Home(),
-		Path:  getPath(),
+		Home:  home,
 	}
+
+	Current.Path = getPath()
 }
 
 func Home() string {
