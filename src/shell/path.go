@@ -1,6 +1,8 @@
 package shell
 
 import (
+	"fmt"
+	"os"
 	"path/filepath"
 	"strings"
 
@@ -52,14 +54,16 @@ func (p *Path) render() string {
 
 	first := true
 	for _, line := range splitted {
-		line = strings.TrimSpace(line)
-		if len(line) == 0 {
+		rawLine := strings.TrimSpace(line)
+		if len(rawLine) == 0 {
 			continue
 		}
 
-		if p.IfExists && !pathEntryExists(line) {
+		if p.IfExists && !pathEntryExists(rawLine) {
 			continue
 		}
+
+		line = normalizePathEntry(rawLine)
 
 		if context.Current.Path.Contains(line) && !p.Force {
 			continue
@@ -72,7 +76,7 @@ func (p *Path) render() string {
 		}
 
 		if p.Persist {
-			registry.PersistPathEntry(line)
+			registry.PersistPathEntry(rawLine)
 		}
 
 		ctx.Value = line
@@ -102,8 +106,67 @@ func pathEntryExists(entry string) bool {
 		resolved = filepath.Join(context.Home(), resolved)
 	}
 
+	if context.Current != nil && context.Current.OS == context.WINDOWS && isMSYS2Environment() {
+		if windowsPath, ok := msysToWindowsPath(resolved); ok {
+			resolved = windowsPath
+		}
+	}
+
 	_, err := statWithTimeout(resolved, statTimeout)
 	return err == nil
+}
+
+func normalizePathEntry(entry string) string {
+	if context.Current == nil || context.Current.OS != context.WINDOWS || context.Current.Shell != BASH || !isMSYS2Environment() {
+		return entry
+	}
+
+	normalized, ok := windowsToMSYSPath(entry)
+	if !ok {
+		return entry
+	}
+
+	return normalized
+}
+
+func isMSYS2Environment() bool {
+	return os.Getenv("MSYSTEM") != ""
+}
+
+func windowsToMSYSPath(path string) (string, bool) {
+	if len(path) < 3 || path[1] != ':' {
+		return "", false
+	}
+
+	drive := path[0]
+	if !isASCIIAlpha(drive) {
+		return "", false
+	}
+
+	if path[2] != '\\' && path[2] != '/' {
+		return "", false
+	}
+
+	rest := strings.ReplaceAll(path[2:], `\`, `/`)
+	return fmt.Sprintf("/%s%s", strings.ToLower(string(drive)), rest), true
+}
+
+func msysToWindowsPath(path string) (string, bool) {
+	if len(path) < 4 || path[0] != '/' || path[2] != '/' {
+		return "", false
+	}
+
+	drive := path[1]
+	if !isASCIIAlpha(drive) {
+		return "", false
+	}
+
+	rest := strings.ReplaceAll(path[3:], `/`, `\`)
+	return fmt.Sprintf("%s:\\%s", strings.ToUpper(string(drive)), rest), true
+}
+
+func isASCIIAlpha(value byte) bool {
+	return (value >= 'a' && value <= 'z') || (value >= 'A' && value <= 'Z')
 }
 
 func (p Paths) Render() {
