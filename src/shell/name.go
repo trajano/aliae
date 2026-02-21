@@ -2,6 +2,7 @@ package shell
 
 import (
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/shirou/gopsutil/process"
@@ -20,7 +21,8 @@ func Name() string {
 	}
 
 	executable, _ := os.Executable()
-	if name == executable {
+	executable = filepath.Base(executable)
+	if shouldUseParentShell(name, executable) {
 		p, _ = p.Parent()
 		name, err = p.Name()
 	}
@@ -30,4 +32,10 @@ func Name() string {
 	}
 
 	return strings.TrimSuffix(name, ".exe")
+}
+
+func shouldUseParentShell(name, executable string) bool {
+	normalizedName := strings.TrimSuffix(filepath.Base(name), ".exe")
+	normalizedExecutable := strings.TrimSuffix(filepath.Base(executable), ".exe")
+	return normalizedName == normalizedExecutable
 }
