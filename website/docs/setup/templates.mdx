@@ -19,22 +19,48 @@ configuration across multiple environments resulting in environment specific val
 
 Out of the box you get the following functionality:
 
-| Name             | Type      | Description                                                        | Example                                                                      |
-| ---------------- | --------- | ------------------------------------------------------------------ | ---------------------------------------------------------------------------- |
-| `.Shell`         | `string`  | the current shell name                                             | `{{ .Shell }}`                                                               |
-| `.Home`          | `string`  | the user's `$HOME` folder                                          | `{{ .Home }}/go/bin/aliae`                                                   |
-| `.OS`            | `string`  | the current operating system (`windows`, `darwin`, `linux`)        | `{{ .Home }}/go/bin/aliae{{ if eq .OS "windows" }}.exe{{ end }}`             |
-| `.Arch`          | `string`  | the `aliae` executable's compiled architecture                     | `{{ .Home }}/go/bin/aliae-{{ .Arch }}{{ if eq .OS "windows" }}.exe{{ end }}` |
-| `.AliaeConfig`   | `string`  | the resolved `aliae` configuration file path                       | `{{ .AliaeConfig }}`                                                          |
-| `.AliaeConfigDir`| `string`  | the directory that contains the resolved `aliae` configuration file | `{{ .AliaeConfigDir }}/partials/env.yaml`                                     |
-| `env`            | `string`  | retrieve an environment variable value                             | `{{ env "POSH_THEME" }}`                                                     |
-| `match`          | `boolean` | match a shell name to one or multiple options                      | `{{ match .Shell "zsh" "bash" }}`                                            |
-| `hasCommand`     | `boolean` | check if an executable exists                                      | `{{ hasCommand "oh-my-posh" }}`                                              |
-| `homeFileExists` | `boolean` | check if a file exists (relative to `.Home` by default)            | `{{ homeFileExists ".cache/aliae" }}`                                        |
-| `homeDirExists`  | `boolean` | check if a directory exists (relative to `.Home` by default)       | `{{ homeDirExists ".cache" }}`                                               |
+### Variables
+
+| Name | Type | Description |
+| --- | --- | --- |
+| `.Shell` | `string` | the current shell name |
+| `.Home` | `string` | the user's `$HOME` folder |
+| `.OS` | `string` | the current operating system |
+| `.Arch` | `string` | the `aliae` executable architecture |
+| `.AliaeConfig` | `string` | the resolved `aliae` configuration file path |
+| `.AliaeConfigDir` | `string` | the directory of the resolved config file |
+
+Variable examples:
+
+- `.Shell`: `{{ .Shell }}`
+- `.Home`: `{{ .Home }}/go/bin/aliae`
+- `.OS`: `{{ if eq .OS "windows" }}.exe{{ end }}`
+- `.Arch`: `{{ .Arch }}`
+- `.AliaeConfig`: `{{ .AliaeConfig }}`
+- `.AliaeConfigDir`: `{{ .AliaeConfigDir }}`
+
+### Functions
+
+| Name | Type | Description |
+| --- | --- | --- |
+| `env` | `string` | retrieve an environment variable value |
+| `match` | `boolean` | match a shell name to one or multiple options |
+| `hasCommand` | `boolean` | check if an executable exists |
+| `homeFileExists` | `boolean` | check if a file exists relative to `.Home` by default |
+| `homeDirExists` | `boolean` | check if a directory exists relative to `.Home` |
+
+Function examples:
+
+- `env`: `{{ env "POSH_THEME" }}`
+- `match`: `{{ match .Shell "zsh" "bash" }}`
+- `hasCommand`: `{{ hasCommand "oh-my-posh" }}`
+- `homeFileExists`: `{{ homeFileExists ".cache/aliae" }}`
+- `homeDirExists`: `{{ homeDirExists ".cache" }}`
 
 `homeFileExists` and `homeDirExists` resolve paths relative to `.Home` unless the path is absolute.
-Results are cached per resolved path during the current run. If the same path is checked again later (for example from `script`), the cached result is reused instead of checking the filesystem again.
+Results are cached per resolved path during the current run.
+If the same path is checked again later (for example from `script`),
+the cached result is reused instead of checking the filesystem again.
 
 :::tip
 When using a template in a single line, you have to use quotes to wrap the template string.
@@ -44,6 +70,7 @@ env:
   - name: POSH_THEME
     value: '{{ .Home }}/.configs/posh.omp.yaml'
 ```
+
 :::
 
 [go-text-template]: https://golang.org/pkg/text/template/
