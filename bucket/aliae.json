@@ -1,5 +1,5 @@
 {
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "Cross platform shell management",
   "homepage": "https://trajano.github.io/aliae/",
   "license": {
@@ -8,8 +8,8 @@
   },
   "architecture": {
     "64bit": {
-      "url": "https://github.com/trajano/aliae/releases/download/v0.5.0/aliae-windows-amd64.exe",
-      "hash": "c5d130132c6944a9ff9c18d2bcd67093f458b0d98ffb7cd724dd5323015efb65",
+      "url": "https://github.com/trajano/aliae/releases/download/v0.6.0/aliae-windows-amd64.exe",
+      "hash": "95b6ea782c41e9807004b4d5aaaef9a2bea15117cec4266a7d8bb71882ef5c45",
       "bin": [
         [
           "aliae-windows-amd64.exe",
@@ -18,8 +18,8 @@
       ]
     },
     "32bit": {
-      "url": "https://github.com/trajano/aliae/releases/download/v0.5.0/aliae-windows-386.exe",
-      "hash": "a47ea9bd2114828b0ed8a9e1e071fe21f2618a6bbb728536e544d79a5ef42078",
+      "url": "https://github.com/trajano/aliae/releases/download/v0.6.0/aliae-windows-386.exe",
+      "hash": "2bc406f0e1ac6b6cd545502d124863b0e6164bfaf2f6ca8198e1081596687b85",
       "bin": [
         [
           "aliae-windows-386.exe",
@@ -28,8 +28,8 @@
       ]
     },
     "arm64": {
-      "url": "https://github.com/trajano/aliae/releases/download/v0.5.0/aliae-windows-arm64.exe",
-      "hash": "2a1f8a98271390918265aa70bf00370cd41edc7c861f81b8428713423a961985",
+      "url": "https://github.com/trajano/aliae/releases/download/v0.6.0/aliae-windows-arm64.exe",
+      "hash": "058bc3fd09b86774dc4c491bcb6e1074c2c68ee9f3c2a964c4618326ed32945c",
       "bin": [
         [
           "aliae-windows-arm64.exe",
@@ -48,13 +48,13 @@
   "autoupdate": {
     "architecture": {
       "64bit": {
-        "url": "https://github.com/trajano/aliae/releases/download/v0.5.0/aliae-windows-amd64.exe"
+        "url": "https://github.com/trajano/aliae/releases/download/v0.6.0/aliae-windows-amd64.exe"
       },
       "32bit": {
-        "url": "https://github.com/trajano/aliae/releases/download/v0.5.0/aliae-windows-386.exe"
+        "url": "https://github.com/trajano/aliae/releases/download/v0.6.0/aliae-windows-386.exe"
       },
       "arm64": {
-        "url": "https://github.com/trajano/aliae/releases/download/v0.5.0/aliae-windows-arm64.exe"
+        "url": "https://github.com/trajano/aliae/releases/download/v0.6.0/aliae-windows-arm64.exe"
       }
     },
     "hash": {
