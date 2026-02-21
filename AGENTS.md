@@ -56,6 +56,14 @@ If neither `src/**` nor `website/**` changed, these scoped pre-commit checks are
 
 When a new feature is added, the agent must also update the website documentation in the same change.
 
+## Template variable change checklist
+
+When adding or changing template variables, update all of the following in the same change:
+
+- Runtime/template variable source in `src/context/runtime.go` and related config wiring in `src/config/config.go`.
+- Template coverage tests in `src/config/init_test.go` and helper/unit tests in `src/config/config_test.go` or `src/shell/template_test.go`.
+- Website documentation in `website/docs/setup/templates.mdx`.
+
 ## PR update requirement
 
 When updating an open PR, the agent must ensure the PR description still matches the current change scope.
