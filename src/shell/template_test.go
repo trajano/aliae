@@ -212,6 +212,15 @@ func TestMatch(t *testing.T) {
 	}
 }
 
+func TestTemplateHostname(t *testing.T) {
+	text := `{{ .Hostname }}`
+	context.Current = &context.Runtime{Shell: BASH, Hostname: "my-host"}
+
+	got, err := parse(text, context.Current)
+	assert.NoError(t, err)
+	assert.Equal(t, "my-host", got)
+}
+
 func TestHasCommand(t *testing.T) {
 	text := `{{ hasCommand .Command}}`
 	cases := []struct {

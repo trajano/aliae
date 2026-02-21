@@ -38,6 +38,7 @@ focused on Git Bash support and fork-specific distribution.
   - Added `fileExists` and `dirExists` template helpers.
   - Added `progress` template helper for OSC progress output and reset.
   - Added `.ConfigPath` and `.ConfigDir` template variables.
+  - Added `.Hostname` template variable to expose the system hostname.
 - PATH features:
   - Added `ifExists` option to include only existing path entries.
 - Configuration features:
