@@ -4,6 +4,7 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/jandedobbeleer/aliae/src/shell"
 	"github.com/stretchr/testify/assert"
@@ -103,4 +104,10 @@ func TestResolveConfigDir(t *testing.T) {
 		got := resolveConfigDir(tc.config)
 		assert.Equal(t, tc.expected, got, tc.name)
 	}
+}
+
+func TestParseConfigStatTimeout(t *testing.T) {
+	aliae, err := parseConfig([]byte("stat_timeout: 250ms\n"))
+	assert.NoError(t, err)
+	assert.Equal(t, 250*time.Millisecond, aliae.StatTimeout)
 }

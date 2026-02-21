@@ -1,6 +1,7 @@
 package shell
 
 import (
+	"path/filepath"
 	"strings"
 
 	"github.com/jandedobbeleer/aliae/src/context"
@@ -15,6 +16,7 @@ type Path struct {
 	template string
 	Persist  bool `yaml:"persist"`
 	Force    bool `yaml:"force"`
+	IfExists bool `yaml:"ifExists"`
 }
 
 func (p *Path) string() string {
@@ -55,6 +57,10 @@ func (p *Path) render() string {
 			continue
 		}
 
+		if p.IfExists && !pathEntryExists(line) {
+			continue
+		}
+
 		if context.Current.Path.Contains(line) && !p.Force {
 			continue
 		}
@@ -81,6 +87,23 @@ func (p *Path) render() string {
 	}
 
 	return builder.String()
+}
+
+func pathEntryExists(entry string) bool {
+	resolved := entry
+	if strings.HasPrefix(resolved, "~") {
+		rem := resolved[1:]
+		if len(rem) == 0 || rem[0] == '/' || rem[0] == '\\' {
+			resolved = context.Home() + rem
+		}
+	}
+
+	if !filepath.IsAbs(resolved) && !strings.HasPrefix(resolved, "/") {
+		resolved = filepath.Join(context.Home(), resolved)
+	}
+
+	_, err := statWithTimeout(resolved, statTimeout)
+	return err == nil
 }
 
 func (p Paths) Render() {

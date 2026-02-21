@@ -17,6 +17,7 @@ import (
 
 	"github.com/goccy/go-yaml"
 	"github.com/jandedobbeleer/aliae/src/context"
+	"github.com/jandedobbeleer/aliae/src/shell"
 )
 
 type httpClient interface {
@@ -165,6 +166,8 @@ func parseConfig(data []byte) (*Aliae, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse config file: %s", err)
 	}
+
+	shell.SetStatTimeout(aliae.StatTimeout)
 
 	return &aliae, nil
 }

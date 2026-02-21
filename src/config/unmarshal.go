@@ -7,17 +7,19 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/goccy/go-yaml"
 	"github.com/jandedobbeleer/aliae/src/shell"
 )
 
 type Aliae struct {
-	Aliae   shell.Aliae   `yaml:"alias"`
-	Envs    shell.Envs    `yaml:"env"`
-	Paths   shell.Paths   `yaml:"path"`
-	Scripts shell.Scripts `yaml:"script"`
-	Links   shell.Links   `yaml:"link"`
+	Aliae       shell.Aliae   `yaml:"alias"`
+	Envs        shell.Envs    `yaml:"env"`
+	Paths       shell.Paths   `yaml:"path"`
+	Scripts     shell.Scripts `yaml:"script"`
+	Links       shell.Links   `yaml:"link"`
+	StatTimeout time.Duration `yaml:"stat_timeout"`
 }
 
 type FuncMap []StringFunc

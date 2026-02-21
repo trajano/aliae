@@ -198,7 +198,7 @@ func pathExists(path string) pathInfo {
 		return cached
 	}
 
-	info, err := os.Stat(path)
+	info, err := statWithTimeout(path, statTimeout)
 	result := pathInfo{
 		exists: err == nil,
 		isDir:  err == nil && info.IsDir(),
@@ -226,7 +226,7 @@ func clearPathExistsCache() {
 }
 
 func isDir(path string) bool {
-	info, err := os.Stat(path)
+	info, err := statWithTimeout(path, statTimeout)
 	if err != nil {
 		return false
 	}
