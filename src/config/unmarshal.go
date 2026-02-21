@@ -14,12 +14,12 @@ import (
 )
 
 type Aliae struct {
-	StatTimeout time.Duration `yaml:"stat_timeout"`
 	Aliae       shell.Aliae   `yaml:"alias"`
 	Envs        shell.Envs    `yaml:"env"`
 	Paths       shell.Paths   `yaml:"path"`
 	Scripts     shell.Scripts `yaml:"script"`
 	Links       shell.Links   `yaml:"link"`
+	StatTimeout time.Duration `yaml:"stat_timeout"`
 }
 
 type FuncMap []StringFunc
