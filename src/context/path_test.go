@@ -2,6 +2,7 @@ package context
 
 import (
 	"os"
+	"os/exec"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -64,6 +65,10 @@ func TestGetPathDoesNotMutateEnvironmentPath(t *testing.T) {
 }
 
 func TestWindowsToMSYSPathUsesCygpath(t *testing.T) {
+	if _, err := exec.LookPath("cygpath"); err != nil {
+		t.Skip("cygpath not available")
+	}
+
 	t.Setenv("MSYSTEM", "MINGW64")
 	Current = &Runtime{OS: WINDOWS, Shell: "bash"}
 
@@ -81,6 +86,10 @@ func TestWindowsToMSYSPathUsesCygpath(t *testing.T) {
 }
 
 func TestWindowsToMSYSPathFallsBackWhenCygpathFails(t *testing.T) {
+	if _, err := exec.LookPath("cygpath"); err != nil {
+		t.Skip("cygpath not available")
+	}
+
 	t.Setenv("MSYSTEM", "MINGW64")
 	Current = &Runtime{OS: WINDOWS, Shell: "bash"}
 
