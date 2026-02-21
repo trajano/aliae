@@ -286,8 +286,59 @@ func TestHomeFileExists(t *testing.T) {
 	assert.Equal(t, "false", cachedResult, "should reuse cached result")
 }
 
+func TestFileExists(t *testing.T) {
+	text := `{{ fileExists .Path }}`
+	tempDir := t.TempDir()
+	context.Current = &context.Runtime{Shell: BASH, Home: tempDir}
+	relExisting := filepath.Join(tempDir, ".cache", "aliae")
+	absExisting := filepath.Join(tempDir, "absolute.txt")
+	assert.NoError(t, os.MkdirAll(filepath.Dir(relExisting), 0o700))
+	assert.NoError(t, os.WriteFile(relExisting, []byte("ok"), 0o600))
+	assert.NoError(t, os.WriteFile(absExisting, []byte("ok"), 0o600))
+
+	t.Cleanup(clearPathExistsCache)
+
+	cases := []struct {
+		Case     string
+		Path     string
+		Expected string
+	}{
+		{
+			Case:     "relative to home file exists",
+			Path:     ".cache/aliae",
+			Expected: "true",
+		},
+		{
+			Case:     "absolute file exists",
+			Path:     absExisting,
+			Expected: "true",
+		},
+		{
+			Case:     "relative file does not exist",
+			Path:     ".cache/missing",
+			Expected: "false",
+		},
+	}
+
+	for _, tc := range cases {
+		clearPathExistsCache()
+		got, _ := parse(text, tc)
+		assert.Equal(t, tc.Expected, got, tc.Case)
+	}
+}
+
 func TestHomeDirExists(t *testing.T) {
 	text := `{{ homeDirExists .Path }}`
+	testDirExistsTemplate(t, text)
+}
+
+func TestDirExists(t *testing.T) {
+	text := `{{ dirExists .Path }}`
+	testDirExistsTemplate(t, text)
+}
+
+func testDirExistsTemplate(t *testing.T, text string) {
+	t.Helper()
 	tempDir := t.TempDir()
 	context.Current = &context.Runtime{Shell: BASH, Home: tempDir}
 	relDir := filepath.Join(tempDir, ".cache", "aliae")

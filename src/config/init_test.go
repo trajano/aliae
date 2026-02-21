@@ -21,6 +21,10 @@ func TestInitTemplateConfigVariables(t *testing.T) {
     value: '{{ .AliaeConfig }}'
   - name: ALIAE_CONFIG_DIR
     value: '{{ .AliaeConfigDir }}'
+  - name: CONFIG_PATH
+    value: '{{ .ConfigPath }}'
+  - name: CONFIG_DIR
+    value: '{{ .ConfigDir }}'
 `
 
 	err := os.WriteFile(configFile, []byte(configContent), 0o600)
@@ -29,6 +33,8 @@ func TestInitTemplateConfigVariables(t *testing.T) {
 	script := Init(configFile, shell.BASH, true)
 	escapedDir := strings.ReplaceAll(resolveConfigDir(configFile), `\`, `\\`)
 	expected := "export ALIAE_CONFIG_PATH=\"" + configFile + "\"\n" +
-		"export ALIAE_CONFIG_DIR=\"" + escapedDir + "\""
+		"export ALIAE_CONFIG_DIR=\"" + escapedDir + "\"\n" +
+		"export CONFIG_PATH=\"" + configFile + "\"\n" +
+		"export CONFIG_DIR=\"" + escapedDir + "\""
 	assert.Equal(t, expected, script)
 }

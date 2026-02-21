@@ -71,6 +71,8 @@ func funcMap() template.FuncMap {
 		"env":            os.Getenv,
 		"match":          match,
 		"hasCommand":     hasCommand,
+		"fileExists":     fileExists,
+		"dirExists":      dirExists,
 		"homeFileExists": homeFileExists,
 		"homeDirExists":  homeDirExists,
 		"isDir":          isDir,
@@ -171,11 +173,19 @@ func hasCommand(command string) bool {
 // Most template checks target files under the home directory, so this avoids requiring
 // repetitive printf/path-join template expressions in common configurations.
 func homeFileExists(path string) bool {
+	return fileExists(path)
+}
+
+func fileExists(path string) bool {
 	info := pathExists(resolveFromHome(path))
 	return info.exists && !info.isDir
 }
 
 func homeDirExists(path string) bool {
+	return dirExists(path)
+}
+
+func dirExists(path string) bool {
 	info := pathExists(resolveFromHome(path))
 	return info.exists && info.isDir
 }

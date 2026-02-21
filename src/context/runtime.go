@@ -15,6 +15,8 @@ type Runtime struct {
 	OS             string
 	Home           string
 	Arch           string
+	ConfigPath     string
+	ConfigDir      string
 	AliaeConfig    string
 	AliaeConfigDir string
 }
