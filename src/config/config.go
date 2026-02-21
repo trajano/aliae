@@ -132,8 +132,8 @@ func isSeparator(c uint8) bool {
 	return false
 }
 
-func getRemoteConfig(url string) (*Aliae, error) {
-	req, err := http.NewRequestWithContext(context_.Background(), "GET", url, nil)
+func getRemoteConfig(configURL string) (*Aliae, error) {
+	req, err := http.NewRequestWithContext(context_.Background(), "GET", configURL, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -144,7 +144,7 @@ func getRemoteConfig(url string) (*Aliae, error) {
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("failed to download config file: %s\n→ %s", url, resp.Status)
+		return nil, fmt.Errorf("failed to download config file: %s\n→ %s", configURL, resp.Status)
 	}
 
 	data, err := io.ReadAll(resp.Body)
