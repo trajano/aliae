@@ -1,0 +1,30 @@
+---
+id: get
+title: Get
+sidebar_label: 🔎 Get
+---
+
+Use `aliae get` to read runtime values.
+
+## Shell
+
+Print the detected shell:
+
+```bash
+aliae get shell
+```
+
+## Verbose shell tracing
+
+Use verbose mode to debug shell detection layers (for example Scoop shims):
+
+```bash
+aliae get shell -v
+```
+
+Verbose output includes:
+
+- executable name
+- process layers (`layer 0`, `layer 1`, ...)
+- shim detection hops
+- final resolved shell

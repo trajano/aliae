@@ -18,6 +18,7 @@ module.exports = {
       items: [
         "setup/configuration",
         "setup/shell",
+        "setup/get",
         "setup/alias",
         "setup/env",
         "setup/path",
