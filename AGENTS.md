@@ -78,3 +78,5 @@ For this fork (`trajano/aliae`), open and update pull requests against `master`.
 
 When updating an open PR, the agent must ensure the PR description still matches the current change scope.
 The agent must also add an update comment on the PR summarizing what changed in the update.
+If any PR check fails, the agent must reproduce and run the equivalent check locally when possible,
+fix the issue, and only push after the local check passes.
