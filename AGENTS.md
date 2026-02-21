@@ -74,5 +74,7 @@ When adding or changing template variables, update all of the following in the s
 
 ## PR update requirement
 
+For this fork (`trajano/aliae`), open and update pull requests against `master`.
+
 When updating an open PR, the agent must ensure the PR description still matches the current change scope.
 The agent must also add an update comment on the PR summarizing what changed in the update.

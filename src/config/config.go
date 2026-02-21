@@ -61,6 +61,8 @@ func setTemplateConfigContext(configPath string) {
 
 	context.Current.AliaeConfig = configPath
 	context.Current.AliaeConfigDir = resolveConfigDir(configPath)
+	context.Current.ConfigPath = context.Current.AliaeConfig
+	context.Current.ConfigDir = context.Current.AliaeConfigDir
 }
 
 func resolveConfigDir(configPath string) string {

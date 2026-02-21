@@ -1,0 +1,12 @@
+* text=auto eol=lf
+
+# Windows-native scripts
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# Binary assets
+*.png binary
+*.ico binary
+*.ttf binary
+*.exe binary
+*.zip binary

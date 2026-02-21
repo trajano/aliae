@@ -26,13 +26,15 @@ This repository includes additional changes on top of
 with emphasis on Git Bash compatibility and fork-owned release/documentation flows.
 
 - Shell behavior and detection:
+  - Added Scoop support and shim-aware shell detection behavior.
   - `init --tty-only` support and follow-up fixes for piped output handling.
   - Git Bash shell detection fixes, including Scoop shim-aware parent process resolution.
   - `aliae get shell --verbose` support for shell resolution trace output.
   - Windows Git Bash PATH delimiter handling fix.
 - Template capabilities:
-  - `homeFileExists` and `homeDirExists` helpers.
-  - `.AliaeConfig` and `.AliaeConfigDir` template variables.
+  - `fileExists` and `dirExists` helpers.
+  - `progress` helper for OSC progress output and reset.
+  - `.ConfigPath` and `.ConfigDir` template variables.
 - Fork distribution and automation:
   - Fork-oriented installer/docs references for release artifacts.
   - In-repo Scoop manifest template with automated release-time generation.

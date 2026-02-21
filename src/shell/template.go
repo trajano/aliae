@@ -7,6 +7,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"slices"
+	"strconv"
 	"strings"
 	"sync"
 	"text/template"
@@ -70,9 +71,12 @@ func funcMap() template.FuncMap {
 		"env":            os.Getenv,
 		"match":          match,
 		"hasCommand":     hasCommand,
+		"fileExists":     fileExists,
+		"dirExists":      dirExists,
 		"homeFileExists": homeFileExists,
 		"homeDirExists":  homeDirExists,
 		"isDir":          isDir,
+		"progress":       progress,
 	}
 	return funcMap
 }
@@ -169,11 +173,19 @@ func hasCommand(command string) bool {
 // Most template checks target files under the home directory, so this avoids requiring
 // repetitive printf/path-join template expressions in common configurations.
 func homeFileExists(path string) bool {
+	return fileExists(path)
+}
+
+func fileExists(path string) bool {
 	info := pathExists(resolveFromHome(path))
 	return info.exists && !info.isDir
 }
 
 func homeDirExists(path string) bool {
+	return dirExists(path)
+}
+
+func dirExists(path string) bool {
 	info := pathExists(resolveFromHome(path))
 	return info.exists && info.isDir
 }
@@ -220,4 +232,57 @@ func isDir(path string) bool {
 	}
 
 	return info.IsDir()
+}
+
+func progress(value any) string {
+	state := 1
+	percentage := 0
+
+	switch v := value.(type) {
+	case int:
+		percentage = v
+	case int8:
+		percentage = int(v)
+	case int16:
+		percentage = int(v)
+	case int32:
+		percentage = int(v)
+	case int64:
+		percentage = int(v)
+	case uint:
+		percentage = int(v)
+	case uint8:
+		percentage = int(v)
+	case uint16:
+		percentage = int(v)
+	case uint32:
+		percentage = int(v)
+	case uint64:
+		percentage = int(v)
+	case string:
+		text := strings.TrimSpace(v)
+		if strings.EqualFold(text, "reset") {
+			state = 0
+			percentage = 0
+			break
+		}
+		parsed, err := strconv.Atoi(text)
+		if err != nil {
+			return ""
+		}
+		percentage = parsed
+	default:
+		return ""
+	}
+
+	if percentage < 0 || percentage > 100 {
+		return ""
+	}
+
+	switch context.Current.Shell {
+	case PWSH, POWERSHELL:
+		return fmt.Sprintf(`[Console]::Out.Write("$([char]27)]9;4;%d;%d$([char]7)")`, state, percentage)
+	default:
+		return fmt.Sprintf("printf '\\033]9;4;%d;%d\\007'", state, percentage)
+	}
 }

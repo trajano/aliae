@@ -29,13 +29,15 @@ This fork contains additional changes on top of
 focused on Git Bash support and fork-specific distribution.
 
 - Shell behavior and detection:
+  - Added Scoop support and shim-aware shell detection behavior.
   - Added `init --tty-only` support and follow-up fixes for piped/non-TTY detection.
   - Improved shell detection for Git Bash and Scoop shim process trees.
   - Added `aliae get shell --verbose` to trace shell resolution decisions.
   - Fixed Git Bash PATH delimiter handling on Windows.
 - Template features:
-  - Added `homeFileExists` and `homeDirExists` template helpers.
-  - Added `.AliaeConfig` and `.AliaeConfigDir` template variables.
+  - Added `fileExists` and `dirExists` template helpers.
+  - Added `progress` template helper for OSC progress output and reset.
+  - Added `.ConfigPath` and `.ConfigDir` template variables.
 - Fork packaging and automation:
   - Pointed installer/docs flows to fork-owned release assets where appropriate.
   - Added in-repo Scoop bucket/template flow with release-time manifest generation.

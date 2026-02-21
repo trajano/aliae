@@ -286,8 +286,59 @@ func TestHomeFileExists(t *testing.T) {
 	assert.Equal(t, "false", cachedResult, "should reuse cached result")
 }
 
+func TestFileExists(t *testing.T) {
+	text := `{{ fileExists .Path }}`
+	tempDir := t.TempDir()
+	context.Current = &context.Runtime{Shell: BASH, Home: tempDir}
+	relExisting := filepath.Join(tempDir, ".cache", "aliae")
+	absExisting := filepath.Join(tempDir, "absolute.txt")
+	assert.NoError(t, os.MkdirAll(filepath.Dir(relExisting), 0o700))
+	assert.NoError(t, os.WriteFile(relExisting, []byte("ok"), 0o600))
+	assert.NoError(t, os.WriteFile(absExisting, []byte("ok"), 0o600))
+
+	t.Cleanup(clearPathExistsCache)
+
+	cases := []struct {
+		Case     string
+		Path     string
+		Expected string
+	}{
+		{
+			Case:     "relative to home file exists",
+			Path:     ".cache/aliae",
+			Expected: "true",
+		},
+		{
+			Case:     "absolute file exists",
+			Path:     absExisting,
+			Expected: "true",
+		},
+		{
+			Case:     "relative file does not exist",
+			Path:     ".cache/missing",
+			Expected: "false",
+		},
+	}
+
+	for _, tc := range cases {
+		clearPathExistsCache()
+		got, _ := parse(text, tc)
+		assert.Equal(t, tc.Expected, got, tc.Case)
+	}
+}
+
 func TestHomeDirExists(t *testing.T) {
 	text := `{{ homeDirExists .Path }}`
+	testDirExistsTemplate(t, text)
+}
+
+func TestDirExists(t *testing.T) {
+	text := `{{ dirExists .Path }}`
+	testDirExistsTemplate(t, text)
+}
+
+func testDirExistsTemplate(t *testing.T, text string) {
+	t.Helper()
 	tempDir := t.TempDir()
 	context.Current = &context.Runtime{Shell: BASH, Home: tempDir}
 	relDir := filepath.Join(tempDir, ".cache", "aliae")
@@ -321,6 +372,65 @@ func TestHomeDirExists(t *testing.T) {
 
 	for _, tc := range cases {
 		clearPathExistsCache()
+		got, _ := parse(text, tc)
+		assert.Equal(t, tc.Expected, got, tc.Case)
+	}
+}
+
+func TestProgress(t *testing.T) {
+	text := `{{ progress .Value }}`
+	cases := []struct {
+		Case     string
+		Shell    string
+		Value    any
+		Expected string
+	}{
+		{
+			Case:     "bash percentage",
+			Shell:    BASH,
+			Value:    71,
+			Expected: `printf '\033]9;4;1;71\007'`,
+		},
+		{
+			Case:     "bash reset",
+			Shell:    BASH,
+			Value:    "reset",
+			Expected: `printf '\033]9;4;0;0\007'`,
+		},
+		{
+			Case:     "pwsh percentage",
+			Shell:    PWSH,
+			Value:    71,
+			Expected: `[Console]::Out.Write("$([char]27)]9;4;1;71$([char]7)")`,
+		},
+		{
+			Case:     "powershell reset",
+			Shell:    POWERSHELL,
+			Value:    "reset",
+			Expected: `[Console]::Out.Write("$([char]27)]9;4;0;0$([char]7)")`,
+		},
+		{
+			Case:     "string percentage",
+			Shell:    BASH,
+			Value:    "100",
+			Expected: `printf '\033]9;4;1;100\007'`,
+		},
+		{
+			Case:     "invalid input",
+			Shell:    BASH,
+			Value:    "abc",
+			Expected: ``,
+		},
+		{
+			Case:     "out of range",
+			Shell:    BASH,
+			Value:    101,
+			Expected: ``,
+		},
+	}
+
+	for _, tc := range cases {
+		context.Current = &context.Runtime{Shell: tc.Shell}
 		got, _ := parse(text, tc)
 		assert.Equal(t, tc.Expected, got, tc.Case)
 	}
