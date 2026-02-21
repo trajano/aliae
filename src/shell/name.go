@@ -22,9 +22,16 @@ func Name() string {
 
 	executable, _ := os.Executable()
 	executable = filepath.Base(executable)
-	if shouldUseParentShell(name, executable) {
+	name = resolveShellName(executable, name, func() (string, error) {
 		p, _ = p.Parent()
-		name, err = p.Name()
+		if p == nil {
+			return "", nil
+		}
+		return p.Name()
+	})
+
+	if name == "" {
+		return UNKNOWN
 	}
 
 	if err != nil {
@@ -38,4 +45,16 @@ func shouldUseParentShell(name, executable string) bool {
 	normalizedName := strings.TrimSuffix(filepath.Base(name), ".exe")
 	normalizedExecutable := strings.TrimSuffix(filepath.Base(executable), ".exe")
 	return normalizedName == normalizedExecutable
+}
+
+func resolveShellName(executable, current string, next func() (string, error)) string {
+	name := current
+	for shouldUseParentShell(name, executable) {
+		parentName, err := next()
+		if err != nil || parentName == "" {
+			return ""
+		}
+		name = parentName
+	}
+	return name
 }
