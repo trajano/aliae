@@ -1,6 +1,10 @@
 MD024: false
 MD014: false
 MD038: false
+MD060:
+  style: aligned
+  aligned_delimiter: true
 line-length:
   line_length: 120
+  tables: false
   code_blocks: false
