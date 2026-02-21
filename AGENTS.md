@@ -55,6 +55,8 @@ If neither `src/**` nor `website/**` changed, these scoped pre-commit checks are
 ## Website documentation requirement
 
 When a new feature is added, the agent must also update the website documentation in the same change.
+For features added in this fork since `https://github.com/JanDeDobbeleer/aliae`
+`main`, update both `README.md` and `website/docs/introduction.mdx` as part of PR definition of done.
 
 ## Template variable change checklist
 

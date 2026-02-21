@@ -22,6 +22,28 @@ This repo was made with love using GitKraken.
 [![GitKraken shield][kraken]][kraken-ref]
 <!-- markdownlint-disable first-header-h1 -->
 
+## Fork summary vs upstream main
+
+This fork contains additional changes on top of
+[`JanDeDobbeleer/aliae` `main`](https://github.com/JanDeDobbeleer/aliae/tree/main),
+focused on Git Bash support and fork-specific distribution.
+
+- Shell behavior and detection:
+  - Added `init --tty-only` support and follow-up fixes for piped/non-TTY detection.
+  - Improved shell detection for Git Bash and Scoop shim process trees.
+  - Added `aliae get shell --verbose` to trace shell resolution decisions.
+  - Fixed Git Bash PATH delimiter handling on Windows.
+- Template features:
+  - Added `homeFileExists` and `homeDirExists` template helpers.
+  - Added `.AliaeConfig` and `.AliaeConfigDir` template variables.
+- Fork packaging and automation:
+  - Pointed installer/docs flows to fork-owned release assets where appropriate.
+  - Added in-repo Scoop bucket/template flow with release-time manifest generation.
+  - Updated CI/release workflows for fork ownership and publishing boundaries.
+- Documentation and contributor process:
+  - Added fork-specific guidance, scoped pre-commit checks, and contribution rules.
+  - Added GitHub Pages docs deployment workflow for this fork.
+
 ## Join the community
 
 [![Discord][discord]][discord-link]
