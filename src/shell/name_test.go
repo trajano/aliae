@@ -28,3 +28,22 @@ func TestResolveShellNameSkipsMultipleAliaeParents(t *testing.T) {
 		t.Fatalf("resolveShellName() = %q, want %q", got, "bash.exe")
 	}
 }
+
+func TestResolveShellNameSkipsScoopShimWhenExecutableNameDiffers(t *testing.T) {
+	t.Parallel()
+
+	parents := []string{"bash.exe"}
+	i := 0
+	got, _ := resolveShellName("aliae-windows-amd64.exe", "aliae.exe", func() (string, error) {
+		if i >= len(parents) {
+			return "", nil
+		}
+		name := parents[i]
+		i++
+		return name, nil
+	})
+
+	if got != "bash.exe" {
+		t.Fatalf("resolveShellName() = %q, want %q", got, "bash.exe")
+	}
+}

@@ -91,7 +91,10 @@ func NameVerbose() (string, []string) {
 func shouldUseParentShell(name, executable string) bool {
 	normalizedName := strings.TrimSuffix(filepath.Base(name), ".exe")
 	normalizedExecutable := strings.TrimSuffix(filepath.Base(executable), ".exe")
-	return normalizedName == normalizedExecutable
+	if normalizedName == normalizedExecutable {
+		return true
+	}
+	return normalizedName == "aliae" && strings.HasPrefix(normalizedExecutable, "aliae-")
 }
 
 func resolveShellName(executable, current string, next func() (string, error)) (string, []string) {
