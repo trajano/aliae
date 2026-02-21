@@ -80,3 +80,27 @@ func TestLoadConfig(t *testing.T) {
 		assert.Equal(t, tc.expected, got, tc.name)
 	}
 }
+
+func TestResolveConfigDir(t *testing.T) {
+	cases := []struct {
+		name     string
+		config   string
+		expected string
+	}{
+		{
+			name:     "Local path",
+			config:   "/tmp/aliae/aliae.yaml",
+			expected: filepath.Dir("/tmp/aliae/aliae.yaml"),
+		},
+		{
+			name:     "Remote URL",
+			config:   "https://example.com/configs/aliae.yaml?x=1",
+			expected: "https://example.com/configs",
+		},
+	}
+
+	for _, tc := range cases {
+		got := resolveConfigDir(tc.config)
+		assert.Equal(t, tc.expected, got, tc.name)
+	}
+}

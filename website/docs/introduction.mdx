@@ -19,7 +19,26 @@ It allows you to use a single, template enabled `YAML` [configuration][config] t
 - [Script][script]
 - [Symbolic Link][link]
 
-## I want in!
+## Fork summary vs upstream main
+
+This repository includes additional changes on top of
+[`JanDeDobbeleer/aliae` `main`](https://github.com/JanDeDobbeleer/aliae/tree/main),
+with emphasis on Git Bash compatibility and fork-owned release/documentation flows.
+
+- Shell behavior and detection:
+  - `init --tty-only` support and follow-up fixes for piped output handling.
+  - Git Bash shell detection fixes, including Scoop shim-aware parent process resolution.
+  - `aliae get shell --verbose` support for shell resolution trace output.
+  - Windows Git Bash PATH delimiter handling fix.
+- Template capabilities:
+  - `homeFileExists` and `homeDirExists` helpers.
+  - `.AliaeConfig` and `.AliaeConfigDir` template variables.
+- Fork distribution and automation:
+  - Fork-oriented installer/docs references for release artifacts.
+  - In-repo Scoop manifest template with automated release-time generation.
+  - Workflow updates to align with fork publishing boundaries.
+
+## I want in
 
 Great, all you need is to install and configure aliae on your machine and you're good to go. Find the installation guide
 for your platform and have a look at the alias [configuration][config] page to get started.
@@ -31,4 +50,3 @@ for your platform and have a look at the alias [configuration][config] page to g
 [path]: setup/path.mdx
 [script]: setup/script.mdx
 [link]: setup/link.mdx
-

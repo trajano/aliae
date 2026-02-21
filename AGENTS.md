@@ -38,6 +38,12 @@ If any file under `src/**` changed, run these commands from the repo root:
 
 `cd src && go test ./...`
 
+`cd src && go run github.com/golangci/golangci-lint/cmd/golangci-lint@latest run`
+
+If any Markdown or MDX files changed, run this command from the repo root:
+
+`npx --yes markdownlint-cli $(rg --files -g "*.md" -g "*.mdx")`
+
 If any file under `website/**` changed, run this command from the repo root:
 
 `cd website && npm ci && npm run build`
@@ -55,6 +61,16 @@ If neither `src/**` nor `website/**` changed, these scoped pre-commit checks are
 ## Website documentation requirement
 
 When a new feature is added, the agent must also update the website documentation in the same change.
+For features added in this fork since `https://github.com/JanDeDobbeleer/aliae`
+`main`, update both `README.md` and `website/docs/introduction.mdx` as part of PR definition of done.
+
+## Template variable change checklist
+
+When adding or changing template variables, update all of the following in the same change:
+
+- Runtime/template variable source in `src/context/runtime.go` and related config wiring in `src/config/config.go`.
+- Template coverage tests in `src/config/init_test.go` and helper/unit tests in `src/config/config_test.go` or `src/shell/template_test.go`.
+- Website documentation in `website/docs/setup/templates.mdx`.
 
 ## PR update requirement
 
