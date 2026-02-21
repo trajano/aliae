@@ -1,6 +1,8 @@
 package shell
 
 import (
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 
@@ -384,6 +386,45 @@ $env.Path = ($env.Path | prepend "D:\\bin")`,
 
 	for _, tc := range cases {
 		context.Current = &context.Runtime{Shell: tc.Shell, Home: "/Users/jan", OS: tc.OS, Path: &context.Path{"/usr/local/bin", "C:\\bin", "D:\\bin"}}
+		assert.Equal(t, tc.Expected, tc.Path.string(), tc.Case)
+	}
+}
+
+func TestPathIfExists(t *testing.T) {
+	home := t.TempDir()
+	existing := filepath.Join(home, "existing-bin")
+	missing := filepath.Join(home, "missing-bin")
+	assert.NoError(t, os.MkdirAll(existing, 0o700))
+
+	cases := []struct {
+		Case     string
+		Path     *Path
+		Expected string
+	}{
+		{
+			Case: "ifExists true keeps only existing entries",
+			Path: &Path{
+				Value:    Template(existing + "\n" + missing),
+				IfExists: true,
+			},
+			Expected: `export PATH="` + existing + `:$PATH"`,
+		},
+		{
+			Case: "ifExists false keeps current behavior",
+			Path: &Path{
+				Value:    Template(missing),
+				IfExists: false,
+			},
+			Expected: `export PATH="` + missing + `:$PATH"`,
+		},
+	}
+
+	for _, tc := range cases {
+		context.Current = &context.Runtime{
+			Shell: BASH,
+			Home:  home,
+			Path:  &context.Path{},
+		}
 		assert.Equal(t, tc.Expected, tc.Path.string(), tc.Case)
 	}
 }

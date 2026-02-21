@@ -38,6 +38,10 @@ focused on Git Bash support and fork-specific distribution.
   - Added `fileExists` and `dirExists` template helpers.
   - Added `progress` template helper for OSC progress output and reset.
   - Added `.ConfigPath` and `.ConfigDir` template variables.
+- PATH features:
+  - Added `ifExists` option to include only existing path entries.
+- Configuration features:
+  - Added top-level `stat_timeout` to control filesystem stat/existence timeout.
 - Fork packaging and automation:
   - Pointed installer/docs flows to fork-owned release assets where appropriate.
   - Added in-repo Scoop bucket/template flow with release-time manifest generation.

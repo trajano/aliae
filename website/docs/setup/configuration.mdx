@@ -19,10 +19,17 @@ eval "$(aliae init zsh)"
 
 The custom location can be a local file, or a URL pointing to a remote config.
 
+## Top-level settings
+
+| Name           | Type     | Description                                                                 |
+| -------------- | -------- | --------------------------------------------------------------------------- |
+| `stat_timeout` | `string` | filesystem stat/existence timeout (default: `1s`, example `250ms`)          |
+
 ## Example
 
 ```yaml
-# yaml-language-server: $schema=https://aliae.dev/schema.json
+# yaml-language-server: $schema=https://trajano.github.io/aliae/schema.json
+stat_timeout: 1s
 alias:
   - name: a
     value: aliae
