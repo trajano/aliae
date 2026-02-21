@@ -15,7 +15,7 @@ func TestResolveShellNameSkipsMultipleAliaeParents(t *testing.T) {
 
 	parents := []string{"aliae.exe", "bash.exe"}
 	i := 0
-	got := resolveShellName("aliae.exe", "aliae.exe", func() (string, error) {
+	got, _ := resolveShellName("aliae.exe", "aliae.exe", func() (string, error) {
 		if i >= len(parents) {
 			return "", nil
 		}
