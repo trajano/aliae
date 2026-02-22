@@ -53,7 +53,8 @@ func init() {
 func runInit(shellName string) {
 	stdinTTY := term.IsTerminal(int(os.Stdin.Fd()))
 	stdoutTTY := term.IsTerminal(int(os.Stdout.Fd()))
-	if shouldSkipInitOutput(ttyOnly, stdinTTY, stdoutTTY) {
+	skip := shouldSkipInitOutput(ttyOnly, stdinTTY, stdoutTTY)
+	if skip {
 		return
 	}
 	init := cfg.Init(config, shellName, printOutput)

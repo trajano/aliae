@@ -31,8 +31,9 @@ focused on Git Bash support and fork-specific distribution.
 - Shell behavior and detection:
   - Added Scoop support and shim-aware shell detection behavior.
   - Added `init --tty-only` support and follow-up fixes for piped/non-TTY detection.
+  - Added `aliae debug` diagnostics to print TTY checks and resolved template variables.
   - Improved shell detection for Git Bash and Scoop shim process trees.
-  - Added `aliae get shell --verbose` to trace shell resolution decisions.
+  - Added shell resolution trace output through `aliae debug`.
   - Fixed Git Bash PATH delimiter handling on Windows.
 - Template features:
   - Added `fileExists` and `dirExists` template helpers.

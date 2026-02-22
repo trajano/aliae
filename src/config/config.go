@@ -110,6 +110,11 @@ func resolveConfigPath(configPath string) string {
 	return replaceTildePrefixWithHomeDir(configPath)
 }
 
+func ResolveTemplateContext(configPath string) (string, string) {
+	resolvedPath := resolveConfigPath(configPath)
+	return resolvedPath, resolveConfigDir(resolvedPath)
+}
+
 func replaceTildePrefixWithHomeDir(dir string) string {
 	if !strings.HasPrefix(dir, "~") {
 		return dir

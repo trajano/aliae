@@ -7,10 +7,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var (
-	getVerbose bool
-)
-
 // getCmd represents the get command
 var getCmd = &cobra.Command{
 	Use:   "get [shell]",
@@ -25,17 +21,8 @@ This command is used to get the value of the following variables:
 	},
 	Args: cobra.OnlyValidArgs,
 	Run: func(cmd *cobra.Command, args []string) {
-
 		switch args[0] {
 		case "shell":
-			if getVerbose {
-				resolved, trace := shell.NameVerbose()
-				for _, line := range trace {
-					fmt.Println(line)
-				}
-				fmt.Printf("shell=%s\n", resolved)
-				return
-			}
 			fmt.Println(shell.Name())
 			return
 		default:
@@ -45,6 +32,5 @@ This command is used to get the value of the following variables:
 }
 
 func init() {
-	getCmd.Flags().BoolVarP(&getVerbose, "verbose", "v", false, "show shell detection steps")
 	RootCmd.AddCommand(getCmd)
 }
