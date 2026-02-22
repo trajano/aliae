@@ -29,6 +29,6 @@ func (p *Path) tcsh() *Path {
 }
 
 func (p *CDPath) tcsh() *CDPath {
-	p.template = `set cdpath = ( {{ .Value }} $cdpath );`
+	p.template = `set cdpath = ( $cdpath {{ .Value }} );`
 	return p
 }

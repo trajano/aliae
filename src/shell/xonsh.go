@@ -50,6 +50,6 @@ func (p *Path) xonsh() *Path {
 }
 
 func (p *CDPath) xonsh() *CDPath {
-	p.template = `$CDPATH = [{{ formatString .Value }}] + $CDPATH`
+	p.template = `$CDPATH = $CDPATH + [{{ formatString .Value }}]`
 	return p
 }

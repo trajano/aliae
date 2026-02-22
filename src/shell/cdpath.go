@@ -44,7 +44,6 @@ func (p *CDPath) render() string {
 	ctx := struct {
 		Value string
 	}{}
-	needsCurrentDir := !context.Current.CDPath.Contains(".")
 
 	splitted := strings.Split(string(p.Value), "\n")
 
@@ -77,16 +76,6 @@ func (p *CDPath) render() string {
 			builder.WriteString(err.Error())
 		}
 
-		if needsCurrentDir {
-			if !first {
-				builder.WriteString("\n")
-			}
-			builder.WriteString(cdpathCurrentDirScript())
-			context.Current.CDPath.AppendCDPath(".")
-			builder.WriteString("\n")
-			needsCurrentDir = false
-		}
-
 		builder.WriteString(script)
 		first = false
 	}
@@ -117,6 +106,7 @@ func (p CDPaths) Render() {
 	}
 
 	first := true
+	rendered := false
 	for _, entry := range p {
 		if entry.If.Ignore() {
 			continue
@@ -135,5 +125,14 @@ func (p CDPaths) Render() {
 		DotFile.WriteString(script)
 
 		first = false
+		rendered = true
+	}
+
+	// Some shells stop treating the current directory as an implicit fallback
+	// when CDPATH/cdpath is set and "." is missing.
+	if rendered && !context.Current.CDPath.Contains(".") {
+		DotFile.WriteString("\n")
+		DotFile.WriteString(cdpathCurrentDirScript())
+		context.Current.CDPath.AppendCDPath(".")
 	}
 }

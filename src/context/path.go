@@ -44,24 +44,27 @@ func getEnvPath(envName string) *Path {
 }
 
 func (p *Path) Append(path string) {
-	p.appendWithEnv("PATH", path)
+	p.appendWithEnv("PATH", path, true)
 }
 
 func (p *Path) AppendCDPath(path string) {
-	p.appendWithEnv("CDPATH", path)
+	p.appendWithEnv("CDPATH", path, false)
 }
 
-func (p *Path) appendWithEnv(envName, path string) {
+func (p *Path) appendWithEnv(envName, path string, prepend bool) {
 	clean := cleanPath(path)
 	if len(clean) == 0 || p.Contains(clean) {
 		return
 	}
 
 	current := os.Getenv(envName)
-	if current == "" {
+	switch {
+	case current == "":
 		os.Setenv(envName, clean)
-	} else {
+	case prepend:
 		os.Setenv(envName, fmt.Sprintf("%s%s%s", clean, PathDelimiter(), current))
+	default:
+		os.Setenv(envName, fmt.Sprintf("%s%s%s", current, PathDelimiter(), clean))
 	}
 
 	*p = append(*p, clean)

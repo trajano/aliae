@@ -54,6 +54,6 @@ func (p *Path) zsh() *Path {
 }
 
 func (p *CDPath) zsh() *CDPath {
-	p.template = `cdpath=( {{ .Value }} $cdpath )`
+	p.template = `cdpath=( $cdpath {{ .Value }} )`
 	return p
 }

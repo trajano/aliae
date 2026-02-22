@@ -31,11 +31,11 @@ Shell behavior:
 
 | Shell        | Supported | Implementation                                     |
 | ------------ | --------- | -------------------------------------------------- |
-| `bash`       | Yes       | Prepends to the `CDPATH` environment variable      |
-| `zsh`        | Yes       | Prepends to the `cdpath` shell variable            |
-| `fish`       | Yes       | Prepends using `set -g cdpath <value> $cdpath`     |
-| `tcsh`       | Yes       | Prepends to the `cdpath` shell variable            |
-| `xonsh`      | Yes       | Prepends to `$CDPATH`                              |
+| `bash`       | Yes       | Appends to the `CDPATH` environment variable       |
+| `zsh`        | Yes       | Appends to the `cdpath` shell variable             |
+| `fish`       | Yes       | Appends using `set -g cdpath $cdpath <value>`      |
+| `tcsh`       | Yes       | Appends to the `cdpath` shell variable             |
+| `xonsh`      | Yes       | Appends to `$CDPATH`                               |
 | `cmd`        | No        | Skipped                                            |
 | `pwsh`       | No        | Skipped                                            |
 | `powershell` | No        | Skipped                                            |
@@ -44,7 +44,8 @@ Shell behavior:
 High-level behavior:
 
 - `aliae` uses shell-native `cd` search path mechanisms where available.
-- Each configured entry is prepended to the active shell's `CDPATH`/`cdpath` representation.
+- Each configured entry is appended to the active shell's `CDPATH`/`cdpath` representation.
+- `aliae` prepends `.` when needed so local-directory fallback remains available.
 - Duplicate entries are suppressed and existing shell values are preserved.
 - `ifExists` and `force` work the same way as they do for `path`.
 

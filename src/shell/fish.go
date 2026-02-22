@@ -28,6 +28,6 @@ func (e *Path) fish() *Path {
 }
 
 func (e *CDPath) fish() *CDPath {
-	e.template = `set -g cdpath {{ .Value }} $cdpath`
+	e.template = `set -g cdpath $cdpath {{ .Value }}`
 	return e
 }
