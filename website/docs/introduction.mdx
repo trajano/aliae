@@ -16,6 +16,7 @@ It allows you to use a single, template enabled `YAML` [configuration][config] t
 - [Function][alias]
 - [Environment variable][env]
 - [PATH entry][path]
+- [CDPATH entry][cdpath]
 - [Script][script]
 - [Symbolic Link][link]
 
@@ -39,6 +40,7 @@ with emphasis on Git Bash compatibility and fork-owned release/documentation flo
   - `.Hostname` template variable that exposes the system hostname.
 - PATH capabilities:
   - `ifExists` option to include only existing path entries.
+  - `cdpath` support with shell-specific rendering and duplicate suppression.
 - Fork distribution and automation:
   - Fork-oriented installer/docs references for release artifacts.
   - In-repo Scoop manifest template with automated release-time generation.
@@ -54,5 +56,6 @@ for your platform and have a look at the alias [configuration][config] page to g
 [alias]: setup/alias.mdx
 [env]: setup/env.mdx
 [path]: setup/path.mdx
+[cdpath]: setup/cdpath.mdx
 [script]: setup/script.mdx
 [link]: setup/link.mdx

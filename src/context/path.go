@@ -20,8 +20,16 @@ var runCygpath = func(path string) (string, error) {
 }
 
 func getPath() *Path {
+	return getEnvPath("PATH")
+}
+
+func getCDPath() *Path {
+	return getEnvPath("CDPATH")
+}
+
+func getEnvPath(envName string) *Path {
 	path := &Path{}
-	paths := os.Getenv("PATH")
+	paths := os.Getenv(envName)
 
 	for _, p := range splitPathEntries(paths) {
 		clean := cleanPath(p)
@@ -36,13 +44,25 @@ func getPath() *Path {
 }
 
 func (p *Path) Append(path string) {
+	p.appendWithEnv("PATH", path)
+}
+
+func (p *Path) AppendCDPath(path string) {
+	p.appendWithEnv("CDPATH", path)
+}
+
+func (p *Path) appendWithEnv(envName, path string) {
 	clean := cleanPath(path)
 	if len(clean) == 0 || p.Contains(clean) {
 		return
 	}
 
-	current := os.Getenv("PATH")
-	os.Setenv("PATH", fmt.Sprintf("%s%s%s", clean, PathDelimiter(), current))
+	current := os.Getenv(envName)
+	if current == "" {
+		os.Setenv(envName, clean)
+	} else {
+		os.Setenv(envName, fmt.Sprintf("%s%s%s", clean, PathDelimiter(), current))
+	}
 
 	*p = append(*p, clean)
 }

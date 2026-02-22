@@ -46,8 +46,10 @@ func (a *Alias) string() string {
 	a.Value = a.Value.Parse()
 
 	switch context.Current.Shell {
-	case ZSH, BASH:
+	case ZSH:
 		return a.zsh().render()
+	case BASH:
+		return a.bash().render()
 	case PWSH, POWERSHELL:
 		return a.pwsh().render()
 	case NU:

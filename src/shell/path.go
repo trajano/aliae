@@ -23,8 +23,10 @@ type Path struct {
 
 func (p *Path) string() string {
 	switch context.Current.Shell {
-	case ZSH, BASH:
+	case ZSH:
 		return p.zsh().render()
+	case BASH:
+		return p.bash().render()
 	case PWSH, POWERSHELL:
 		return p.pwsh().render()
 	case NU:

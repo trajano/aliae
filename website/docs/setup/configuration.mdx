@@ -49,6 +49,10 @@ path:
     if: match .OS "darwin"
   - value: |
       {{ .Home }}/go/bin/
+cdpath:
+  - value: |
+      {{ .Home }}/src
+      {{ .Home }}/work
 script:
   - value: |
       oh-my-posh init nu
@@ -86,11 +90,13 @@ You can find out more about the configuration options below.
 - [Function][alias]
 - [Environment variable][env]
 - [PATH entry][path]
+- [CDPATH entry][cdpath]
 - [Script][script]
 - [Symbolic link][link]
 
 [alias]: setup/alias.mdx
 [env]: setup/env.mdx
 [path]: setup/path.mdx
+[cdpath]: setup/cdpath.mdx
 [script]: setup/script.mdx
 [link]: setup/link.mdx

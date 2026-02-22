@@ -22,6 +22,7 @@ module.exports = {
         "setup/alias",
         "setup/env",
         "setup/path",
+        "setup/cdpath",
         "setup/link",
         "setup/script",
         "setup/if",

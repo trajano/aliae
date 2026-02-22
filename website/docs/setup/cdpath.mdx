@@ -1,0 +1,55 @@
+---
+id: cdpath
+title: CDPath
+sidebar_label: 🧭 CDPath
+---
+
+Specify the same `cd` search paths cross shell.
+
+## Syntax
+
+```yaml
+cdpath:
+  - value: |
+      {{ .Home }}/src
+      {{ .Home }}/work
+    if: match .Shell "bash" "zsh" "fish" "tcsh" "xonsh"
+  - value: |
+      {{ .Home }}/sandbox
+    ifExists: true
+    force: true
+```
+
+## CDPath
+
+- `value` (`string`): directory entries to add, separated by newlines. Supports [templating][templates].
+- `if` (`string`): golang [template][go-text-template] conditional statement, see [if][if].
+- `force` (`boolean`): always export the entry even when already present in the current shell.
+- `ifExists` (`boolean`): add only entries that exist on disk (default: `false`).
+
+Shell behavior:
+
+| Shell        | Supported | Implementation                                     |
+| ------------ | --------- | -------------------------------------------------- |
+| `bash`       | Yes       | Prepends to the `CDPATH` environment variable      |
+| `zsh`        | Yes       | Prepends to the `cdpath` shell variable            |
+| `fish`       | Yes       | Prepends using `set -g cdpath <value> $cdpath`     |
+| `tcsh`       | Yes       | Prepends to the `cdpath` shell variable            |
+| `xonsh`      | Yes       | Prepends to `$CDPATH`                              |
+| `cmd`        | No        | Skipped                                            |
+| `pwsh`       | No        | Skipped                                            |
+| `powershell` | No        | Skipped                                            |
+| `nu`         | No        | Skipped                                            |
+
+High-level behavior:
+
+- `aliae` uses shell-native `cd` search path mechanisms where available.
+- Each configured entry is prepended to the active shell's `CDPATH`/`cdpath` representation.
+- Duplicate entries are suppressed and existing shell values are preserved.
+- `ifExists` and `force` work the same way as they do for `path`.
+
+`cdpath` entries follow the same duplicate suppression and path normalization behavior as `path`.
+
+[templates]: templates.mdx
+[go-text-template]: https://golang.org/pkg/text/template/
+[if]: if.mdx

@@ -43,8 +43,10 @@ func toString(value any) string {
 
 func (e *Env) string() string {
 	switch context.Current.Shell {
-	case ZSH, BASH:
+	case ZSH:
 		return e.zsh().render()
+	case BASH:
+		return e.bash().render()
 	case PWSH, POWERSHELL:
 		return e.pwsh().render()
 	case NU:

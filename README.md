@@ -42,6 +42,7 @@ focused on Git Bash support and fork-specific distribution.
   - Added `.Hostname` template variable to expose the system hostname.
 - PATH features:
   - Added `ifExists` option to include only existing path entries.
+  - Added `cdpath` support with shell-specific rendering and duplicate suppression.
 - Configuration features:
   - Added top-level `stat_timeout` to control filesystem stat/existence timeout.
 - Fork packaging and automation:

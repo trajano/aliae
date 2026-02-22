@@ -7,10 +7,10 @@ import (
 )
 
 const (
-	ZSH = "zsh"
+	BASH = "bash"
 )
 
-func (a *Alias) zsh() *Alias {
+func (a *Alias) bash() *Alias {
 	switch a.Type { //nolint:exhaustive
 	case Command:
 		a.template = `alias {{ .Name }}={{ formatString .Value }}`
@@ -23,12 +23,12 @@ func (a *Alias) zsh() *Alias {
 	return a
 }
 
-func (e *Echo) zsh() *Echo {
+func (e *Echo) bash() *Echo {
 	e.template = defaultEchoTemplate
 	return e
 }
 
-func (e *Env) zsh() *Env {
+func (e *Env) bash() *Env {
 	switch e.Type {
 	case Array:
 		e.template = `export {{ .Name }}=({{ formatArray .Value }})`
@@ -41,19 +41,19 @@ func (e *Env) zsh() *Env {
 	return e
 }
 
-func (l *Link) zsh() *Link {
+func (l *Link) bash() *Link {
 	template := `ln -sf {{ .Target }} {{ .Name }}`
 	l.template = template
 	return l
 }
 
-func (p *Path) zsh() *Path {
-	template := fmt.Sprintf(`export PATH="{{ .Value }}%s$PATH"`, context.PathDelimiter())
-	p.template = template
+func (p *Path) bash() *Path {
+	p.template = `export PATH="{{ .Value }}:$PATH"`
 	return p
 }
 
-func (p *CDPath) zsh() *CDPath {
-	p.template = `cdpath=( {{ .Value }} $cdpath )`
+func (p *CDPath) bash() *CDPath {
+	template := fmt.Sprintf(`export CDPATH="{{ .Value }}%s$CDPATH"`, context.PathDelimiter())
+	p.template = template
 	return p
 }

@@ -11,6 +11,7 @@ var Current *Runtime
 
 type Runtime struct {
 	Path       *Path
+	CDPath     *Path
 	Shell      string
 	OS         string
 	Hostname   string
@@ -33,6 +34,7 @@ func Init(shell string) {
 	}
 
 	Current.Path = getPath()
+	Current.CDPath = getCDPath()
 }
 
 func Home() string {
