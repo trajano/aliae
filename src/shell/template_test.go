@@ -246,55 +246,6 @@ func TestHasCommand(t *testing.T) {
 	}
 }
 
-func TestHomeFileExists(t *testing.T) {
-	text := `{{ homeFileExists .Path }}`
-	tempDir := t.TempDir()
-	context.Current = &context.Runtime{Shell: BASH, Home: tempDir}
-	relExisting := filepath.Join(tempDir, ".cache", "aliae")
-	absExisting := filepath.Join(tempDir, "absolute.txt")
-	cached := filepath.Join(tempDir, "cached.txt")
-	assert.NoError(t, os.MkdirAll(filepath.Dir(relExisting), 0o700))
-	assert.NoError(t, os.WriteFile(relExisting, []byte("ok"), 0o600))
-	assert.NoError(t, os.WriteFile(absExisting, []byte("ok"), 0o600))
-
-	t.Cleanup(clearPathExistsCache)
-
-	cases := []struct {
-		Case     string
-		Path     string
-		Expected string
-	}{
-		{
-			Case:     "relative to home file exists",
-			Path:     ".cache/aliae",
-			Expected: "true",
-		},
-		{
-			Case:     "absolute file exists",
-			Path:     absExisting,
-			Expected: "true",
-		},
-		{
-			Case:     "relative file does not exist",
-			Path:     ".cache/missing",
-			Expected: "false",
-		},
-	}
-
-	for _, tc := range cases {
-		clearPathExistsCache()
-		got, _ := parse(text, tc)
-		assert.Equal(t, tc.Expected, got, tc.Case)
-	}
-
-	clearPathExistsCache()
-	initial, _ := parse(text, struct{ Path string }{Path: "cached.txt"})
-	assert.Equal(t, "false", initial, "cached non-existent file")
-	assert.NoError(t, os.WriteFile(cached, []byte("now exists"), 0o600))
-	cachedResult, _ := parse(text, struct{ Path string }{Path: "cached.txt"})
-	assert.Equal(t, "false", cachedResult, "should reuse cached result")
-}
-
 func TestFileExists(t *testing.T) {
 	text := `{{ fileExists .Path }}`
 	tempDir := t.TempDir()
@@ -334,11 +285,14 @@ func TestFileExists(t *testing.T) {
 		got, _ := parse(text, tc)
 		assert.Equal(t, tc.Expected, got, tc.Case)
 	}
-}
 
-func TestHomeDirExists(t *testing.T) {
-	text := `{{ homeDirExists .Path }}`
-	testDirExistsTemplate(t, text)
+	cached := filepath.Join(tempDir, "cached.txt")
+	clearPathExistsCache()
+	initial, _ := parse(text, struct{ Path string }{Path: "cached.txt"})
+	assert.Equal(t, "false", initial, "cached non-existent file")
+	assert.NoError(t, os.WriteFile(cached, []byte("now exists"), 0o600))
+	cachedResult, _ := parse(text, struct{ Path string }{Path: "cached.txt"})
+	assert.Equal(t, "false", cachedResult, "should reuse cached result")
 }
 
 func TestDirExists(t *testing.T) {

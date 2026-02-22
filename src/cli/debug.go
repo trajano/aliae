@@ -22,8 +22,6 @@ var debugCmd = &cobra.Command{
 		configPath, configDir := cfg.ResolveTemplateContext(config)
 		context.Current.ConfigPath = configPath
 		context.Current.ConfigDir = configDir
-		context.Current.AliaeConfig = configPath
-		context.Current.AliaeConfigDir = configDir
 
 		stdinTTY := term.IsTerminal(int(os.Stdin.Fd()))
 		stdoutTTY := term.IsTerminal(int(os.Stdout.Fd()))
@@ -38,8 +36,6 @@ var debugCmd = &cobra.Command{
 		fmt.Fprintf(os.Stdout, "template.Arch=%s\n", context.Current.Arch)
 		fmt.Fprintf(os.Stdout, "template.ConfigPath=%s\n", context.Current.ConfigPath)
 		fmt.Fprintf(os.Stdout, "template.ConfigDir=%s\n", context.Current.ConfigDir)
-		fmt.Fprintf(os.Stdout, "template.AliaeConfig=%s\n", context.Current.AliaeConfig)
-		fmt.Fprintf(os.Stdout, "template.AliaeConfigDir=%s\n", context.Current.AliaeConfigDir)
 		for _, line := range trace {
 			fmt.Fprintf(os.Stdout, "shell.trace=%s\n", line)
 		}
