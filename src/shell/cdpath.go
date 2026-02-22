@@ -1,6 +1,7 @@
 package shell
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/jandedobbeleer/aliae/src/context"
@@ -43,6 +44,7 @@ func (p *CDPath) render() string {
 	ctx := struct {
 		Value string
 	}{}
+	needsCurrentDir := !context.Current.CDPath.Contains(".")
 
 	splitted := strings.Split(string(p.Value), "\n")
 
@@ -75,11 +77,38 @@ func (p *CDPath) render() string {
 			builder.WriteString(err.Error())
 		}
 
+		if needsCurrentDir {
+			if !first {
+				builder.WriteString("\n")
+			}
+			builder.WriteString(cdpathCurrentDirScript())
+			context.Current.CDPath.AppendCDPath(".")
+			builder.WriteString("\n")
+			needsCurrentDir = false
+		}
+
 		builder.WriteString(script)
 		first = false
 	}
 
 	return builder.String()
+}
+
+func cdpathCurrentDirScript() string {
+	switch context.Current.Shell {
+	case BASH:
+		return fmt.Sprintf(`export CDPATH=".%s$CDPATH"`, context.PathDelimiter())
+	case ZSH:
+		return `cdpath=( . $cdpath )`
+	case FISH:
+		return `set -g cdpath . $cdpath`
+	case TCSH:
+		return `set cdpath = ( . $cdpath );`
+	case XONSH:
+		return `$CDPATH = ["."] + $CDPATH`
+	default:
+		return ""
+	}
 }
 
 func (p CDPaths) Render() {
