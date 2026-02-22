@@ -27,3 +27,8 @@ func (p *Path) tcsh() *Path {
 	p.template = `set path = ( {{ .Value }} $path );`
 	return p
 }
+
+func (p *CDPath) tcsh() *CDPath {
+	p.template = `set cdpath = ( $cdpath {{ .Value }} );`
+	return p
+}

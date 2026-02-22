@@ -12,6 +12,8 @@ type Echo struct {
 	template string
 }
 
+const defaultEchoTemplate = `echo "{{ .Message }}"`
+
 func (e *Echo) Error() *Echo {
 	e.Message = fmt.Sprintf("\x1b[38;2;253;122;140m%s\033[0m", e.Message)
 	return e
@@ -19,8 +21,10 @@ func (e *Echo) Error() *Echo {
 
 func (e *Echo) String() string {
 	switch context.Current.Shell {
-	case ZSH, BASH, FISH, TCSH:
+	case ZSH, FISH, TCSH:
 		return e.zsh().render()
+	case BASH:
+		return e.bash().render()
 	case NU:
 		return e.nu().render()
 	case PWSH, POWERSHELL:

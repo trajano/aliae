@@ -111,3 +111,12 @@ func TestParseConfigStatTimeout(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, 250*time.Millisecond, aliae.StatTimeout)
 }
+
+func TestResolveTemplateContext(t *testing.T) {
+	t.Setenv("ALIAE_CONFIG", "")
+	t.Setenv("HOME", "/home/user")
+
+	path, dir := ResolveTemplateContext("")
+	assert.Equal(t, "/home/user/.aliae.yaml", path)
+	assert.Equal(t, filepath.Dir("/home/user/.aliae.yaml"), dir)
+}

@@ -60,10 +60,8 @@ func setTemplateConfigContext(configPath string) {
 		return
 	}
 
-	context.Current.AliaeConfig = configPath
-	context.Current.AliaeConfigDir = resolveConfigDir(configPath)
-	context.Current.ConfigPath = context.Current.AliaeConfig
-	context.Current.ConfigDir = context.Current.AliaeConfigDir
+	context.Current.ConfigPath = configPath
+	context.Current.ConfigDir = resolveConfigDir(configPath)
 }
 
 func resolveConfigDir(configPath string) string {
@@ -108,6 +106,11 @@ func resolveConfigPath(configPath string) string {
 	}
 
 	return replaceTildePrefixWithHomeDir(configPath)
+}
+
+func ResolveTemplateContext(configPath string) (string, string) {
+	resolvedPath := resolveConfigPath(configPath)
+	return resolvedPath, resolveConfigDir(resolvedPath)
 }
 
 func replaceTildePrefixWithHomeDir(dir string) string {

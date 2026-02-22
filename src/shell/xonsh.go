@@ -48,3 +48,8 @@ func (p *Path) xonsh() *Path {
 	p.template = `$PATH.add('{{ .Value }}', True, False)`
 	return p
 }
+
+func (p *CDPath) xonsh() *CDPath {
+	p.template = `$CDPATH = $CDPATH + [{{ formatString .Value }}]`
+	return p
+}

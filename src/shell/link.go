@@ -33,8 +33,10 @@ func (l *Link) string() string {
 	}
 
 	switch context.Current.Shell {
-	case ZSH, BASH, FISH, XONSH:
+	case ZSH, FISH, XONSH:
 		return l.zsh().render()
+	case BASH:
+		return l.bash().render()
 	case PWSH, POWERSHELL:
 		return l.pwsh().render()
 	case NU:

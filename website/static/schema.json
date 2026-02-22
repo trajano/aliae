@@ -117,6 +117,30 @@
                 }
             }
         },
+        "cdpath": {
+            "type": "array",
+            "description": "CDPATH entry definitions (https://aliae.dev/docs/setup/cdpath)",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "value": {
+                        "type": "string",
+                        "description": "the directory entries you want to add, separated by a newline. Supports templating (https://aliae.dev/docs/setup/templates)"
+                    },
+                    "if": {
+                        "$ref": "#/definitions/if"
+                    },
+                    "force": {
+                        "type": "boolean",
+                        "description": "if you want to always export the directory even if it already exists in your current shell"
+                    },
+                    "ifExists": {
+                        "type": "boolean",
+                        "description": "if you want to add only entries that exist on disk"
+                    }
+                }
+            }
+        },
         "script": {
             "type": "array",
             "description": "script definitions (https://aliae.dev/docs/setup/script)",

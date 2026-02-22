@@ -10,28 +10,31 @@ import (
 var Current *Runtime
 
 type Runtime struct {
-	Path           *Path
-	Shell          string
-	OS             string
-	Home           string
-	Arch           string
-	ConfigPath     string
-	ConfigDir      string
-	AliaeConfig    string
-	AliaeConfigDir string
+	Path       *Path
+	CDPath     *Path
+	Shell      string
+	OS         string
+	Hostname   string
+	Home       string
+	Arch       string
+	ConfigPath string
+	ConfigDir  string
 }
 
 func Init(shell string) {
 	home := Home()
+	hostname, _ := os.Hostname()
 
 	Current = &Runtime{
-		Shell: shell,
-		OS:    runtime.GOOS,
-		Arch:  runtime.GOARCH,
-		Home:  home,
+		Shell:    shell,
+		OS:       runtime.GOOS,
+		Arch:     runtime.GOARCH,
+		Home:     home,
+		Hostname: hostname,
 	}
 
 	Current.Path = getPath()
+	Current.CDPath = getCDPath()
 }
 
 func Home() string {

@@ -63,20 +63,18 @@ func parse(text string, ctx any) (string, error) {
 
 func funcMap() template.FuncMap {
 	funcMap := template.FuncMap{
-		"isPwshOption":   isPwshOption,
-		"isPwshScope":    isPwshScope,
-		"formatString":   formatString,
-		"formatArray":    formatArray,
-		"escapeString":   escapeString,
-		"env":            os.Getenv,
-		"match":          match,
-		"hasCommand":     hasCommand,
-		"fileExists":     fileExists,
-		"dirExists":      dirExists,
-		"homeFileExists": homeFileExists,
-		"homeDirExists":  homeDirExists,
-		"isDir":          isDir,
-		"progress":       progress,
+		"isPwshOption": isPwshOption,
+		"isPwshScope":  isPwshScope,
+		"formatString": formatString,
+		"formatArray":  formatArray,
+		"escapeString": escapeString,
+		"env":          os.Getenv,
+		"match":        match,
+		"hasCommand":   hasCommand,
+		"fileExists":   fileExists,
+		"dirExists":    dirExists,
+		"isDir":        isDir,
+		"progress":     progress,
 	}
 	return funcMap
 }
@@ -169,20 +167,9 @@ func hasCommand(command string) bool {
 	return err == nil
 }
 
-// homeFileExists/homeDirExists intentionally resolve relative paths from .Home.
-// Most template checks target files under the home directory, so this avoids requiring
-// repetitive printf/path-join template expressions in common configurations.
-func homeFileExists(path string) bool {
-	return fileExists(path)
-}
-
 func fileExists(path string) bool {
 	info := pathExists(resolveFromHome(path))
 	return info.exists && !info.isDir
-}
-
-func homeDirExists(path string) bool {
-	return dirExists(path)
 }
 
 func dirExists(path string) bool {

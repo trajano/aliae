@@ -16,6 +16,7 @@ It allows you to use a single, template enabled `YAML` [configuration][config] t
 - [Function][alias]
 - [Environment variable][env]
 - [PATH entry][path]
+- [CDPATH entry][cdpath]
 - [Script][script]
 - [Symbolic Link][link]
 
@@ -28,15 +29,18 @@ with emphasis on Git Bash compatibility and fork-owned release/documentation flo
 - Shell behavior and detection:
   - Added Scoop support and shim-aware shell detection behavior.
   - `init --tty-only` support and follow-up fixes for piped output handling.
+  - `aliae debug` diagnostics to print TTY checks and resolved template variables.
   - Git Bash shell detection fixes, including Scoop shim-aware parent process resolution.
-  - `aliae get shell --verbose` support for shell resolution trace output.
+  - Shell resolution trace output in `aliae debug`.
   - Windows Git Bash PATH delimiter handling fix.
 - Template capabilities:
   - `fileExists` and `dirExists` helpers.
   - `progress` helper for OSC progress output and reset.
   - `.ConfigPath` and `.ConfigDir` template variables.
+  - `.Hostname` template variable that exposes the system hostname.
 - PATH capabilities:
   - `ifExists` option to include only existing path entries.
+  - `cdpath` support with shell-specific rendering and duplicate suppression.
 - Fork distribution and automation:
   - Fork-oriented installer/docs references for release artifacts.
   - In-repo Scoop manifest template with automated release-time generation.
@@ -52,5 +56,6 @@ for your platform and have a look at the alias [configuration][config] page to g
 [alias]: setup/alias.mdx
 [env]: setup/env.mdx
 [path]: setup/path.mdx
+[cdpath]: setup/cdpath.mdx
 [script]: setup/script.mdx
 [link]: setup/link.mdx

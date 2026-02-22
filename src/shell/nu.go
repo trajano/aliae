@@ -28,7 +28,7 @@ func (a *Alias) nu() *Alias {
 }
 
 func (e *Echo) nu() *Echo {
-	e.template = `echo "{{ .Message }}"`
+	e.template = defaultEchoTemplate
 	return e
 }
 

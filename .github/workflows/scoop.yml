@@ -31,10 +31,18 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           INPUT_VERSION: ${{ inputs.version }}
+          REPO_HOMEPAGE: ${{ github.event.repository.homepage }}
         run: |
           $ErrorActionPreference = "Stop"
           $repo = "${{ github.repository }}"
+          $repoOwner = "${{ github.repository_owner }}"
+          $repoName = $repo.Split("/")[1]
           $version = $env:INPUT_VERSION
+
+          $docsUrl = $env:REPO_HOMEPAGE
+          if ([string]::IsNullOrWhiteSpace($docsUrl)) {
+            $docsUrl = "https://$repoOwner.github.io/$repoName/"
+          }
 
           if ([string]::IsNullOrWhiteSpace($version)) {
             $latest = Invoke-RestMethod -Headers @{ Authorization = "Bearer $env:GH_TOKEN" } -Uri "https://api.github.com/repos/$repo/releases/latest"
@@ -57,7 +65,9 @@ jobs:
           $hash386 = Get-AssetHash "aliae-windows-386.exe"
           $hashArm64 = Get-AssetHash "aliae-windows-arm64.exe"
 
-          $content = Get-Content "bucket/aliae.template.json" -Raw
+          $content = Get-Content "packages/scoop/aliae.json" -Raw
+          $content = $content.Replace("<REPO>", $repo)
+          $content = $content.Replace("<DOCS_URL>", $docsUrl)
           $content = $content.Replace("<VERSION>", $version)
           $content = $content.Replace("<HASH-AMD64>", $hashAmd64)
           $content = $content.Replace("<HASH-386>", $hash386)
