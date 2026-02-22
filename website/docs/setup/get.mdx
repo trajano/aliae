@@ -14,15 +14,15 @@ Print the detected shell:
 aliae get shell
 ```
 
-## Verbose shell tracing
+## Debug shell detection
 
-Use verbose mode to debug shell detection layers (for example Scoop shims):
+Use `aliae debug` to inspect shell detection layers (for example Scoop shims):
 
 ```bash
-aliae get shell -v
+aliae debug
 ```
 
-Verbose output includes:
+Debug output includes:
 
 - executable name
 - process layers (`layer 0`, `layer 1`, ...)
