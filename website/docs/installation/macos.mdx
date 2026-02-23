@@ -7,6 +7,30 @@ sidebar_label: 🍏 macOS
 import Tabs from "@theme/Tabs";
 import TabItem from "@theme/TabItem";
 import InstallHomebrew from "./homebrew.mdx";
+import CodeBlock from "@theme/CodeBlock";
+import useDocusaurusContext from "@docusaurus/useDocusaurusContext";
+export const customFields = () =>
+  useDocusaurusContext().siteConfig.customFields;
+export const BashInstall = ({ binDir = false }) => {
+  const siteConfig = useDocusaurusContext().siteConfig;
+  if (binDir) {
+    return (
+      <CodeBlock language="bash">
+        {"curl -s "}
+        {siteConfig.url}
+        {"/install.sh | bash -s"}
+      </CodeBlock>
+    );
+  } else {
+    return (
+      <CodeBlock language="bash">
+        {"curl -s "}
+        {siteConfig.url}
+        {"/install.sh | bash -s -- -d ~/bin"}
+      </CodeBlock>
+    );
+  }
+};
 
 ## Installation
 
@@ -27,18 +51,14 @@ import InstallHomebrew from "./homebrew.mdx";
 
 Install the latest version for your system by running the following command:
 
-```bash
-curl -s https://trajano.github.io/aliae/install.sh | bash -s
-```
+<BashInstall />
 
-> Note: this manual command installs from the `trajano/aliae` fork, not the official `JanDeDobbeleer/aliae` repository.
+> Note: this manual command installs from the <code>{customFields().repositorySlug}</code> fork, not the official `JanDeDobbeleer/aliae` repository.
 
 By default the script will install to `/usr/local/bin` or the existing aliae executable's installation folder.
 If you want to install to a different location you can specify it using the `-d` flag:
 
-```bash
-curl -s https://trajano.github.io/aliae/install.sh | bash -s -- -d ~/bin
-```
+<BashInstall binDir={true} />
 
 </TabItem>
 </Tabs>
