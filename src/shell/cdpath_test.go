@@ -52,7 +52,7 @@ func TestCDPath(t *testing.T) {
 			CDPath: &CDPath{
 				Value: "/usr/local/share",
 			},
-			Expected: `export CDPATH="$CDPATH:/usr/local/share"`,
+			Expected: `export CDPATH="${CDPATH:+$CDPATH:}/usr/local/share"`,
 		},
 		{
 			Case:  "BASH - multiple items",
@@ -60,8 +60,8 @@ func TestCDPath(t *testing.T) {
 			CDPath: &CDPath{
 				Value: "/usr/local/share\n/usr/share",
 			},
-			Expected: `export CDPATH="$CDPATH:/usr/local/share"
-export CDPATH="$CDPATH:/usr/share"`,
+			Expected: `export CDPATH="${CDPATH:+$CDPATH:}/usr/local/share"
+export CDPATH="${CDPATH:+$CDPATH:}/usr/share"`,
 		},
 		{
 			Case:  "ZSH - single item",
@@ -130,7 +130,7 @@ func TestCDPathForce(t *testing.T) {
 				Value: "/usr/local/share",
 				Force: true,
 			},
-			Expected: `export CDPATH="$CDPATH:/usr/local/share"`,
+			Expected: `export CDPATH="${CDPATH:+$CDPATH:}/usr/local/share"`,
 		},
 	}
 
@@ -169,8 +169,8 @@ func TestCDPathRender(t *testing.T) {
 				&CDPath{Value: "/usr/share", If: `eq .Shell "bash"`},
 			},
 			Shell: BASH,
-			Expected: `export CDPATH="$CDPATH:/usr/share"
-export CDPATH=".:$CDPATH"`,
+			Expected: `export CDPATH="${CDPATH:+$CDPATH:}/usr/share"
+if [ -n "$CDPATH" ]; then export CDPATH=".:$CDPATH"; else export CDPATH="."; fi`,
 		},
 		{
 			Case: "Single definition with non-empty script",
@@ -181,8 +181,8 @@ export CDPATH=".:$CDPATH"`,
 			NonEmptyScript: true,
 			Expected: `foo
 
-export CDPATH="$CDPATH:/usr/share"
-export CDPATH=".:$CDPATH"`,
+export CDPATH="${CDPATH:+$CDPATH:}/usr/share"
+if [ -n "$CDPATH" ]; then export CDPATH=".:$CDPATH"; else export CDPATH="."; fi`,
 		},
 		{
 			Case: "Two definitions",
@@ -191,9 +191,9 @@ export CDPATH=".:$CDPATH"`,
 				&CDPath{Value: "/usr/local/share"},
 			},
 			Shell: BASH,
-			Expected: `export CDPATH="$CDPATH:/usr/share"
-export CDPATH="$CDPATH:/usr/local/share"
-export CDPATH=".:$CDPATH"`,
+			Expected: `export CDPATH="${CDPATH:+$CDPATH:}/usr/share"
+export CDPATH="${CDPATH:+$CDPATH:}/usr/local/share"
+if [ -n "$CDPATH" ]; then export CDPATH=".:$CDPATH"; else export CDPATH="."; fi`,
 		},
 	}
 
@@ -224,14 +224,14 @@ func TestCDPathIfExists(t *testing.T) {
 		Value:    Template(existing + "\n" + missing),
 		IfExists: true,
 	}
-	assert.Equal(t, `export CDPATH="$CDPATH:`+existing+`"`, withExists.string(), "ifExists true keeps only existing entries")
+	assert.Equal(t, `export CDPATH="${CDPATH:+$CDPATH:}`+existing+`"`, withExists.string(), "ifExists true keeps only existing entries")
 
 	context.Current.CDPath = &context.Path{}
 	withoutExists := &CDPath{
 		Value:    Template(missing),
 		IfExists: false,
 	}
-	assert.Equal(t, `export CDPATH="$CDPATH:`+missing+`"`, withoutExists.string(), "ifExists false keeps current behavior")
+	assert.Equal(t, `export CDPATH="${CDPATH:+$CDPATH:}`+missing+`"`, withoutExists.string(), "ifExists false keeps current behavior")
 }
 
 func TestCDPathEnsuresCurrentDir(t *testing.T) {
@@ -242,7 +242,9 @@ func TestCDPathEnsuresCurrentDir(t *testing.T) {
 	}
 	paths := CDPaths{&CDPath{Value: "/usr/local/share"}}
 	paths.Render()
-	assert.Equal(t, `export CDPATH="$CDPATH:/usr/local/share"`+"\n"+`export CDPATH=".:$CDPATH"`, strings.TrimSpace(DotFile.String()))
+	expected := `export CDPATH="${CDPATH:+$CDPATH:}/usr/local/share"` + "\n" +
+		`if [ -n "$CDPATH" ]; then export CDPATH=".:$CDPATH"; else export CDPATH="."; fi`
+	assert.Equal(t, expected, strings.TrimSpace(DotFile.String()))
 }
 
 func TestCDPathDoesNotInjectCurrentDirWhenAlreadyPresent(t *testing.T) {
@@ -254,7 +256,7 @@ func TestCDPathDoesNotInjectCurrentDirWhenAlreadyPresent(t *testing.T) {
 
 	paths := CDPaths{&CDPath{Value: "/usr/local/share"}}
 	paths.Render()
-	assert.Equal(t, `export CDPATH="$CDPATH:/usr/local/share"`, strings.TrimSpace(DotFile.String()))
+	assert.Equal(t, `export CDPATH="${CDPATH:+$CDPATH:}/usr/local/share"`, strings.TrimSpace(DotFile.String()))
 }
 
 func TestCDPathWithExistingCurrentDirSkipsDotInsertion(t *testing.T) {
@@ -263,5 +265,5 @@ func TestCDPathWithExistingCurrentDirSkipsDotInsertion(t *testing.T) {
 		CDPath: &context.Path{".", "/existing"},
 	}
 	cdpath := &CDPath{Value: "/usr/local/share"}
-	assert.Equal(t, `export CDPATH="$CDPATH:/usr/local/share"`, cdpath.string())
+	assert.Equal(t, `export CDPATH="${CDPATH:+$CDPATH:}/usr/local/share"`, cdpath.string())
 }
