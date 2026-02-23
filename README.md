@@ -5,6 +5,7 @@ Cross platform shell management.
 > **THIS IS A PERSONAL FORK.**
 > **FOR THE OFFICIAL PROJECT, GO TO [aliae.dev](https://aliae.dev) AND [JanDeDobbeleer/aliae](https://github.com/JanDeDobbeleer/aliae).**
 > Inno/WinGet is not supported on this fork, only scoop, homebrew and manual.
+> The developer of this personal fork uses *git bash*, *bash*, *zsh* and *fish* normally so other shells may not get the same treatment.
 
 [![License][license]](LISENCE)
 
