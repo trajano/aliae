@@ -6,6 +6,7 @@ import (
 	"os/exec"
 	"slices"
 	"strings"
+	"sync"
 )
 
 type Path []string
@@ -18,6 +19,11 @@ var runCygpath = func(path string) (string, error) {
 
 	return strings.TrimSpace(string(output)), nil
 }
+
+var (
+	cleanPathCache   = map[string]string{}
+	cleanPathCacheMu sync.RWMutex
+)
 
 func getPath() *Path {
 	return getEnvPath("PATH")
@@ -80,13 +86,39 @@ func cleanPath(path string) string {
 		return path
 	}
 
+	cacheKey := cleanPathCacheKey(path)
+	cleanPathCacheMu.RLock()
+	cached, ok := cleanPathCache[cacheKey]
+	cleanPathCacheMu.RUnlock()
+	if ok {
+		return cached
+	}
+
 	if isMSYS2Shell() {
 		if normalized, err := runCygpath(path); err == nil && normalized != "" {
 			path = normalized
 		}
 	}
 
-	return strings.TrimRight(path, `/\`)
+	clean := strings.TrimRight(path, `/\`)
+	cleanPathCacheMu.Lock()
+	cleanPathCache[cacheKey] = clean
+	cleanPathCacheMu.Unlock()
+	return clean
+}
+
+func cleanPathCacheKey(path string) string {
+	if Current == nil {
+		return "|:" + os.Getenv("MSYSTEM") + ":" + path
+	}
+
+	return Current.OS + "|" + Current.Shell + ":" + os.Getenv("MSYSTEM") + ":" + path
+}
+
+func clearCleanPathCache() {
+	cleanPathCacheMu.Lock()
+	defer cleanPathCacheMu.Unlock()
+	cleanPathCache = map[string]string{}
 }
 
 func isASCIIAlpha(value byte) bool {
