@@ -221,6 +221,15 @@ func TestTemplateHostname(t *testing.T) {
 	assert.Equal(t, "my-host", got)
 }
 
+func TestTemplateWSL(t *testing.T) {
+	text := `{{ .WSL }}`
+	context.Current = &context.Runtime{Shell: BASH, WSL: true}
+
+	got, err := parse(text, context.Current)
+	assert.NoError(t, err)
+	assert.Equal(t, "true", got)
+}
+
 func TestHasCommand(t *testing.T) {
 	text := `{{ hasCommand .Command}}`
 	cases := []struct {

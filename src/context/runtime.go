@@ -9,11 +9,14 @@ import (
 // and testing purposes
 var Current *Runtime
 
+var runtimeGOOS = runtime.GOOS
+
 type Runtime struct {
 	Path       *Path
 	CDPath     *Path
 	Shell      string
 	OS         string
+	WSL        bool
 	Hostname   string
 	Home       string
 	Arch       string
@@ -27,7 +30,8 @@ func Init(shell string) {
 
 	Current = &Runtime{
 		Shell:    shell,
-		OS:       runtime.GOOS,
+		OS:       runtimeGOOS,
+		WSL:      isWSL(),
 		Arch:     runtime.GOARCH,
 		Home:     home,
 		Hostname: hostname,
@@ -52,4 +56,12 @@ func Home() string {
 		home = os.Getenv("USERPROFILE")
 	}
 	return home
+}
+
+func isWSL() bool {
+	if runtimeGOOS != LINUX {
+		return false
+	}
+
+	return os.Getenv("WSL_DISTRO_NAME") != "" || os.Getenv("WSL_INTEROP") != ""
 }
