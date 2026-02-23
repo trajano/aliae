@@ -300,6 +300,23 @@ func TestDirExists(t *testing.T) {
 	testDirExistsTemplate(t, text)
 }
 
+func TestFileExistsAndDirExistsShareCache(t *testing.T) {
+	tempDir := t.TempDir()
+	context.Current = &context.Runtime{Shell: BASH, Home: tempDir}
+	target := filepath.Join(tempDir, "target")
+	assert.NoError(t, os.MkdirAll(target, 0o700))
+
+	t.Cleanup(clearPathExistsCache)
+	clearPathExistsCache()
+
+	fileCheck, _ := parse(`{{ fileExists .Path }}`, struct{ Path string }{Path: target})
+	assert.Equal(t, "false", fileCheck)
+
+	// dirExists should read the same cached stat result and report directory truthfully.
+	dirCheck, _ := parse(`{{ dirExists .Path }}`, struct{ Path string }{Path: target})
+	assert.Equal(t, "true", dirCheck)
+}
+
 func testDirExistsTemplate(t *testing.T, text string) {
 	t.Helper()
 	tempDir := t.TempDir()

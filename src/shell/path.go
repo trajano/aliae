@@ -114,8 +114,7 @@ func pathEntryExists(entry string) bool {
 		}
 	}
 
-	_, err := statWithTimeout(resolved, statTimeout)
-	return err == nil
+	return pathExists(resolved).exists
 }
 
 func normalizePathEntry(entry string) string {
