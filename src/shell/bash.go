@@ -53,7 +53,7 @@ func (p *Path) bash() *Path {
 }
 
 func (p *CDPath) bash() *CDPath {
-	template := fmt.Sprintf(`export CDPATH="$CDPATH%s{{ .Value }}"`, context.PathDelimiter())
+	template := fmt.Sprintf(`export CDPATH="${CDPATH:+$CDPATH%s}{{ .Value }}"`, context.PathDelimiter())
 	p.template = template
 	return p
 }

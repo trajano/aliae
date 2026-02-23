@@ -1,7 +1,6 @@
 package shell
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/jandedobbeleer/aliae/src/context"
@@ -86,7 +85,7 @@ func (p *CDPath) render() string {
 func cdpathCurrentDirScript() string {
 	switch context.Current.Shell {
 	case BASH:
-		return fmt.Sprintf(`export CDPATH=".%s$CDPATH"`, context.PathDelimiter())
+		return `if [ -n "$CDPATH" ]; then export CDPATH=".:$CDPATH"; else export CDPATH="."; fi`
 	case ZSH:
 		return `cdpath=( . $cdpath )`
 	case FISH:
