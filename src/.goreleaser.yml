@@ -12,6 +12,7 @@ builds:
     no_unique_dist_dir: true
     flags:
       - -a
+      - -trimpath
     ldflags:
       - -s -w -X main.Version={{.Version}} -extldflags "-static"
     tags:
