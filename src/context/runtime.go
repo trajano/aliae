@@ -16,12 +16,12 @@ type Runtime struct {
 	CDPath     *Path
 	Shell      string
 	OS         string
-	WSL        bool
 	Hostname   string
 	Home       string
 	Arch       string
 	ConfigPath string
 	ConfigDir  string
+	WSL        bool
 }
 
 func Init(shell string) {
