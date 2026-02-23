@@ -1,11 +1,13 @@
 package config
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
 
+	"github.com/jandedobbeleer/aliae/src/context"
 	"github.com/jandedobbeleer/aliae/src/shell"
 	"github.com/stretchr/testify/assert"
 )
@@ -21,6 +23,8 @@ func TestInitTemplateConfigVariables(t *testing.T) {
     value: '{{ .ConfigPath }}'
   - name: CONFIG_DIR
     value: '{{ .ConfigDir }}'
+  - name: IS_WSL
+    value: '{{ .WSL }}'
 `
 
 	err := os.WriteFile(configFile, []byte(configContent), 0o600)
@@ -29,6 +33,7 @@ func TestInitTemplateConfigVariables(t *testing.T) {
 	script := Init(configFile, shell.BASH, true)
 	escapedDir := strings.ReplaceAll(resolveConfigDir(configFile), `\`, `\\`)
 	expected := "export CONFIG_PATH=\"" + configFile + "\"\n" +
-		"export CONFIG_DIR=\"" + escapedDir + "\""
+		"export CONFIG_DIR=\"" + escapedDir + "\"\n" +
+		fmt.Sprintf("export IS_WSL=\"%t\"", context.Current.WSL)
 	assert.Equal(t, expected, script)
 }

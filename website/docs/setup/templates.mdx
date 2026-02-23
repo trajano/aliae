@@ -21,15 +21,16 @@ Out of the box you get the following functionality:
 
 ### Variables
 
-| Name              | Type     | Description                                  | Example                                                                      |
-| ----------------- | -------- | -------------------------------------------- | ---------------------------------------------------------------------------- |
-| `.Shell`          | `string` | the current shell name                       | `{{ .Shell }}`                                                               |
-| `.Hostname`       | `string` | the system hostname                          | `{{ .Hostname }}`                                                            |
-| `.Home`           | `string` | the user's `$HOME` folder                    | `{{ .Home }}/go/bin/aliae`                                                   |
-| `.OS`             | `string` | the current operating system                 | `{{ .Home }}/go/bin/aliae{{ if eq .OS "windows" }}.exe{{ end }}`             |
-| `.Arch`           | `string` | the `aliae` executable architecture          | `{{ .Home }}/go/bin/aliae-{{ .Arch }}{{ if eq .OS "windows" }}.exe{{ end }}` |
-| `.ConfigPath`     | `string` | the resolved `aliae` configuration file path | `{{ .ConfigPath }}`                                                          |
-| `.ConfigDir`      | `string` | the directory of the resolved config file    | `{{ .ConfigDir }}/partials/env.yaml`                                         |
+| Name          | Type     | Description                           | Example                                                                      |
+| ------------- | -------- | ------------------------------------- | ---------------------------------------------------------------------------- |
+| `.Shell`      | `string` | the current shell name                | `{{ .Shell }}`                                                               |
+| `.Hostname`   | `string` | the system hostname                   | `{{ .Hostname }}`                                                            |
+| `.WSL`        | `bool`   | whether runtime is in WSL             | `{{ .WSL }}`                                                                 |
+| `.Home`       | `string` | the user's `$HOME` folder             | `{{ .Home }}/go/bin/aliae`                                                   |
+| `.OS`         | `string` | the current operating system          | `{{ .Home }}/go/bin/aliae{{ if eq .OS "windows" }}.exe{{ end }}`             |
+| `.Arch`       | `string` | the `aliae` executable architecture   | `{{ .Home }}/go/bin/aliae-{{ .Arch }}{{ if eq .OS "windows" }}.exe{{ end }}` |
+| `.ConfigPath` | `string` | the resolved `aliae` config file path | `{{ .ConfigPath }}`                                                          |
+| `.ConfigDir`  | `string` | the directory of the resolved config  | `{{ .ConfigDir }}/partials/env.yaml`                                         |
 
 ### Functions
 

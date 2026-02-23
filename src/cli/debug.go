@@ -31,6 +31,7 @@ var debugCmd = &cobra.Command{
 		fmt.Fprintf(os.Stdout, "tty.stdout=%t\n", stdoutTTY)
 		fmt.Fprintf(os.Stdout, "template.Shell=%s\n", context.Current.Shell)
 		fmt.Fprintf(os.Stdout, "template.OS=%s\n", context.Current.OS)
+		fmt.Fprintf(os.Stdout, "template.WSL=%t\n", context.Current.WSL)
 		fmt.Fprintf(os.Stdout, "template.Hostname=%s\n", context.Current.Hostname)
 		fmt.Fprintf(os.Stdout, "template.Home=%s\n", context.Current.Home)
 		fmt.Fprintf(os.Stdout, "template.Arch=%s\n", context.Current.Arch)
