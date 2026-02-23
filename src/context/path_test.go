@@ -27,6 +27,8 @@ func TestPathContainsEquivalentWindowsAndMSYS2Forms(t *testing.T) {
 	t.Setenv("MSYSTEM", "MINGW64")
 	t.Setenv("PATH", "")
 	Current = &Runtime{OS: WINDOWS, Shell: "bash"}
+	clearCleanPathCache()
+	t.Cleanup(clearCleanPathCache)
 
 	originalRunCygpath := runCygpath
 	t.Cleanup(func() { runCygpath = originalRunCygpath })
@@ -75,6 +77,8 @@ func TestGetPathDoesNotMutateEnvironmentPath(t *testing.T) {
 func TestCleanPathUsesCygpath(t *testing.T) {
 	t.Setenv("MSYSTEM", "MINGW64")
 	Current = &Runtime{OS: WINDOWS, Shell: "bash"}
+	clearCleanPathCache()
+	t.Cleanup(clearCleanPathCache)
 
 	originalRunCygpath := runCygpath
 	t.Cleanup(func() { runCygpath = originalRunCygpath })
@@ -90,6 +94,8 @@ func TestCleanPathUsesCygpath(t *testing.T) {
 func TestCleanPathKeepsWindowsPathWhenCygpathFails(t *testing.T) {
 	t.Setenv("MSYSTEM", "MINGW64")
 	Current = &Runtime{OS: WINDOWS, Shell: "bash"}
+	clearCleanPathCache()
+	t.Cleanup(clearCleanPathCache)
 
 	originalRunCygpath := runCygpath
 	t.Cleanup(func() { runCygpath = originalRunCygpath })
@@ -99,4 +105,25 @@ func TestCleanPathKeepsWindowsPathWhenCygpathFails(t *testing.T) {
 	}
 
 	assert.Equal(t, `C:\Users\trajano\bin`, cleanPath(`C:\Users\trajano\bin\`))
+}
+
+func TestCleanPathCachesCygpathResult(t *testing.T) {
+	t.Setenv("MSYSTEM", "MINGW64")
+	Current = &Runtime{OS: WINDOWS, Shell: "bash"}
+	clearCleanPathCache()
+	t.Cleanup(clearCleanPathCache)
+
+	originalRunCygpath := runCygpath
+	t.Cleanup(func() { runCygpath = originalRunCygpath })
+
+	calls := 0
+	runCygpath = func(path string) (string, error) {
+		calls++
+		assert.Equal(t, `C:\Users\trajano\bin\`, path)
+		return "/c/Users/trajano/bin", nil
+	}
+
+	assert.Equal(t, "/c/Users/trajano/bin", cleanPath(`C:\Users\trajano\bin\`))
+	assert.Equal(t, "/c/Users/trajano/bin", cleanPath(`C:\Users\trajano\bin\`))
+	assert.Equal(t, 1, calls)
 }
