@@ -32,6 +32,30 @@ path:
 | `force`   | `boolean` | if you want to always export the path even if it already exists in your current shell       |
 | `ifExists`| `boolean` | if you want to add only entries that exist on disk (default: `false`)                       |
 
+## Windows and MSYS paths
+
+Set `path.value` entries using your OS-native path format.
+
+On Windows, use Windows-style paths such as `P:\tools\bin`.
+When aliae renders output for MSYS shells at runtime (for example Git Bash),
+it converts those entries to MSYS style automatically.
+
+Example:
+
+```yaml
+path:
+  - value: |
+      P:\tools\bin
+      P:\scripts
+```
+
+Runtime output in Git Bash:
+
+```bash
+export PATH="/p/tools/bin:$PATH"
+export PATH="/p/scripts:$PATH"
+```
+
 [templates]: templates.mdx
 [go-text-template]: https://golang.org/pkg/text/template/
 [if]: if.mdx
