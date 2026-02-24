@@ -170,7 +170,7 @@ func TestCDPathRender(t *testing.T) {
 			},
 			Shell: BASH,
 			Expected: `export CDPATH="${CDPATH:+$CDPATH:}/usr/share"
-if [ -n "$CDPATH" ]; then export CDPATH=".:$CDPATH"; else export CDPATH="."; fi`,
+if [ -n "$CDPATH" ]; then export CDPATH=":$CDPATH"; else export CDPATH=":"; fi`,
 		},
 		{
 			Case: "Single definition with non-empty script",
@@ -182,7 +182,7 @@ if [ -n "$CDPATH" ]; then export CDPATH=".:$CDPATH"; else export CDPATH="."; fi`
 			Expected: `foo
 
 export CDPATH="${CDPATH:+$CDPATH:}/usr/share"
-if [ -n "$CDPATH" ]; then export CDPATH=".:$CDPATH"; else export CDPATH="."; fi`,
+if [ -n "$CDPATH" ]; then export CDPATH=":$CDPATH"; else export CDPATH=":"; fi`,
 		},
 		{
 			Case: "Two definitions",
@@ -193,7 +193,7 @@ if [ -n "$CDPATH" ]; then export CDPATH=".:$CDPATH"; else export CDPATH="."; fi`
 			Shell: BASH,
 			Expected: `export CDPATH="${CDPATH:+$CDPATH:}/usr/share"
 export CDPATH="${CDPATH:+$CDPATH:}/usr/local/share"
-if [ -n "$CDPATH" ]; then export CDPATH=".:$CDPATH"; else export CDPATH="."; fi`,
+if [ -n "$CDPATH" ]; then export CDPATH=":$CDPATH"; else export CDPATH=":"; fi`,
 		},
 	}
 
@@ -243,7 +243,7 @@ func TestCDPathEnsuresCurrentDir(t *testing.T) {
 	paths := CDPaths{&CDPath{Value: "/usr/local/share"}}
 	paths.Render()
 	expected := `export CDPATH="${CDPATH:+$CDPATH:}/usr/local/share"` + "\n" +
-		`if [ -n "$CDPATH" ]; then export CDPATH=".:$CDPATH"; else export CDPATH="."; fi`
+		`if [ -n "$CDPATH" ]; then export CDPATH=":$CDPATH"; else export CDPATH=":"; fi`
 	assert.Equal(t, expected, strings.TrimSpace(DotFile.String()))
 }
 
