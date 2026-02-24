@@ -60,6 +60,10 @@ function getDefaultBranch() {
 
 const originRemote = run('git config --get remote.origin.url');
 const repositoryUrl = repositoryUrlFromActionsEnv() || parseRepositoryUrl(originRemote) || 'https://github.com/jandedobbeleer/aliae';
+const repositoryParts = repositoryUrl.split('/');
+const repositoryOwner = repositoryParts[3] || 'jandedobbeleer';
+const repositoryName = repositoryParts[4] || 'aliae';
+const repositorySlug = `${repositoryOwner}/${repositoryName}`;
 const defaultBranch = getDefaultBranch();
 
 module.exports = {
@@ -68,10 +72,13 @@ module.exports = {
   url: process.env.DOCS_URL || 'https://aliae.dev',
   baseUrl: process.env.DOCS_BASE_URL || '/',
   favicon: 'img/favicon.ico',
-  organizationName: repositoryUrl.split('/')[3],
-  projectName: repositoryUrl.split('/')[4],
+  organizationName: repositoryOwner,
+  projectName: repositoryName,
   customFields: {
     repositoryUrl,
+    repositoryOwner,
+    repositoryName,
+    repositorySlug,
   },
   onBrokenLinks: 'ignore',
   plugins: [

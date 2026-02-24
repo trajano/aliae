@@ -1,0 +1,9 @@
+import CodeBlock from "@theme/CodeBlock";
+import useDocusaurusContext from "@docusaurus/useDocusaurusContext";
+
+export default function BashInstall({ binDir = false }) {
+  const siteConfig = useDocusaurusContext().siteConfig;
+  const docsUrl = `${siteConfig.url}${siteConfig.baseUrl}`.replace(/\/$/, "");
+  const installArgs = binDir ? "" : " -- -d ~/bin";
+  return <CodeBlock language="bash">{`curl -s ${docsUrl}/install.sh | bash -s${installArgs}`}</CodeBlock>;
+}

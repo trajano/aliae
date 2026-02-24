@@ -6,76 +6,60 @@ sidebar_label: ⊞ Windows
 
 import Tabs from "@theme/Tabs";
 import TabItem from "@theme/TabItem";
+import CodeBlock from "@theme/CodeBlock";
+import useDocusaurusContext from "@docusaurus/useDocusaurusContext";
+export const customFields = () => useDocusaurusContext().siteConfig.customFields;
+export const siteConfig = () => useDocusaurusContext().siteConfig;
+export const PowerShellInstall = () => {
+  const siteConfig = useDocusaurusContext().siteConfig;
+  const docsUrl = `${siteConfig.url}${siteConfig.baseUrl}`.replace(/\/$/, "");
+  return (
+    <CodeBlock language="powershell">{`Set-ExecutionPolicy Bypass -Scope Process -Force; Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('${docsUrl}/install.ps1'))`}</CodeBlock>
+  );
+}
 
 ## Installation
 
 <Tabs
-  defaultValue="winget"
+  defaultValue="scoop"
   groupId="install"
   values={[
-    { label: 'winget', value: 'winget', },
     { label: 'scoop', value: 'scoop', },
     { label: 'manual', value: 'manual', },
   ]
 }>
-<TabItem value="winget">
 
-Open a PowerShell prompt and run the following command:
-
-```powershell
-winget install JanDeDobbeleer.Aliae -s winget
-```
-
-</TabItem>
 <TabItem value="scoop">
 
 Open a PowerShell prompt and run the following commands:
 
-```powershell
-scoop bucket add trajano https://github.com/trajano/aliae
-scoop install trajano/aliae
-```
+<CodeBlock language="powershell">{`scoop bucket add ${customFields().repositoryOwner} ${customFields().repositoryUrl}
+scoop install ${customFields().repositorySlug}`}</CodeBlock>
 
-> Note: this Scoop bucket flow is for the `trajano/aliae` fork, not the official `JanDeDobbeleer/aliae` repository.
+> Note: this Scoop bucket flow is for the {customFields().repositorySlug} fork, not the official `JanDeDobbeleer/aliae` repository.
 
 </TabItem>
 <TabItem value="manual">
 
 Open a PowerShell prompt and run the following command:
 
-```powershell
-Set-ExecutionPolicy Bypass -Scope Process -Force; Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://trajano.github.io/aliae/install.ps1'))
-```
+<PowerShellInstall />
 
-> Note: this manual command installs from the `trajano/aliae` fork, not the official `JanDeDobbeleer/aliae` repository.
+> Note: this manual command installs from the <code>{customFields().repositorySlug}</code> fork, not the official `JanDeDobbeleer/aliae` repository.
 
 </TabItem>
 </Tabs>
 
-### Use this repo as the custom Scoop bucket (fork)
-
-This fork already contains `bucket/aliae.json`, so you can use `trajano/aliae` directly as your custom Scoop bucket.
-
 ## Update
 
 <Tabs
-  defaultValue="winget"
+  defaultValue="scoop"
   groupId="install"
   values={[
-    { label: 'winget', value: 'winget', },
     { label: 'scoop', value: 'scoop', },
     { label: 'manual', value: 'manual', },
   ]
 }>
-<TabItem value="winget">
-
-Open a PowerShell prompt and run the following command:
-
-```powershell
-winget upgrade JanDeDobbeleer.Aliae -s winget
-```
-
-</TabItem>
 <TabItem value="scoop">
 
 Open a PowerShell prompt and run the following command:
@@ -89,9 +73,7 @@ scoop update aliae
 
 Open a PowerShell prompt and run the following command:
 
-```powershell
-Set-ExecutionPolicy Bypass -Scope Process -Force; Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://trajano.github.io/aliae/install.ps1'))
-```
+<PowerShellInstall />
 
 </TabItem>
 </Tabs>

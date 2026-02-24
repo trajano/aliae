@@ -1,6 +1,9 @@
+import useDocusaurusContext from "@docusaurus/useDocusaurusContext";
+export const customFields = () => useDocusaurusContext().siteConfig.customFields
+
 A [Homebrew][brew] Formula and Cask (macOS only) are available for easy installation.
 
-> Note: these Homebrew commands are for the `trajano/aliae` fork, not the official `JanDeDobbeleer/aliae` repository.
+> Note: these Homebrew commands are for the <code>{customFields().repositorySlug}</code> fork, not the official `JanDeDobbeleer/aliae` repository.
 
 :::warning Linux
 When installing Homebrew for Linux,
