@@ -13,21 +13,14 @@ export const customFields = () =>
   useDocusaurusContext().siteConfig.customFields;
 export const BashInstall = ({ binDir = false }) => {
   const siteConfig = useDocusaurusContext().siteConfig;
+  const docsUrl = `${siteConfig.url}${siteConfig.baseUrl}`.replace(/\/$/, "");
   if (binDir) {
     return (
-      <CodeBlock language="bash">
-        {"curl -s "}
-        {siteConfig.url}
-        {"/install.sh | bash -s"}
-      </CodeBlock>
+      <CodeBlock language="bash">{`curl -s ${docsUrl}/install.sh | bash -s`}</CodeBlock>
     );
   } else {
     return (
-      <CodeBlock language="bash">
-        {"curl -s "}
-        {siteConfig.url}
-        {"/install.sh | bash -s -- -d ~/bin"}
-      </CodeBlock>
+      <CodeBlock language="bash">{`curl -s ${docsUrl}/install.sh | bash -s -- -d ~/bin`}</CodeBlock>
     );
   }
 };

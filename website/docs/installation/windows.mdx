@@ -12,7 +12,10 @@ export const customFields = () => useDocusaurusContext().siteConfig.customFields
 export const siteConfig = () => useDocusaurusContext().siteConfig;
 export const PowerShellInstall = () => {
   const siteConfig = useDocusaurusContext().siteConfig;
-  return <CodeBlock language="powershell">Set-ExecutionPolicy Bypass -Scope Process -Force; Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('{siteConfig.url}/install.ps1'))</CodeBlock>
+  const docsUrl = `${siteConfig.url}${siteConfig.baseUrl}`.replace(/\/$/, "");
+  return (
+    <CodeBlock language="powershell">{`Set-ExecutionPolicy Bypass -Scope Process -Force; Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('${docsUrl}/install.ps1'))`}</CodeBlock>
+  );
 }
 
 ## Installation
