@@ -19,7 +19,8 @@ func (a *Alias) nu() *Alias {
 	case Command:
 		a.template = `alias {{ .Name }} = {{ .Value }}`
 	case Function:
-		a.template = `def {{ .Name }} [] {
+		a.template = `{{ if .Description }}# {{ .Description }}
+{{ end }}def {{ .Name }} [] {
     {{ .Value }}
 }`
 	}

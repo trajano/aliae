@@ -9,7 +9,7 @@ func (a *Alias) fish() *Alias {
 	case Command:
 		a.template = `alias {{ .Name }} '{{ .Value }}'`
 	case Function:
-		a.template = `function {{ .Name }}
+		a.template = `function {{ .Name }}{{ if .Description }} --description {{ formatString .Description }}{{ end }}
     {{ .Value }}
 end`
 	}

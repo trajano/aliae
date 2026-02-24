@@ -38,6 +38,8 @@ focused on Git Bash support and fork-specific distribution.
   - Improved shell detection for Git Bash and Scoop shim process trees.
   - Added shell resolution trace output through `aliae debug`.
   - Fixed Git Bash PATH delimiter handling on Windows.
+  - Added function description support for Fish (`function --description`) and Nushell
+    (doc comment) when `description` is set.
 - Template features:
   - Added `fileExists` and `dirExists` template helpers.
   - Added `progress` template helper for OSC progress output and reset.
