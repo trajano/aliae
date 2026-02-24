@@ -65,10 +65,11 @@ func TestAliasCommand(t *testing.T) {
 
 func TestAliasFunction(t *testing.T) {
 	cases := []struct {
-		Case     string
-		Shell    string
-		Name     string
-		Expected string
+		Case        string
+		Shell       string
+		Name        string
+		Description string
+		Expected    string
 	}{
 		{
 			Case:     "unknown shell",
@@ -95,9 +96,26 @@ func TestAliasFunction(t *testing.T) {
 end`,
 		},
 		{
+			Case:        "FISH with description",
+			Shell:       FISH,
+			Description: "A fish function",
+			Expected: `function foo --description "A fish function"
+    bar
+end`,
+		},
+		{
 			Case:  "NU",
 			Shell: NU,
 			Expected: `def foo [] {
+    bar
+}`,
+		},
+		{
+			Case:        "NU with description",
+			Shell:       NU,
+			Description: "A nu function",
+			Expected: `# A nu function
+def foo [] {
     bar
 }`,
 		},
@@ -142,6 +160,9 @@ def __foobar():
 
 		if len(tc.Name) > 0 {
 			alias.Name = tc.Name
+		}
+		if len(tc.Description) > 0 {
+			alias.Description = tc.Description
 		}
 
 		context.Current = &context.Runtime{Shell: tc.Shell}
