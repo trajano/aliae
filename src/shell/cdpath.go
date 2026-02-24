@@ -85,7 +85,7 @@ func (p *CDPath) render() string {
 func cdpathCurrentDirScript() string {
 	switch context.Current.Shell {
 	case BASH:
-		return `if [ -n "$CDPATH" ]; then export CDPATH=".:$CDPATH"; else export CDPATH="."; fi`
+		return `if [ -n "$CDPATH" ]; then export CDPATH=":$CDPATH"; else export CDPATH=":"; fi`
 	case ZSH:
 		return `cdpath=( . $cdpath )`
 	case FISH:
