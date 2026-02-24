@@ -33,10 +33,10 @@ export const PowerShellInstall = () => {
 
 Open a PowerShell prompt and run the following commands:
 
-<CodeBlock language="powershell">{`scoop bucket add ${customFields().repositoryOwner} ${customFields().repositoryUrl}
-scoop install ${customFields().repositorySlug}`}</CodeBlock>
+<CodeBlock language="powershell">{`scoop bucket add trajano https://github.com/trajano/scoop-bucket
+scoop install trajano/aliae`}</CodeBlock>
 
-> Note: this Scoop bucket flow is for the {customFields().repositorySlug} fork, not the official `JanDeDobbeleer/aliae` repository.
+> Note: this Scoop bucket flow uses the `trajano/scoop-bucket` bucket for the `trajano/aliae` fork.
 
 </TabItem>
 <TabItem value="manual">

@@ -53,7 +53,7 @@ focused on Git Bash support and fork-specific distribution.
   - Added top-level `stat_timeout` to control filesystem stat/existence timeout.
 - Fork packaging and automation:
   - Pointed installer/docs flows to fork-owned release assets where appropriate.
-  - Added in-repo Scoop bucket/template flow with release-time manifest generation.
+  - Moved Scoop/Homebrew bucket and tap population to dedicated external repositories.
   - Updated CI/release workflows for fork ownership and publishing boundaries.
 - Documentation and contributor process:
   - Added fork-specific guidance, scoped pre-commit checks, and contribution rules.
