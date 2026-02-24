@@ -8,4 +8,4 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Disabled
-      run: echo "Homebrew publishing is disabled in this fork."
+      run: echo "Homebrew publishing moved to trajano/homebrew-tap."
