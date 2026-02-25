@@ -118,16 +118,29 @@ func pathEntryExists(entry string) bool {
 }
 
 func normalizePathEntry(entry string) string {
-	if context.Current == nil || context.Current.OS != context.WINDOWS || context.Current.Shell != BASH || !isMSYS2Environment() {
+	if context.Current == nil || context.Current.OS != context.WINDOWS {
 		return entry
 	}
 
-	normalized, ok := windowsToMSYSPath(entry)
-	if !ok {
-		return entry
+	if context.Current.Shell == BASH && isMSYS2Environment() {
+		normalized, ok := windowsToMSYSPath(entry)
+		if !ok {
+			return entry
+		}
+
+		return normalized
 	}
 
-	return normalized
+	switch context.Current.Shell {
+	case PWSH, POWERSHELL, CMD, NU:
+		if windowsPath, ok := msysToWindowsPath(entry); ok {
+			return windowsPath
+		}
+
+		return strings.ReplaceAll(entry, "/", `\`)
+	default:
+		return entry
+	}
 }
 
 func isMSYS2Environment() bool {
