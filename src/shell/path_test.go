@@ -30,6 +30,20 @@ func TestPath(t *testing.T) {
 			Expected: `$env:PATH = "/usr/local/bin" + ':' + $env:PATH`,
 		},
 		{
+			Case:     "PWSH - Windows converts separators",
+			Shell:    PWSH,
+			OS:       context.WINDOWS,
+			Path:     &Path{Value: "C:/Users/jan/.tools/bin"},
+			Expected: `$env:PATH = "C:\Users\jan\.tools\bin" + ';' + $env:PATH`,
+		},
+		{
+			Case:     "PWSH - Windows converts MSYS paths",
+			Shell:    PWSH,
+			OS:       context.WINDOWS,
+			Path:     &Path{Value: "/c/Users/jan/.tools/bin"},
+			Expected: `$env:PATH = "C:\Users\jan\.tools\bin" + ';' + $env:PATH`,
+		},
+		{
 			Case:     "PWSH - single item with template",
 			Shell:    PWSH,
 			Path:     &Path{Value: "{{ .Home }}/.tools/bin"},
@@ -174,6 +188,7 @@ func TestPathRender(t *testing.T) {
 	cases := []struct {
 		Case           string
 		Shell          string
+		OS             string
 		Expected       string
 		Paths          Paths
 		NonEmptyScript bool
@@ -197,6 +212,15 @@ func TestPathRender(t *testing.T) {
 			},
 			Shell:    PWSH,
 			Expected: `$env:PATH = "/usr/bin" + ':' + $env:PATH`,
+		},
+		{
+			Case: "PWSH - Windows path separators",
+			Paths: Paths{
+				&Path{Value: "C:/Users/jan/.tools/bin"},
+			},
+			Shell:    PWSH,
+			OS:       context.WINDOWS,
+			Expected: `$env:PATH = "C:\Users\jan\.tools\bin" + ';' + $env:PATH`,
 		},
 		{
 			Case: "PWSH - 1 PATH definition",
@@ -243,7 +267,7 @@ $env:PATH = "/Users/jan/.tools/bin" + ':' + $env:PATH`,
 		if tc.NonEmptyScript {
 			DotFile.WriteString("foo")
 		}
-		context.Current = &context.Runtime{Shell: tc.Shell, Path: &context.Path{}}
+		context.Current = &context.Runtime{Shell: tc.Shell, OS: tc.OS, Path: &context.Path{}}
 		tc.Paths.Render()
 		assert.Equal(t, tc.Expected, strings.TrimSpace(DotFile.String()), tc.Case)
 	}
