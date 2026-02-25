@@ -18,9 +18,9 @@ type Env struct {
 	Delimiter Template `yaml:"delimiter"`
 	If        If       `yaml:"if"`
 	Type      EnvType  `yaml:"type"`
-	IsPath    bool     `yaml:"isPath"`
-	IfExists  bool     `yaml:"ifExists"`
 	template  string
+	IsPath    bool `yaml:"isPath"`
+	IfExists  bool `yaml:"ifExists"`
 	Persist   bool `yaml:"persist"`
 	parsed    bool
 }
