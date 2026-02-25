@@ -83,12 +83,17 @@ func (a Aliae) Render() {
 
 	first := true
 	for _, alias := range a {
-		script := alias.string()
-		if len(script) == 0 || alias.If.Ignore() {
+		if alias.If.Ignore() {
 			continue
 		}
 
-		if first && DotFile.Len() > 0 {
+		script := alias.string()
+		if len(script) == 0 {
+			advanceAutoProgress(1)
+			continue
+		}
+
+		if first && dotFileHasRenderableContent() {
 			DotFile.WriteString("\n\n")
 		}
 
@@ -97,12 +102,15 @@ func (a Aliae) Render() {
 		}
 
 		if !first {
-			DotFile.WriteString("\n")
+			if !dotFileEndsWithNewline() {
+				DotFile.WriteString("\n")
+			}
 		}
 
 		DotFile.WriteString(script)
 
 		first = false
+		advanceAutoProgress(1)
 	}
 
 	if context.Current.Shell == CMD {

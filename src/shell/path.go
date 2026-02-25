@@ -183,16 +183,21 @@ func (p Paths) Render() {
 
 		script := entry.string()
 		if len(script) == 0 {
+			advanceAutoProgress(1)
 			continue
 		}
 
-		if first && DotFile.Len() > 0 {
+		if first && dotFileHasRenderableContent() {
+			if !dotFileEndsWithNewline() {
+				DotFile.WriteString("\n")
+			}
+			DotFile.WriteString("\n")
+		} else if !dotFileEndsWithNewline() {
 			DotFile.WriteString("\n")
 		}
-
-		DotFile.WriteString("\n")
 		DotFile.WriteString(script)
 
 		first = false
+		advanceAutoProgress(1)
 	}
 }

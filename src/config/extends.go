@@ -136,8 +136,16 @@ func loadLocalConfigRecursive(configPath string, stack []string, depth int) (*Al
 func decodeAliae(data []byte) (*Aliae, error) {
 	var aliae Aliae
 
-	decoder := yaml.NewDecoder(bytes.NewBuffer(data), yaml.CustomUnmarshaler(templateUmarshaler))
+	decoder := yaml.NewDecoder(
+		bytes.NewBuffer(data),
+		yaml.CustomUnmarshaler(templateUmarshaler),
+		yaml.CustomUnmarshaler(progressUnmarshaler),
+	)
 	if err := decoder.Decode(&aliae); err != nil {
+		return nil, fmt.Errorf("failed to parse config file: %s", err)
+	}
+
+	if err := hydrateProgressFromYAML(&aliae, data); err != nil {
 		return nil, fmt.Errorf("failed to parse config file: %s", err)
 	}
 
@@ -271,5 +279,9 @@ func (a *Aliae) merge(other *Aliae) {
 
 	if other.StatTimeout > 0 {
 		a.StatTimeout = other.StatTimeout
+	}
+
+	if other.Progress.Enabled || other.Progress.EndPercentage.Reset || other.Progress.EndPercentage.Value > 0 || other.Progress.StartPercentage > 0 {
+		a.Progress = other.Progress
 	}
 }

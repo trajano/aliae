@@ -80,4 +80,32 @@ func TestValidateConfig(t *testing.T) {
 		assert.Contains(t, strings.ToLower(err.Error()), "line")
 		assert.Contains(t, err.Error(), `if: "{"`)
 	})
+
+	t.Run("invalid progress percentages", func(t *testing.T) {
+		root := t.TempDir()
+		file := filepath.Join(root, "aliae.yaml")
+		require.NoError(t, os.WriteFile(file, []byte(`progress:
+  start_percentage: 60
+  end_percentage: 20
+`), 0o600))
+
+		err := ValidateConfig(file)
+		require.Error(t, err)
+		assert.Contains(t, strings.ToLower(err.Error()), "progress validation failed")
+		assert.Contains(t, err.Error(), "progress.end_percentage")
+	})
+
+	t.Run("invalid script weight", func(t *testing.T) {
+		root := t.TempDir()
+		file := filepath.Join(root, "aliae.yaml")
+		require.NoError(t, os.WriteFile(file, []byte(`script:
+  - value: echo hello
+    weight: 0.5
+`), 0o600))
+
+		err := ValidateConfig(file)
+		require.Error(t, err)
+		assert.Contains(t, strings.ToLower(err.Error()), "schema validation failed")
+		assert.Contains(t, err.Error(), "weight")
+	})
 }

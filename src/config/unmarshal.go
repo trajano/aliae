@@ -20,6 +20,7 @@ type Aliae struct {
 	CDPaths     shell.CDPaths `yaml:"cdpath"`
 	Scripts     shell.Scripts `yaml:"script"`
 	Links       shell.Links   `yaml:"link"`
+	Progress    Progress      `yaml:"progress,omitempty"`
 	StatTimeout time.Duration `yaml:"stat_timeout"`
 }
 
@@ -35,8 +36,16 @@ func aliaeUnmarshaler(a *Aliae, b []byte) error {
 		return err
 	}
 
-	decoder := yaml.NewDecoder(bytes.NewBuffer(data), yaml.CustomUnmarshaler(templateUmarshaler))
+	decoder := yaml.NewDecoder(
+		bytes.NewBuffer(data),
+		yaml.CustomUnmarshaler(templateUmarshaler),
+		yaml.CustomUnmarshaler(progressUnmarshaler),
+	)
 	if err = decoder.Decode(a); err != nil {
+		return err
+	}
+
+	if err = hydrateProgressFromYAML(a, data); err != nil {
 		return err
 	}
 

@@ -116,11 +116,14 @@ func (p CDPaths) Render() {
 			continue
 		}
 
-		if first && DotFile.Len() > 0 {
+		if first && dotFileHasRenderableContent() {
+			if !dotFileEndsWithNewline() {
+				DotFile.WriteString("\n")
+			}
+			DotFile.WriteString("\n")
+		} else if !dotFileEndsWithNewline() {
 			DotFile.WriteString("\n")
 		}
-
-		DotFile.WriteString("\n")
 		DotFile.WriteString(script)
 
 		first = false
@@ -130,7 +133,9 @@ func (p CDPaths) Render() {
 	// Some shells stop treating the current directory as an implicit fallback
 	// when CDPATH/cdpath is set and "." is missing.
 	if rendered && !context.Current.CDPath.Contains(".") {
-		DotFile.WriteString("\n")
+		if !dotFileEndsWithNewline() {
+			DotFile.WriteString("\n")
+		}
 		DotFile.WriteString(cdpathCurrentDirScript())
 		context.Current.CDPath.AppendCDPath(".")
 	}

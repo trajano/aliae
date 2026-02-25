@@ -14,7 +14,7 @@ import (
 
 // getCmd represents the get command
 var getCmd = &cobra.Command{
-	Use:   "get [shell|config]",
+	Use:   "get [shell|config|variables]",
 	Short: "Get a value from aliae",
 	Long: `Get a value from aliae.
 

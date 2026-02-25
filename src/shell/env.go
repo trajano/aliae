@@ -120,7 +120,7 @@ func (e Envs) Render() {
 		return
 	}
 
-	if DotFile.Len() > 0 {
+	if dotFileHasRenderableContent() {
 		DotFile.WriteString("\n\n")
 	}
 
@@ -131,10 +131,13 @@ func (e Envs) Render() {
 	first := true
 	for _, variable := range e {
 		if !first {
-			DotFile.WriteString("\n")
+			if !dotFileEndsWithNewline() {
+				DotFile.WriteString("\n")
+			}
 		}
 
 		DotFile.WriteString(variable.string())
+		advanceAutoProgress(1)
 
 		os.Setenv(variable.Name, toString(variable.Value))
 
