@@ -84,3 +84,12 @@ When updating an open PR, the agent must ensure the PR description still matches
 The agent must also add an update comment on the PR summarizing what changed in the update.
 If any PR check fails, the agent must reproduce and run the equivalent check locally when possible,
 fix the issue, and only push after the local check passes.
+
+## Make a PR command
+
+If I ask the agent to make a PR.  It means the following:
+1. Commit all changes make sure tree is clean.  Also make sure the commits are appropriate.
+2. Push up a branch (make sure it's not the same name as as origin/HEAD)
+3. Create the PR against that branch.
+4. Wait (poll every 30 seconds) for the PR checks to pass, if not update the PR accordingly.
+5. Complete the PR and delete the source branch off github when merged.
