@@ -9,6 +9,7 @@
       "program": "${workspaceRoot}/src",
       "args": [
         "init",
+        "--tty-only=false",
         "zsh"
       ]
     }
