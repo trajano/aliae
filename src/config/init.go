@@ -23,12 +23,15 @@ func Init(configPath, sh string, printOutput bool) string {
 		return errorString
 	}
 
+	shell.StartAutoProgress(aliae.autoProgressConfig())
+
 	aliae.Envs.Render()
 	aliae.Paths.Render()
 	aliae.CDPaths.Render()
 	aliae.Aliae.Render()
 	aliae.Links.Render()
 	aliae.Scripts.Render()
+	shell.EndAutoProgress()
 
 	script := shell.DotFile.String()
 

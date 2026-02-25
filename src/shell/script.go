@@ -3,13 +3,26 @@ package shell
 type Scripts []*Script
 
 type Script struct {
-	Value Template `yaml:"value"`
-	If    If       `yaml:"if"`
+	Value  Template `yaml:"value"`
+	If     If       `yaml:"if"`
+	Weight *float64 `yaml:"weight"`
 }
 
 func (s *Script) String() string {
 	script := s.Value.Parse()
 	return string(script)
+}
+
+func (s *Script) effectiveWeight() float64 {
+	if s.Weight == nil {
+		return 1
+	}
+
+	if *s.Weight < 1 {
+		return 1
+	}
+
+	return *s.Weight
 }
 
 func (s Scripts) Render() {
@@ -19,18 +32,27 @@ func (s Scripts) Render() {
 
 	first := true
 	for _, script := range s {
-		scriptBlock := script.String()
-		if len(scriptBlock) == 0 || script.If.Ignore() {
+		if script.If.Ignore() {
 			continue
 		}
 
-		if first && DotFile.Len() > 0 {
-			DotFile.WriteString("\n")
+		scriptBlock := script.String()
+		if len(scriptBlock) == 0 {
+			advanceAutoProgress(script.effectiveWeight())
+			continue
 		}
 
-		DotFile.WriteString("\n")
+		if first && dotFileHasRenderableContent() {
+			if !dotFileEndsWithNewline() {
+				DotFile.WriteString("\n")
+			}
+			DotFile.WriteString("\n")
+		} else if !dotFileEndsWithNewline() {
+			DotFile.WriteString("\n")
+		}
 		DotFile.WriteString(scriptBlock)
 
 		first = false
+		advanceAutoProgress(script.effectiveWeight())
 	}
 }

@@ -40,7 +40,15 @@ func ValidateConfig(configPath string) error {
 	}
 
 	if result.Valid() {
-		return validateIfExpressions(aliae, lineResolver)
+		if err := validateIfExpressions(aliae, lineResolver); err != nil {
+			return err
+		}
+
+		if err := validateProgress(aliae, lineResolver); err != nil {
+			return err
+		}
+
+		return validateScriptWeights(aliae, lineResolver)
 	}
 
 	validationErrors := make([]string, 0, len(result.Errors()))
@@ -259,6 +267,10 @@ func schemaDocument(aliae *Aliae) map[string]any {
 		document["link"] = links
 	}
 
+	if progress, ok := progressSchemaItem(aliae); ok {
+		document["progress"] = progress
+	}
+
 	if aliae.StatTimeout > 0 {
 		document["stat_timeout"] = aliae.StatTimeout.String()
 	}
@@ -380,9 +392,94 @@ func scriptSchemaItems(aliae *Aliae) []map[string]any {
 		if len(script.If) > 0 {
 			item["if"] = string(script.If)
 		}
+		if script.Weight != nil {
+			item["weight"] = *script.Weight
+		}
 		scripts = append(scripts, item)
 	}
 	return scripts
+}
+
+func progressSchemaItem(aliae *Aliae) (map[string]any, bool) {
+	if aliae == nil || !aliae.Progress.Enabled {
+		return nil, false
+	}
+
+	end := any(aliae.Progress.EndPercentage.Value)
+	if aliae.Progress.EndPercentage.Reset {
+		end = "reset"
+	}
+
+	return map[string]any{
+		"start_percentage": aliae.Progress.StartPercentage,
+		"end_percentage":   end,
+	}, true
+}
+
+func validateProgress(aliae *Aliae, lineResolver *yamlLineResolver) error {
+	if aliae == nil || !aliae.Progress.Enabled {
+		return nil
+	}
+
+	start := aliae.Progress.StartPercentage
+	end := aliae.Progress.EndPercentage.Value
+
+	validationErrors := make([]string, 0, 3)
+	if start < 0 || start > 100 {
+		validationErrors = append(
+			validationErrors,
+			lineResolver.annotate("progress.start_percentage", "progress.start_percentage must be between 0 and 100"),
+		)
+	}
+
+	if end < 0 || end > 100 {
+		validationErrors = append(
+			validationErrors,
+			lineResolver.annotate("progress.end_percentage", "progress.end_percentage must be between 0 and 100"),
+		)
+	}
+
+	if !aliae.Progress.EndPercentage.Reset && end <= start {
+		validationErrors = append(
+			validationErrors,
+			lineResolver.annotate("progress.end_percentage", "progress.end_percentage must be greater than progress.start_percentage"),
+		)
+	}
+
+	if len(validationErrors) == 0 {
+		return nil
+	}
+
+	slices.Sort(validationErrors)
+	return fmt.Errorf("config progress validation failed:\n- %s", strings.Join(validationErrors, "\n- "))
+}
+
+func validateScriptWeights(aliae *Aliae, lineResolver *yamlLineResolver) error {
+	if aliae == nil {
+		return nil
+	}
+
+	validationErrors := make([]string, 0)
+	for i, script := range aliae.Scripts {
+		if script == nil || script.Weight == nil {
+			continue
+		}
+
+		if *script.Weight < 1 {
+			path := fmt.Sprintf("script.%d.weight", i)
+			validationErrors = append(
+				validationErrors,
+				lineResolver.annotate(path, fmt.Sprintf("script[%d].weight must be greater than or equal to 1", i)),
+			)
+		}
+	}
+
+	if len(validationErrors) == 0 {
+		return nil
+	}
+
+	slices.Sort(validationErrors)
+	return fmt.Errorf("config script validation failed:\n- %s", strings.Join(validationErrors, "\n- "))
 }
 
 func linkSchemaItems(aliae *Aliae) []map[string]any {

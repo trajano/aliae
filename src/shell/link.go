@@ -89,11 +89,14 @@ func (l Links) Render() {
 			continue
 		}
 
-		if first && DotFile.Len() > 0 {
+		if first && dotFileHasRenderableContent() {
+			if !dotFileEndsWithNewline() {
+				DotFile.WriteString("\n")
+			}
+			DotFile.WriteString("\n")
+		} else if !dotFileEndsWithNewline() {
 			DotFile.WriteString("\n")
 		}
-
-		DotFile.WriteString("\n")
 		DotFile.WriteString(script)
 
 		first = false

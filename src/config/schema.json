@@ -12,6 +12,44 @@
             "type": "string",
             "description": "timeout for filesystem stat/existence checks (for example: 250ms, 1s). Defaults to 1s."
         },
+        "progress": {
+            "description": "automatic OSC progress output settings. Use false to disable.",
+            "oneOf": [
+                {
+                    "type": "boolean",
+                    "const": false
+                },
+                {
+                    "type": "boolean",
+                    "const": true
+                },
+                {
+                    "type": "object",
+                    "properties": {
+                        "start_percentage": {
+                            "type": "number",
+                            "minimum": 0,
+                            "maximum": 100,
+                            "description": "starting percentage for automatic progress (default: 0)"
+                        },
+                        "end_percentage": {
+                            "description": "ending percentage for automatic progress (default: reset)",
+                            "oneOf": [
+                                {
+                                    "type": "number",
+                                    "minimum": 0,
+                                    "maximum": 100
+                                },
+                                {
+                                    "type": "string",
+                                    "const": "reset"
+                                }
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
         "extends": {
             "type": "array",
             "description": "config extension definitions (https://trajano.github.io/aliae/docs/setup/include)",
@@ -223,6 +261,11 @@
                     },
                     "if": {
                         "$ref": "#/definitions/if"
+                    },
+                    "weight": {
+                        "type": "number",
+                        "minimum": 1,
+                        "description": "progress weight for this script entry (default: 1)"
                     }
                 }
             }
