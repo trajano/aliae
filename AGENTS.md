@@ -50,8 +50,6 @@ If any file under `website/**` changed, run this command from the repo root:
 
 If any file under `packages/scoop/**` changed, run this command from the repo root:
 
-`Get-Content packages/scoop/aliae.json | ConvertFrom-Json | Out-Null`
-
 If multiple scopes changed, run all applicable check sets.
 
 If neither `src/**` nor `website/**` changed, these scoped pre-commit checks are not required.
