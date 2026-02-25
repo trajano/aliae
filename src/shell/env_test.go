@@ -304,7 +304,7 @@ func TestEnvironmentVariableIfExists(t *testing.T) {
 	_ = os.Unsetenv("ALIAE_MISSING")
 
 	DotFile.Reset()
-	context.Current = &context.Runtime{Shell: PWSH, OS: context.WINDOWS, Home: `C:\Users\trajano`}
+	context.Current = &context.Runtime{Shell: PWSH, OS: context.LINUX, Home: "/home/trajano"}
 	envs := Envs{
 		&Env{Name: "ALIAE_EXISTING", Value: existing, IsPath: true, IfExists: true},
 		&Env{Name: "ALIAE_MISSING", Value: missing, IsPath: true, IfExists: true},
@@ -321,9 +321,10 @@ func TestEnvironmentVariableIsPathMultilineUsesFirstExisting(t *testing.T) {
 	firstMissing := filepath.Join(t.TempDir(), "missing-first")
 	secondExisting := t.TempDir()
 	thirdExisting := t.TempDir()
+	_ = os.Unsetenv("ANDROID_HOME")
 
 	DotFile.Reset()
-	context.Current = &context.Runtime{Shell: PWSH, OS: context.WINDOWS, Home: `C:\Users\trajano`}
+	context.Current = &context.Runtime{Shell: PWSH, OS: context.LINUX, Home: "/home/trajano"}
 	envs := Envs{
 		&Env{
 			Name: "ANDROID_HOME",
@@ -349,7 +350,7 @@ func TestEnvironmentVariableIsPathMultilineSkipsWhenNoneExists(t *testing.T) {
 	_ = os.Unsetenv("ANDROID_HOME")
 
 	DotFile.Reset()
-	context.Current = &context.Runtime{Shell: PWSH, OS: context.WINDOWS, Home: `C:\Users\trajano`}
+	context.Current = &context.Runtime{Shell: PWSH, OS: context.LINUX, Home: "/home/trajano"}
 	envs := Envs{
 		&Env{
 			Name:   "ANDROID_HOME",
@@ -365,9 +366,10 @@ func TestEnvironmentVariableIsPathMultilineSkipsWhenNoneExists(t *testing.T) {
 
 func TestEnvironmentVariableIsPathSingleLineStillExportsByDefault(t *testing.T) {
 	missing := filepath.Join(t.TempDir(), "missing")
+	_ = os.Unsetenv("ANDROID_HOME")
 
 	DotFile.Reset()
-	context.Current = &context.Runtime{Shell: PWSH, OS: context.WINDOWS, Home: `C:\Users\trajano`}
+	context.Current = &context.Runtime{Shell: PWSH, OS: context.LINUX, Home: "/home/trajano"}
 	envs := Envs{
 		&Env{
 			Name:   "ANDROID_HOME",
