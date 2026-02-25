@@ -46,13 +46,14 @@ func LoadConfig(configPath string) (*Aliae, error) {
 		return getRemoteConfig(configPathCache)
 	}
 
-	if stat, err := os.Stat(configPathCache); os.IsNotExist(err) || stat.IsDir() {
-		return nil, fmt.Errorf("config file not found: %s", configPathCache)
+	aliae, err := loadLocalConfig(configPathCache)
+	if err != nil {
+		return nil, err
 	}
 
-	data, _ := os.ReadFile(configPathCache)
+	shell.SetStatTimeout(aliae.StatTimeout)
 
-	return parseConfig(data)
+	return aliae, nil
 }
 
 func setTemplateConfigContext(configPath string) {

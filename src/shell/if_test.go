@@ -49,3 +49,23 @@ func TestIf(t *testing.T) {
 		assert.Equal(t, tc.Expected, tc.If.Ignore(), tc.Case)
 	}
 }
+
+func TestIfValidate(t *testing.T) {
+	t.Run("valid expression", func(t *testing.T) {
+		context.Current = &context.Runtime{Shell: "zsh", OS: context.LINUX, Home: "/tmp"}
+		err := If(`eq .Shell "zsh"`).Validate()
+		assert.NoError(t, err)
+	})
+
+	t.Run("invalid expression", func(t *testing.T) {
+		context.Current = &context.Runtime{Shell: "zsh", OS: context.LINUX, Home: "/tmp"}
+		err := If("{").Validate()
+		assert.Error(t, err)
+	})
+
+	t.Run("nil runtime context", func(t *testing.T) {
+		context.Current = nil
+		err := If(`eq .OS "linux"`).Validate()
+		assert.NoError(t, err)
+	})
+}

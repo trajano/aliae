@@ -13,12 +13,33 @@ func (i If) Ignore() bool {
 		return false
 	}
 
-	template := fmt.Sprintf(`{{ if %s }}false{{ else }}true{{ end }}`, i)
-
-	got, err := parse(template, context.Current)
+	got, err := evaluate(i)
 	if err != nil {
 		return false
 	}
 
 	return got == "true"
+}
+
+func (i If) Validate() error {
+	if len(i) == 0 {
+		return nil
+	}
+
+	_, err := evaluate(i)
+	return err
+}
+
+func evaluate(i If) (string, error) {
+	template := fmt.Sprintf(`{{ if %s }}false{{ else }}true{{ end }}`, i)
+	ctx := context.Current
+	if ctx == nil {
+		ctx = &context.Runtime{
+			Shell: BASH,
+			OS:    context.LINUX,
+			Home:  context.Home(),
+		}
+	}
+
+	return parse(template, ctx)
 }

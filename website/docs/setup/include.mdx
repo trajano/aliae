@@ -4,7 +4,7 @@ title: Include
 sidebar_label: ➕ Include files
 ---
 
-## Example
+## Legacy include tags
 
 ```yaml title=".aliae.yaml"
 aliae: !include "{{ .Home }}/.aliae/aliases.yaml"
@@ -17,8 +17,6 @@ env: !include_dir "{{ .Home }}/.aliae/envs"
 - name: k
   value: kubectl
 ```
-
-## Description
 
 The `!include` and `!include_dir` yaml tags allow you to include a single file or a directory of .yaml files respectively.
 This allows for clean organization of aliae, envs, and all other things handled by Aliae.
@@ -64,5 +62,54 @@ aliae:
 - name: kgwf
   value: kubectl get --watch -f
 ```
+
+## Extends
+
+The `extends` key allows you to extend an existing configuration.
+This is useful when you want to build on a shared base config without duplicating settings.
+
+Each `extends` entry is loaded first, in order.
+The current file is processed last.
+
+### Short syntax
+
+```yaml title=".aliae.yaml"
+extends:
+  - ./somepath.yml
+
+alias:
+  - name: g
+    value: git
+```
+
+### Long syntax
+
+```yaml title=".aliae.yaml"
+extends:
+  - path: ./somepath.yml
+    failOnMissing: true # default: true
+
+  - dir: ./somepath/
+    recursive: false # default: false
+    failOnMissing: true # default: true
+
+  - path: ./somepath-2.yml
+```
+
+### Merge behavior
+
+- Extended files are merged in declaration order.
+- Then the current config is merged on top.
+- List sections (`alias`, `env`, `path`, `cdpath`, `script`, `link`) are appended in that order.
+- Scalar settings (for example `stat_timeout`) are replaced by the last non-zero value encountered.
+
+### Notes and limits
+
+- `extends` supports both `.yml` and `.yaml` files.
+- `dir` entries are processed in alphabetical order and the ordering is case-sensitive.
+- `recursive: true` scans subdirectories.
+- `failOnMissing: false` skips missing files or directories for that entry.
+- Cycles in `extends` are rejected.
+- Extends nesting depth is limited to `10` levels.
 
 [templates]: templates.mdx
