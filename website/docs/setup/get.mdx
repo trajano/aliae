@@ -33,17 +33,16 @@ Validation runs against the resolved configuration after `extends`, `!include`, 
 aliae validate --config ~/.aliae.yaml
 ```
 
-## Debug shell detection
+## Runtime variables
 
-Use `aliae debug` to inspect shell detection layers (for example Scoop shims):
+Use `aliae get variables` to inspect shell detection layers (for example Scoop shims):
 
 ```bash
-aliae debug
+aliae get variables
 ```
 
-Debug output includes:
+The output includes:
 
-- executable name
-- process layers (`layer 0`, `layer 1`, ...)
+- executable name and detection trace (`layer 0`, `layer 1`, …)
 - shim detection hops
-- final resolved shell
+- final resolved shell plus `TTY`, OS, WSL, hostname, home, architecture, and config path information

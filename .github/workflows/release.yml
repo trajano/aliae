@@ -64,3 +64,59 @@ jobs:
           token: ${{ github.token }}
           files: |
             src/dist/aliae-*
+      - name: Dispatch Scoop bucket update
+        env:
+          DISPATCH_TOKEN: ${{ secrets.REPOSITORY_DISPATCH_TOKEN }}
+        run: |
+          if ([string]::IsNullOrWhiteSpace($env:DISPATCH_TOKEN)) {
+            throw "Missing secret REPOSITORY_DISPATCH_TOKEN"
+          }
+
+          $headers = @{
+            Accept = "application/vnd.github+json"
+            Authorization = "Bearer $env:DISPATCH_TOKEN"
+            "X-GitHub-Api-Version" = "2022-11-28"
+          }
+
+          $body = @{
+            event_type = "aliae_release_published"
+            client_payload = @{
+              source_repository = "${{ github.repository }}"
+              release_tag = "${{ needs.changelog.outputs.tag }}"
+              release_version = "${{ needs.changelog.outputs.version }}"
+            }
+          } | ConvertTo-Json -Depth 5
+
+          Invoke-RestMethod `
+            -Method Post `
+            -Uri "https://api.github.com/repos/trajano/scoop-bucket/dispatches" `
+            -Headers $headers `
+            -Body $body
+      - name: Dispatch Homebrew tap update
+        env:
+          DISPATCH_TOKEN: ${{ secrets.REPOSITORY_DISPATCH_TOKEN }}
+        run: |
+          if ([string]::IsNullOrWhiteSpace($env:DISPATCH_TOKEN)) {
+            throw "Missing secret REPOSITORY_DISPATCH_TOKEN"
+          }
+
+          $headers = @{
+            Accept = "application/vnd.github+json"
+            Authorization = "Bearer $env:DISPATCH_TOKEN"
+            "X-GitHub-Api-Version" = "2022-11-28"
+          }
+
+          $body = @{
+            event_type = "aliae_release_published"
+            client_payload = @{
+              source_repository = "${{ github.repository }}"
+              release_tag = "${{ needs.changelog.outputs.tag }}"
+              release_version = "${{ needs.changelog.outputs.version }}"
+            }
+          } | ConvertTo-Json -Depth 5
+
+          Invoke-RestMethod `
+            -Method Post `
+            -Uri "https://api.github.com/repos/trajano/homebrew-tap/dispatches" `
+            -Headers $headers `
+            -Body $body
