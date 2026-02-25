@@ -1,0 +1,13 @@
+name: Schema Sync
+
+on:
+  pull_request:
+
+jobs:
+  schema-sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+      - name: Ensure schema files are identical
+        run: diff -u src/config/schema.json website/static/schema.json
