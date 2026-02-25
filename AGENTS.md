@@ -88,6 +88,7 @@ fix the issue, and only push after the local check passes.
 ## Make a PR command
 
 If I ask the agent to make a PR.  It means the following:
+
 1. Commit all changes make sure tree is clean.  Also make sure the commits are appropriate.
 2. Push up a branch (make sure it's not the same name as as origin/HEAD)
 3. Create the PR against that branch.
