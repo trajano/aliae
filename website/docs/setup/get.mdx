@@ -14,6 +14,25 @@ Print the detected shell:
 aliae get shell
 ```
 
+## Resolved config
+
+Use `aliae get config` to print the fully resolved configuration as YAML.
+The output is rendered after `extends`, `!include`, and `!include_dir` are processed.
+
+```bash
+aliae --config ~/.aliae.yaml get config
+```
+
+## Validate config
+
+Use `aliae validate` to validate config YAML against the schema.
+It also validates `if` expression syntax.
+Validation runs against the resolved configuration after `extends`, `!include`, and `!include_dir` are processed.
+
+```bash
+aliae validate --config ~/.aliae.yaml
+```
+
 ## Debug shell detection
 
 Use `aliae debug` to inspect shell detection layers (for example Scoop shims):
