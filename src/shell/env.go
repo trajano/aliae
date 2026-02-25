@@ -3,7 +3,6 @@ package shell
 import (
 	"fmt"
 	"os"
-	"path/filepath"
 	"strings"
 
 	"github.com/jandedobbeleer/aliae/src/context"
@@ -127,7 +126,7 @@ func (e *Env) normalizePath() {
 			trimmed = windowsPath
 		}
 
-		lines[i] = filepath.FromSlash(trimmed)
+		lines[i] = strings.ReplaceAll(trimmed, "/", `\`)
 	}
 
 	e.Value = strings.Join(lines, "\n")
