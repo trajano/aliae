@@ -21,15 +21,26 @@ The custom location can be a local file, or a URL pointing to a remote config.
 
 ## Top-level settings
 
-| Name           | Type     | Description                                                                 |
-| -------------- | -------- | --------------------------------------------------------------------------- |
-| `stat_timeout` | `string` | filesystem stat/existence timeout (default: `1s`, example `250ms`)          |
+<!-- markdownlint-disable MD060 -->
+| Name           | Type          | Description                                                        |
+| -------------- | ------------- | ------------------------------------------------------------------ |
+| `stat_timeout` | `string`      | filesystem stat/existence timeout (default: `1s`, example `250ms`) |
+| `progress`     | `bool/object` | automatic OSC progress output (default: `false`)                  |
+<!-- markdownlint-enable MD060 -->
+
+When `progress` is enabled, aliae distributes progress across included `alias`, `env`, `path`, and `script` items.
+Items skipped by `if` are excluded from the calculation.
+Set `end_percentage: reset` to emit a final 100% update and then reset the progress state.
+You can also use `progress: true` as shorthand for `start_percentage: 0` with `end_percentage: reset`.
 
 ## Example
 
 ```yaml
 # yaml-language-server: $schema=https://trajano.github.io/aliae/schema.json
 stat_timeout: 1s
+progress:
+  start_percentage: 21.44
+  end_percentage: reset
 alias:
   - name: a
     value: aliae
@@ -58,6 +69,7 @@ script:
       oh-my-posh init nu
       source ~/.oh-my-posh.nu
     if: match .Shell "nu"
+    weight: 1.5
   - value: |
       load(io.popen('oh-my-posh init cmd'):read("*a"))()
     if: match .Shell "cmd"
