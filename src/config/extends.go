@@ -17,10 +17,10 @@ import (
 const maxExtendsDepth = 10
 
 type extendsItem struct {
+	FailOnMissing *bool  `yaml:"failOnMissing"`
 	Path          string `yaml:"path"`
 	Dir           string `yaml:"dir"`
 	Recursive     bool   `yaml:"recursive"`
-	FailOnMissing *bool  `yaml:"failOnMissing"`
 }
 
 func (e *extendsItem) UnmarshalYAML(data []byte) error {
