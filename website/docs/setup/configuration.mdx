@@ -52,6 +52,16 @@ env:
     value: '{{ if match .OS "darwin"}}{{ .Home }}{{ else }}Y:{{ end }}/.posh.omp.jsonc'
   - name: EDITOR
     value: code-insiders --wait
+  - name: ANDROID_SDK_ROOT
+    value: '{{ .Home }}/AppData/Local/Android/Sdk'
+    isPath: true
+    ifExists: true
+  - name: ANDROID_HOME
+    value: |
+      {{ env "LOCALAPPDATA" }}/Android/Sdk
+      {{ .Home }}/Library/Android/sdk
+      {{ .Home }}/Android/Sdk
+    isPath: true
 path:
   - value: |
       {{ .Home }}/homebrew/bin

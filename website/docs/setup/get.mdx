@@ -28,6 +28,7 @@ aliae --config ~/.aliae.yaml get config
 Use `aliae validate` to validate config YAML against the schema.
 It also validates `if` expression syntax.
 Validation runs against the resolved configuration after `extends`, `!include`, and `!include_dir` are processed.
+Unknown properties fail validation, even though runtime `init` remains permissive.
 
 ```bash
 aliae validate --config ~/.aliae.yaml

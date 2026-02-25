@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 	"slices"
 	"strconv"
 	"strings"
@@ -18,6 +19,9 @@ import (
 type Template string
 
 var (
+	hasCommandCache   = map[string]bool{}
+	hasCommandCacheMu sync.RWMutex
+
 	pathExistsCache   = map[string]pathInfo{}
 	pathExistsCacheMu sync.RWMutex
 )
@@ -63,18 +67,19 @@ func parse(text string, ctx any) (string, error) {
 
 func funcMap() template.FuncMap {
 	funcMap := template.FuncMap{
-		"isPwshOption": isPwshOption,
-		"isPwshScope":  isPwshScope,
-		"formatString": formatString,
-		"formatArray":  formatArray,
-		"escapeString": escapeString,
-		"env":          os.Getenv,
-		"match":        match,
-		"hasCommand":   hasCommand,
-		"fileExists":   fileExists,
-		"dirExists":    dirExists,
-		"isDir":        isDir,
-		"progress":     progress,
+		"isPwshOption":      isPwshOption,
+		"isPwshScope":       isPwshScope,
+		"formatString":      formatString,
+		"formatArray":       formatArray,
+		"escapeString":      escapeString,
+		"env":               os.Getenv,
+		"match":             match,
+		"hasCommand":        hasCommand,
+		"hasCommandNoCache": hasCommandNoCache,
+		"fileExists":        fileExists,
+		"dirExists":         dirExists,
+		"isDir":             isDir,
+		"progress":          progress,
 	}
 	return funcMap
 }
@@ -163,6 +168,23 @@ func match(variable string, values ...string) bool {
 }
 
 func hasCommand(command string) bool {
+	hasCommandCacheMu.RLock()
+	cached, ok := hasCommandCache[command]
+	hasCommandCacheMu.RUnlock()
+	if ok {
+		return cached
+	}
+
+	result := hasCommandNoCache(command)
+
+	hasCommandCacheMu.Lock()
+	hasCommandCache[command] = result
+	hasCommandCacheMu.Unlock()
+
+	return result
+}
+
+func hasCommandNoCache(command string) bool {
 	_, err := exec.LookPath(command)
 	return err == nil
 }
@@ -210,6 +232,20 @@ func clearPathExistsCache() {
 	pathExistsCacheMu.Lock()
 	defer pathExistsCacheMu.Unlock()
 	pathExistsCache = map[string]pathInfo{}
+}
+
+func clearHasCommandCache() {
+	hasCommandCacheMu.Lock()
+	defer hasCommandCacheMu.Unlock()
+	hasCommandCache = map[string]bool{}
+}
+
+func executableExtension() string {
+	if runtime.GOOS == context.WINDOWS {
+		return ".cmd"
+	}
+
+	return ""
 }
 
 func isDir(path string) bool {

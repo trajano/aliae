@@ -42,6 +42,7 @@ focused on Git Bash support and fork-specific distribution.
     (doc comment) when `description` is set.
 - Template features:
   - Added `fileExists` and `dirExists` template helpers.
+  - Added `hasCommand` result caching and `hasCommandNoCache` for uncached checks.
   - Added `progress` template helper for OSC progress output and reset.
   - Added `.ConfigPath` and `.ConfigDir` template variables.
   - Added `.Hostname` template variable to expose the system hostname.
@@ -53,8 +54,12 @@ focused on Git Bash support and fork-specific distribution.
   - Added top-level `stat_timeout` to control filesystem stat/existence timeout.
   - Added top-level `extends` with short/long syntax, cycle detection, and a depth limit.
   - Added top-level `progress` with weighted automatic OSC progress across `alias`, `env`, `path`, and `script`.
+  - Added `env.isPath` to normalize rendered path-valued env vars to OS-native separators.
+  - Added `env.ifExists` (path-only) to export env vars only when the rendered directory exists.
+  - Added multiline `env` path fallback: picks the first existing entry when `isPath` is true.
   - Added `aliae get config` to print the fully resolved YAML configuration.
   - Added `aliae validate` to validate raw config YAML against the schema.
+  - Added strict unknown-property checks in `aliae validate` while keeping runtime parsing permissive.
 - Fork packaging and automation:
   - Pointed installer/docs flows to fork-owned release assets where appropriate.
   - Moved Scoop bucket population to

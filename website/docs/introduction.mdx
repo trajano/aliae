@@ -37,6 +37,7 @@ with emphasis on Git Bash compatibility and fork-owned release/documentation flo
     (doc comment) when `description` is provided.
 - Template capabilities:
   - `fileExists` and `dirExists` helpers.
+  - `hasCommand` caching with `hasCommandNoCache` for uncached checks.
   - `progress` helper for OSC progress output and reset.
   - `.ConfigPath` and `.ConfigDir` template variables.
   - `.Hostname` template variable that exposes the system hostname.
@@ -47,8 +48,12 @@ with emphasis on Git Bash compatibility and fork-owned release/documentation flo
 - Configuration capabilities:
   - Top-level `extends` with short/long syntax, cycle detection, and a depth limit.
   - Top-level `progress` with weighted automatic OSC progress across `alias`, `env`, `path`, and `script`.
+  - `env.isPath` option to normalize rendered path-valued env vars to OS-native separators.
+  - `env.ifExists` option (with `isPath: true`) to export env vars only when the rendered directory exists.
+  - Multiline path fallback for `env` values with `isPath: true`, using the first existing directory.
   - `aliae get config` command to print the fully resolved YAML configuration.
   - `aliae validate` command to validate raw config YAML against the schema.
+  - `aliae validate` rejects unknown properties while runtime init remains permissive.
 - Fork distribution and automation:
   - Fork-oriented installer/docs references for release artifacts.
   - Scoop/Homebrew bucket and tap population moved to dedicated external repositories.

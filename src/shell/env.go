@@ -18,6 +18,8 @@ type Env struct {
 	If        If       `yaml:"if"`
 	Type      EnvType  `yaml:"type"`
 	template  string
+	IsPath    bool `yaml:"isPath"`
+	IfExists  bool `yaml:"ifExists"`
 	Persist   bool `yaml:"persist"`
 	parsed    bool
 }
@@ -99,7 +101,35 @@ func (e *Env) parse() {
 
 	template := Template(toString(e.Value))
 	e.Value = template.Parse().String()
+	e.normalizePath()
 	e.join()
+}
+
+func (e *Env) normalizePath() {
+	if !e.IsPath || context.Current == nil || context.Current.OS != context.WINDOWS {
+		return
+	}
+
+	value, ok := e.Value.(string)
+	if !ok {
+		return
+	}
+
+	lines := strings.Split(value, "\n")
+	for i, line := range lines {
+		trimmed := strings.TrimSpace(line)
+		if len(trimmed) == 0 {
+			continue
+		}
+
+		if windowsPath, isMSYSPath := msysToWindowsPath(trimmed); isMSYSPath {
+			trimmed = windowsPath
+		}
+
+		lines[i] = strings.ReplaceAll(trimmed, "/", `\`)
+	}
+
+	e.Value = strings.Join(lines, "\n")
 }
 
 func (e *Env) render() string {
@@ -157,8 +187,15 @@ func (e Envs) filter() Envs {
 			continue
 		}
 
-		if variable.Persist {
+		if variable.IfExists || variable.Persist || variable.IsPath {
 			variable.parse()
+		}
+
+		if !variable.shouldExportPathValue() {
+			continue
+		}
+
+		if variable.Persist {
 			registry.PersistEnvironmentVariable(variable.Name, variable.Value)
 		}
 
@@ -166,6 +203,45 @@ func (e Envs) filter() Envs {
 	}
 
 	return env
+}
+
+func (e *Env) shouldExportPathValue() bool {
+	if !e.IsPath {
+		return !e.IfExists
+	}
+
+	value, ok := e.Value.(string)
+	if !ok {
+		return false
+	}
+
+	lines := strings.Split(value, "\n")
+	candidates := make([]string, 0, len(lines))
+	for _, line := range lines {
+		trimmed := strings.TrimSpace(line)
+		if len(trimmed) == 0 {
+			continue
+		}
+		candidates = append(candidates, trimmed)
+	}
+
+	if len(candidates) == 0 {
+		return false
+	}
+
+	autoIfExists := len(candidates) > 1
+	if !e.IfExists && !autoIfExists {
+		return true
+	}
+
+	for _, candidate := range candidates {
+		if dirExists(candidate) {
+			e.Value = candidate
+			return true
+		}
+	}
+
+	return false
 }
 
 func filterEmpty[S ~[]E, E string](s S) S {

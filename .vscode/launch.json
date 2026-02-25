@@ -12,6 +12,31 @@
         "--tty-only=false",
         "zsh"
       ]
+    },
+    {
+      "name": "Validate",
+      "type": "go",
+      "request": "launch",
+      "mode": "debug",
+      "program": "${workspaceRoot}/src",
+      "args": [
+        "validate",
+        "--config",
+        "${env:USERPROFILE}\\.aliae.yaml"
+      ]
+    },
+    {
+      "name": "Get Config",
+      "type": "go",
+      "request": "launch",
+      "mode": "debug",
+      "program": "${workspaceRoot}/src",
+      "args": [
+        "get",
+        "config",
+        "--config",
+        "${env:USERPROFILE}\\.aliae.yaml"
+      ]
     }
   ]
 }

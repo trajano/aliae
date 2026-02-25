@@ -3,6 +3,8 @@ package config
 import (
 	_ "embed"
 	"fmt"
+	"os"
+	"path/filepath"
 	"slices"
 	"strconv"
 	"strings"
@@ -16,6 +18,10 @@ import (
 var configSchema []byte
 
 func ValidateConfig(configPath string) error {
+	if err := validateSchemaStrict(configPath); err != nil {
+		return err
+	}
+
 	aliae, err := LoadConfig(configPath)
 	if err != nil {
 		return err
@@ -59,6 +65,126 @@ func ValidateConfig(configPath string) error {
 	slices.Sort(validationErrors)
 
 	return fmt.Errorf("config schema validation failed:\n- %s", strings.Join(validationErrors, "\n- "))
+}
+
+func validateSchemaStrict(configPath string) error {
+	resolvedConfigPath := resolveConfigPath(configPath)
+	if isRemoteConfigPath(resolvedConfigPath) {
+		aliae, err := LoadConfig(configPath)
+		if err != nil {
+			return err
+		}
+
+		resolvedYAML, err := renderResolvedYAML(aliae)
+		if err != nil {
+			return err
+		}
+
+		return validateSchemaBytes(resolvedYAML, resolvedConfigPath)
+	}
+
+	return validateSchemaStrictLocalRecursive(resolvedConfigPath, nil, 1)
+}
+
+func validateSchemaStrictLocalRecursive(configPath string, stack []string, depth int) error {
+	if depth > maxExtendsDepth {
+		return fmt.Errorf("extends depth limit exceeded: max %d", maxExtendsDepth)
+	}
+
+	absPath, err := filepath.Abs(configPath)
+	if err != nil {
+		absPath = configPath
+	}
+
+	absPath = filepath.Clean(absPath)
+	if slices.Contains(stack, absPath) {
+		return fmt.Errorf("extends cycle detected for %s", absPath)
+	}
+
+	if stat, statErr := os.Stat(absPath); os.IsNotExist(statErr) || (statErr == nil && stat.IsDir()) {
+		return fmt.Errorf("config file not found: %s", absPath)
+	}
+
+	previousConfigPath := configPathCache
+	configPathCache = absPath
+	defer func() {
+		configPathCache = previousConfigPath
+	}()
+
+	data, err := os.ReadFile(absPath)
+	if err != nil {
+		return err
+	}
+
+	includedData, err := includeUnmarshaler(data)
+	if err != nil {
+		return err
+	}
+
+	if err := validateSchemaBytes(includedData, absPath); err != nil {
+		return err
+	}
+
+	extends, err := parseExtends(includedData)
+	if err != nil {
+		return err
+	}
+
+	nextStack := make([]string, len(stack)+1)
+	copy(nextStack, stack)
+	nextStack[len(stack)] = absPath
+
+	for _, item := range extends {
+		paths, pathErr := resolveExtendsPaths(item, absPath)
+		if pathErr != nil {
+			return pathErr
+		}
+
+		for _, path := range paths {
+			if err := validateSchemaStrictLocalRecursive(path, nextStack, depth+1); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+
+func validateSchemaBytes(data []byte, source string) error {
+	var document any
+	if err := yaml.Unmarshal(data, &document); err != nil {
+		return fmt.Errorf("failed to parse config file: %s", err)
+	}
+
+	result, err := gojsonschema.Validate(
+		gojsonschema.NewBytesLoader(configSchema),
+		gojsonschema.NewGoLoader(document),
+	)
+	if err != nil {
+		return err
+	}
+
+	if result.Valid() {
+		return nil
+	}
+
+	lineResolver, lineErr := newYAMLLineResolver(data)
+	if lineErr != nil {
+		lineResolver = nil
+	}
+
+	validationErrors := make([]string, 0, len(result.Errors()))
+	for _, item := range result.Errors() {
+		fieldPath := normalizeSchemaPath(item.Field())
+		if lineResolver != nil {
+			validationErrors = append(validationErrors, lineResolver.annotate(fieldPath, item.String()))
+			continue
+		}
+		validationErrors = append(validationErrors, item.String())
+	}
+	slices.Sort(validationErrors)
+
+	return fmt.Errorf("config schema validation failed (%s):\n- %s", source, strings.Join(validationErrors, "\n- "))
 }
 
 func validateIfExpressions(aliae *Aliae, lineResolver *yamlLineResolver) error {
@@ -319,6 +445,12 @@ func envSchemaItems(aliae *Aliae) []map[string]any {
 		}
 		if len(env.Type) > 0 {
 			item["type"] = string(env.Type)
+		}
+		if env.IsPath {
+			item["isPath"] = true
+		}
+		if env.IfExists {
+			item["ifExists"] = true
 		}
 		if env.Persist {
 			item["persist"] = true
