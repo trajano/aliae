@@ -59,13 +59,9 @@ func (a *Aliae) progressTotalWeight() float64 {
 }
 
 func scriptWeight(script *shell.Script) float64 {
-	if script.Weight == nil {
+	if script.Weight < 1 {
 		return 1
 	}
 
-	if *script.Weight < 1 {
-		return 1
-	}
-
-	return *script.Weight
+	return script.Weight
 }

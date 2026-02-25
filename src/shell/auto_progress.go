@@ -3,11 +3,11 @@ package shell
 import "math"
 
 type AutoProgressConfig struct {
-	Enabled         bool
 	StartPercentage float64
 	EndPercentage   float64
-	ResetAtEnd      bool
 	TotalWeight     float64
+	Enabled         bool
+	ResetAtEnd      bool
 }
 
 type autoProgressTracker struct {
@@ -15,8 +15,8 @@ type autoProgressTracker struct {
 	endPercentage   float64
 	totalWeight     float64
 	processedWeight float64
-	resetAtEnd      bool
 	lastPercentage  int
+	resetAtEnd      bool
 	lastSet         bool
 }
 
