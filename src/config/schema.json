@@ -7,6 +7,7 @@
         }
     },
     "type": "object",
+    "additionalProperties": false,
     "properties": {
         "stat_timeout": {
             "type": "string",
@@ -25,6 +26,7 @@
                 },
                 {
                     "type": "object",
+                    "additionalProperties": false,
                     "properties": {
                         "start_percentage": {
                             "type": "number",
@@ -124,6 +126,7 @@
             "description": "alias definitions (https://aliae.dev/docs/setup/alias)",
             "items": {
                 "type": "object",
+                "additionalProperties": false,
                 "properties": {
                     "name": {
                         "type": "string",
@@ -166,6 +169,7 @@
             "description": "environment variable definitions (https://aliae.dev/docs/setup/env)",
             "items": {
                 "type": "object",
+                "additionalProperties": false,
                 "properties": {
                     "name": {
                         "type": "string",
@@ -193,8 +197,35 @@
                             "string",
                             "array"
                         ]
+                    },
+                    "isPath": {
+                        "type": "boolean",
+                        "description": "if true, normalize path separators in value to the current OS style after template rendering"
+                    },
+                    "ifExists": {
+                        "type": "boolean",
+                        "description": "if true, export only when the rendered path exists as a directory (requires isPath: true)"
                     }
-                }
+                },
+                "allOf": [
+                    {
+                        "if": {
+                            "required": [
+                                "ifExists"
+                            ]
+                        },
+                        "then": {
+                            "required": [
+                                "isPath"
+                            ],
+                            "properties": {
+                                "isPath": {
+                                    "const": true
+                                }
+                            }
+                        }
+                    }
+                ]
             }
         },
         "path": {
@@ -202,6 +233,7 @@
             "description": "PATH entry definitions (https://aliae.dev/docs/setup/path)",
             "items": {
                 "type": "object",
+                "additionalProperties": false,
                 "properties": {
                     "value": {
                         "type": "string",
@@ -230,6 +262,7 @@
             "description": "CDPATH entry definitions (https://aliae.dev/docs/setup/cdpath)",
             "items": {
                 "type": "object",
+                "additionalProperties": false,
                 "properties": {
                     "value": {
                         "type": "string",
@@ -254,6 +287,7 @@
             "description": "script definitions (https://aliae.dev/docs/setup/script)",
             "items": {
                 "type": "object",
+                "additionalProperties": false,
                 "properties": {
                     "value": {
                         "type": "string",
@@ -275,6 +309,7 @@
             "description": "symbolic link definitions (https://aliae.dev/docs/setup/link)",
             "items": {
                 "type": "object",
+                "additionalProperties": false,
                 "properties": {
                     "name": {
                         "type": "string",

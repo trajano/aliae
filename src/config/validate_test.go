@@ -31,7 +31,7 @@ func TestValidateConfig(t *testing.T) {
 
 		err := ValidateConfig(file)
 		require.Error(t, err)
-		assert.Contains(t, strings.ToLower(err.Error()), "failed to parse config file")
+		assert.Contains(t, strings.ToLower(err.Error()), "schema validation failed")
 	})
 
 	t.Run("schema error includes source line", func(t *testing.T) {
@@ -107,5 +107,36 @@ func TestValidateConfig(t *testing.T) {
 		require.Error(t, err)
 		assert.Contains(t, strings.ToLower(err.Error()), "schema validation failed")
 		assert.Contains(t, err.Error(), "weight")
+	})
+
+	t.Run("env ifExists requires isPath", func(t *testing.T) {
+		root := t.TempDir()
+		file := filepath.Join(root, "aliae.yaml")
+		require.NoError(t, os.WriteFile(file, []byte(`env:
+  - name: ANDROID_SDK_ROOT
+    value: '{{ .Home }}/AppData/Local/Android/Sdk'
+    ifExists: true
+`), 0o600))
+
+		err := ValidateConfig(file)
+		require.Error(t, err)
+		assert.Contains(t, strings.ToLower(err.Error()), "schema validation failed")
+		assert.Contains(t, err.Error(), "isPath is required")
+	})
+
+	t.Run("unknown property fails validation", func(t *testing.T) {
+		root := t.TempDir()
+		file := filepath.Join(root, "aliae.yaml")
+		require.NoError(t, os.WriteFile(file, []byte(`env:
+  - name: ANDROID_HOME
+    value: '{{ .Home }}/Android/Sdk'
+    isPath: true
+    mysterySetting: true
+`), 0o600))
+
+		err := ValidateConfig(file)
+		require.Error(t, err)
+		assert.Contains(t, strings.ToLower(err.Error()), "schema validation failed")
+		assert.Contains(t, err.Error(), "mysterySetting")
 	})
 }

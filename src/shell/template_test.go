@@ -3,6 +3,7 @@ package shell
 import (
 	"os"
 	"path/filepath"
+	"runtime"
 	"testing"
 
 	"github.com/jandedobbeleer/aliae/src/context"
@@ -232,6 +233,9 @@ func TestTemplateWSL(t *testing.T) {
 
 func TestHasCommand(t *testing.T) {
 	text := `{{ hasCommand .Command}}`
+	t.Cleanup(clearHasCommandCache)
+	clearHasCommandCache()
+
 	cases := []struct {
 		Case     string
 		Command  string
@@ -253,6 +257,76 @@ func TestHasCommand(t *testing.T) {
 		got, _ := parse(text, tc)
 		assert.Equal(t, tc.Expected, got, tc.Case)
 	}
+}
+
+func TestHasCommandUsesCache(t *testing.T) {
+	commandName := "aliae-hascommand-cache-test"
+	tempDir := t.TempDir()
+	originalPath := os.Getenv("PATH")
+
+	t.Cleanup(func() {
+		_ = os.Setenv("PATH", originalPath)
+		clearHasCommandCache()
+	})
+	clearHasCommandCache()
+
+	missing, err := parse(`{{ hasCommand .Command }}`, struct{ Command string }{Command: commandName})
+	assert.NoError(t, err)
+	assert.Equal(t, "false", missing)
+
+	commandFile := filepath.Join(tempDir, commandName+executableExtension())
+	content := []byte("#!/bin/sh\nexit 0\n")
+	if runtime.GOOS == "windows" {
+		content = []byte("@echo off\r\nexit /b 0\r\n")
+	}
+	assert.NoError(t, os.WriteFile(commandFile, content, 0o700))
+
+	sep := string(os.PathListSeparator)
+	assert.NoError(t, os.Setenv("PATH", tempDir+sep+originalPath))
+
+	// Cached result remains false even though command is now available in PATH.
+	stillMissing, err := parse(`{{ hasCommand .Command }}`, struct{ Command string }{Command: commandName})
+	assert.NoError(t, err)
+	assert.Equal(t, "false", stillMissing)
+
+	clearHasCommandCache()
+	found, err := parse(`{{ hasCommand .Command }}`, struct{ Command string }{Command: commandName})
+	assert.NoError(t, err)
+	assert.Equal(t, "true", found)
+}
+
+func TestHasCommandNoCacheBypassesCache(t *testing.T) {
+	commandName := "aliae-hascommand-nocache-test"
+	tempDir := t.TempDir()
+	originalPath := os.Getenv("PATH")
+
+	t.Cleanup(func() {
+		_ = os.Setenv("PATH", originalPath)
+		clearHasCommandCache()
+	})
+	clearHasCommandCache()
+
+	missingCached, err := parse(`{{ hasCommand .Command }}`, struct{ Command string }{Command: commandName})
+	assert.NoError(t, err)
+	assert.Equal(t, "false", missingCached)
+
+	commandFile := filepath.Join(tempDir, commandName+executableExtension())
+	content := []byte("#!/bin/sh\nexit 0\n")
+	if runtime.GOOS == "windows" {
+		content = []byte("@echo off\r\nexit /b 0\r\n")
+	}
+	assert.NoError(t, os.WriteFile(commandFile, content, 0o700))
+
+	sep := string(os.PathListSeparator)
+	assert.NoError(t, os.Setenv("PATH", tempDir+sep+originalPath))
+
+	stillMissingCached, err := parse(`{{ hasCommand .Command }}`, struct{ Command string }{Command: commandName})
+	assert.NoError(t, err)
+	assert.Equal(t, "false", stillMissingCached)
+
+	foundNoCache, err := parse(`{{ hasCommandNoCache .Command }}`, struct{ Command string }{Command: commandName})
+	assert.NoError(t, err)
+	assert.Equal(t, "true", foundNoCache)
 }
 
 func TestFileExists(t *testing.T) {

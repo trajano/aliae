@@ -80,3 +80,23 @@ script:
 		currentIndex += index + len(value)
 	}
 }
+
+func TestInitAllowsUnknownPropertiesAtRuntime(t *testing.T) {
+	shell.DotFile.Reset()
+	t.Cleanup(shell.DotFile.Reset)
+
+	tempDir := t.TempDir()
+	configFile := filepath.ToSlash(filepath.Join(tempDir, "aliae.yaml"))
+	configContent := `env:
+  - name: ANDROID_HOME
+    value: '{{ .Home }}/Android/Sdk'
+    isPath: true
+    mysterySetting: true
+`
+
+	err := os.WriteFile(configFile, []byte(configContent), 0o600)
+	assert.NoError(t, err)
+
+	script := Init(configFile, shell.BASH, true)
+	assert.Contains(t, script, "export ANDROID_HOME=")
+}

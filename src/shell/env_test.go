@@ -1,6 +1,8 @@
 package shell
 
 import (
+	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/jandedobbeleer/aliae/src/context"
@@ -258,4 +260,124 @@ func TestEnvironmentVariableDelimiter(t *testing.T) {
 		context.Current = &context.Runtime{Shell: PWSH, OS: context.LINUX}
 		assert.Equal(t, tc.Expected, tc.Env.string(), tc.Case)
 	}
+}
+
+func TestEnvironmentVariablePathNormalizationOnWindows(t *testing.T) {
+	cases := []struct {
+		Case     string
+		Value    string
+		Expected string
+	}{
+		{
+			Case:     "Home template path",
+			Value:    "{{ .Home }}/AppData/Local/Android/Sdk",
+			Expected: `$env:ANDROID_SDK_ROOT = "C:\Users\trajano\AppData\Local\Android\Sdk"`,
+		},
+		{
+			Case:     "Environment template path",
+			Value:    `{{ env "LOCALAPPDATA" }}/Android/Sdk`,
+			Expected: `$env:ANDROID_SDK_ROOT = "C:\Users\trajano\AppData\Local\Android\Sdk"`,
+		},
+	}
+
+	t.Setenv("LOCALAPPDATA", `C:\Users\trajano\AppData\Local`)
+
+	for _, tc := range cases {
+		env := &Env{Name: "ANDROID_SDK_ROOT", Value: tc.Value, IsPath: true}
+		context.Current = &context.Runtime{Shell: PWSH, OS: context.WINDOWS, Home: `C:\Users\trajano`}
+		assert.Equal(t, tc.Expected, env.string(), tc.Case)
+	}
+}
+
+func TestEnvironmentVariableWithoutPathNormalizationOnWindows(t *testing.T) {
+	env := &Env{Name: "ANDROID_SDK_ROOT", Value: "{{ .Home }}/AppData/Local/Android/Sdk"}
+	context.Current = &context.Runtime{Shell: PWSH, OS: context.WINDOWS, Home: `C:\Users\trajano`}
+
+	assert.Equal(t, `$env:ANDROID_SDK_ROOT = "C:\Users\trajano/AppData/Local/Android/Sdk"`, env.string())
+}
+
+func TestEnvironmentVariableIfExists(t *testing.T) {
+	existing := t.TempDir()
+	missing := filepath.Join(t.TempDir(), "missing")
+
+	_ = os.Unsetenv("ALIAE_EXISTING")
+	_ = os.Unsetenv("ALIAE_MISSING")
+
+	DotFile.Reset()
+	context.Current = &context.Runtime{Shell: PWSH, OS: context.WINDOWS, Home: `C:\Users\trajano`}
+	envs := Envs{
+		&Env{Name: "ALIAE_EXISTING", Value: existing, IsPath: true, IfExists: true},
+		&Env{Name: "ALIAE_MISSING", Value: missing, IsPath: true, IfExists: true},
+	}
+	envs.Render()
+
+	assert.Contains(t, DotFile.String(), `$env:ALIAE_EXISTING = "`)
+	assert.NotContains(t, DotFile.String(), "ALIAE_MISSING")
+	assert.Equal(t, existing, os.Getenv("ALIAE_EXISTING"))
+	assert.Equal(t, "", os.Getenv("ALIAE_MISSING"))
+}
+
+func TestEnvironmentVariableIsPathMultilineUsesFirstExisting(t *testing.T) {
+	firstMissing := filepath.Join(t.TempDir(), "missing-first")
+	secondExisting := t.TempDir()
+	thirdExisting := t.TempDir()
+
+	DotFile.Reset()
+	context.Current = &context.Runtime{Shell: PWSH, OS: context.WINDOWS, Home: `C:\Users\trajano`}
+	envs := Envs{
+		&Env{
+			Name: "ANDROID_HOME",
+			Value: firstMissing + "\n" +
+				secondExisting + "\n" +
+				thirdExisting,
+			IsPath: true,
+		},
+	}
+	envs.Render()
+
+	assert.Contains(t, DotFile.String(), `$env:ANDROID_HOME = "`)
+	assert.Contains(t, DotFile.String(), secondExisting)
+	assert.NotContains(t, DotFile.String(), firstMissing)
+	assert.NotContains(t, DotFile.String(), thirdExisting)
+	assert.Equal(t, secondExisting, os.Getenv("ANDROID_HOME"))
+}
+
+func TestEnvironmentVariableIsPathMultilineSkipsWhenNoneExists(t *testing.T) {
+	firstMissing := filepath.Join(t.TempDir(), "missing-first")
+	secondMissing := filepath.Join(t.TempDir(), "missing-second")
+
+	_ = os.Unsetenv("ANDROID_HOME")
+
+	DotFile.Reset()
+	context.Current = &context.Runtime{Shell: PWSH, OS: context.WINDOWS, Home: `C:\Users\trajano`}
+	envs := Envs{
+		&Env{
+			Name:   "ANDROID_HOME",
+			Value:  firstMissing + "\n" + secondMissing,
+			IsPath: true,
+		},
+	}
+	envs.Render()
+
+	assert.NotContains(t, DotFile.String(), "ANDROID_HOME")
+	assert.Equal(t, "", os.Getenv("ANDROID_HOME"))
+}
+
+func TestEnvironmentVariableIsPathSingleLineStillExportsByDefault(t *testing.T) {
+	missing := filepath.Join(t.TempDir(), "missing")
+
+	DotFile.Reset()
+	context.Current = &context.Runtime{Shell: PWSH, OS: context.WINDOWS, Home: `C:\Users\trajano`}
+	envs := Envs{
+		&Env{
+			Name:   "ANDROID_HOME",
+			Value:  missing,
+			IsPath: true,
+		},
+	}
+	envs.Render()
+
+	assert.Contains(t, DotFile.String(), `$env:ANDROID_HOME = "`)
+	assert.Contains(t, DotFile.String(), missing)
+	assert.Equal(t, missing, os.Getenv("ANDROID_HOME"))
 }
