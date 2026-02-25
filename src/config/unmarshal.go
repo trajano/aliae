@@ -167,6 +167,19 @@ func readDir(dir string) ([]byte, error) {
 }
 
 func validatePath(path string) (string, error) {
+	path, err := resolveRelativePath(path, configPathCache)
+	if err != nil {
+		if isRemoteConfigPath(configPathCache) {
+			return "", errors.New("remote files are not allowed to contain include directives")
+		}
+
+		return "", err
+	}
+
+	return path, nil
+}
+
+func resolveRelativePath(path, baseConfigPath string) (string, error) {
 	// Allows for templating in the file path
 	path = shell.Template(trimQuotes(path)).Parse().String()
 
@@ -174,21 +187,25 @@ func validatePath(path string) (string, error) {
 		return path, nil
 	}
 
-	if len(configPathCache) == 0 {
+	if len(baseConfigPath) == 0 {
 		return "", errors.New("config file not found")
 	}
 
-	if strings.HasPrefix(configPathCache, "https://") || strings.HasPrefix(configPathCache, "http://") {
+	if isRemoteConfigPath(baseConfigPath) {
 		return "", errors.New("remote files are not allowed to contain include directives")
 	}
 
 	// get the directory of the config file
-	configPathCacheDir := filepath.Dir(configPathCache)
+	configPathCacheDir := filepath.Dir(baseConfigPath)
 
 	// append the file to the directory
 	path = filepath.Join(configPathCacheDir, path)
 
 	return path, nil
+}
+
+func isRemoteConfigPath(configPath string) bool {
+	return strings.HasPrefix(configPath, "https://") || strings.HasPrefix(configPath, "http://")
 }
 
 func isYAMLExtension(fileName string) bool {

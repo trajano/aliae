@@ -51,6 +51,9 @@ focused on Git Bash support and fork-specific distribution.
   - Added `cdpath` support with shell-specific rendering and duplicate suppression.
 - Configuration features:
   - Added top-level `stat_timeout` to control filesystem stat/existence timeout.
+  - Added top-level `extends` with short/long syntax, cycle detection, and a depth limit.
+  - Added `aliae get config` to print the fully resolved YAML configuration.
+  - Added `aliae validate` to validate raw config YAML against the schema.
 - Fork packaging and automation:
   - Pointed installer/docs flows to fork-owned release assets where appropriate.
   - Moved Scoop bucket population to

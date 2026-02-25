@@ -44,6 +44,10 @@ with emphasis on Git Bash compatibility and fork-owned release/documentation flo
 - PATH capabilities:
   - `ifExists` option to include only existing path entries.
   - `cdpath` support with shell-specific rendering and duplicate suppression.
+- Configuration capabilities:
+  - Top-level `extends` with short/long syntax, cycle detection, and a depth limit.
+  - `aliae get config` command to print the fully resolved YAML configuration.
+  - `aliae validate` command to validate raw config YAML against the schema.
 - Fork distribution and automation:
   - Fork-oriented installer/docs references for release artifacts.
   - Scoop/Homebrew bucket and tap population moved to dedicated external repositories.

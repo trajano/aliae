@@ -48,11 +48,9 @@ If any file under `website/**` changed, run this command from the repo root:
 
 `cd website && npm ci && npm run build`
 
-If any file under `bucket/**` or `packages/scoop/**` changed, run this command from the repo root:
+If any file under `packages/scoop/**` changed, run this command from the repo root:
 
 `Get-Content packages/scoop/aliae.json | ConvertFrom-Json | Out-Null`
-
-`Get-Content bucket/aliae.json | ConvertFrom-Json | Out-Null`
 
 If multiple scopes changed, run all applicable check sets.
 
@@ -71,6 +69,14 @@ When adding or changing template variables, update all of the following in the s
 - Runtime/template variable source in `src/context/runtime.go` and related config wiring in `src/config/config.go`.
 - Template coverage tests in `src/config/init_test.go` and helper/unit tests in `src/config/config_test.go` or `src/shell/template_test.go`.
 - Website documentation in `website/docs/setup/templates.mdx`.
+
+## Schema sync requirement
+
+When config structure, fields, defaults, or validation behavior changes, keep schema files in sync in the same change.
+This is part of the definition of done.
+
+- Update `website/static/schema.json`.
+- Update `src/config/schema.json`.
 
 ## PR update requirement
 
