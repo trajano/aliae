@@ -16,11 +16,10 @@ import (
 )
 
 type stateEntry struct {
-	file    string
-	path    string
-	format  aliaeState.FileFormat
-	lastRun *time.Time
-
+	file string
+	// lastRun is preformatted for display and empty when state file is missing.
+	lastRun  string
+	format   aliaeState.FileFormat
 	runEvery time.Duration
 }
 
@@ -72,8 +71,8 @@ func runStateList(cmd *cobra.Command) error {
 	fmt.Fprintln(w, "FILE\tLAST RUN\tRUN EVERY\tFORMAT")
 	for _, entry := range entries {
 		lastRun := "-"
-		if entry.lastRun != nil {
-			lastRun = entry.lastRun.UTC().Format(time.RFC3339)
+		if len(entry.lastRun) > 0 {
+			lastRun = entry.lastRun
 		}
 
 		runEvery := "once"
@@ -104,7 +103,7 @@ func runStateClear(cmd *cobra.Command) error {
 
 	removed := make([]string, 0, len(entries))
 	for _, entry := range entries {
-		if err := os.Remove(entry.path); err != nil {
+		if err := os.Remove(aliaeState.Path(entry.file)); err != nil {
 			if os.IsNotExist(err) {
 				continue
 			}
@@ -157,13 +156,16 @@ func referencedStateEntries(configPath string) ([]stateEntry, error) {
 		if err != nil {
 			return nil, err
 		}
+		lastRunText := ""
+		if lastRun != nil {
+			lastRunText = lastRun.UTC().Format(time.RFC3339)
+		}
 
 		entries = append(entries, stateEntry{
 			file:     file,
-			path:     path,
 			runEvery: reference.RunEvery,
 			format:   reference.Format,
-			lastRun:  lastRun,
+			lastRun:  lastRunText,
 		})
 	}
 
