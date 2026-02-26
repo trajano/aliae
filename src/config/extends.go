@@ -98,6 +98,9 @@ func loadLocalConfigRecursive(configPath string, stack []string, depth int) (*Al
 	if err != nil {
 		return nil, err
 	}
+	if err := validateScriptWeightsInYAML(includedData); err != nil {
+		return nil, err
+	}
 
 	extends, err := parseExtends(includedData)
 	if err != nil {
@@ -130,10 +133,6 @@ func loadLocalConfigRecursive(configPath string, stack []string, depth int) (*Al
 	}
 
 	merged.merge(current)
-
-	if err := validateScriptWeightsOnLoad(merged); err != nil {
-		return nil, err
-	}
 
 	return merged, nil
 }
