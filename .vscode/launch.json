@@ -23,7 +23,10 @@
         "init",
         "--tty-only=false",
         "bash"
-      ]
+      ],
+      "env": {
+        "MSYSTEM": "MINGW64"
+      }
     },
     {
       "name": "Init (pwsh)",
