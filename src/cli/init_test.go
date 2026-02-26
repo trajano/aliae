@@ -1,6 +1,15 @@
 package cli
 
-import "testing"
+import (
+	"bytes"
+	"os"
+	"path/filepath"
+	"strings"
+	"testing"
+
+	"github.com/spf13/cobra"
+	"github.com/stretchr/testify/assert"
+)
 
 func TestShouldSkipInitOutput(t *testing.T) {
 	t.Parallel()
@@ -52,4 +61,39 @@ func TestShouldSkipInitOutput(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestRunInitWritesToStdout(t *testing.T) {
+	originalConfig := config
+	originalPrintOutput := printOutput
+	originalTTYOnly := ttyOnly
+	t.Cleanup(func() {
+		config = originalConfig
+		printOutput = originalPrintOutput
+		ttyOnly = originalTTYOnly
+	})
+
+	configFile := filepath.Join(t.TempDir(), "aliae.yaml")
+	err := os.WriteFile(configFile, []byte(`alias:
+  - name: ll
+    value: ls -la
+`), 0o600)
+	if err != nil {
+		t.Fatalf("write config: %v", err)
+	}
+
+	config = configFile
+	printOutput = true
+	ttyOnly = false
+
+	var stdout bytes.Buffer
+	var stderr bytes.Buffer
+	cmd := &cobra.Command{}
+	cmd.SetOut(&stdout)
+	cmd.SetErr(&stderr)
+
+	runInit(cmd, "zsh")
+
+	assert.NotEmpty(t, strings.TrimSpace(stdout.String()))
+	assert.Empty(t, stderr.String())
 }

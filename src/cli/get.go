@@ -33,7 +33,7 @@ This command is used to get the value of the following variables:
 	RunE: func(cmd *cobra.Command, args []string) error {
 		switch args[0] {
 		case "shell":
-			cmd.Println(shell.Name())
+			fmt.Fprintln(cmd.OutOrStdout(), shell.Name())
 			return nil
 		case "config":
 			output, err := renderResolvedConfigYAML(config)
