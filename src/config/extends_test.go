@@ -66,6 +66,55 @@ alias:
 	assert.Contains(t, err.Error(), "does-not-exist.yaml")
 }
 
+func TestLoadConfigExtendsConditionalIf(t *testing.T) {
+	root := t.TempDir()
+	base := filepath.Join(root, "base.yaml")
+	child := filepath.Join(root, "child.yaml")
+
+	require.NoError(t, os.WriteFile(base, []byte(`alias:
+  - name: base
+    value: from-base
+`), 0o600))
+	require.NoError(t, os.WriteFile(child, []byte(`extends:
+  - path: ./base.yaml
+    if: 'false'
+alias:
+  - name: child
+    value: from-child
+`), 0o600))
+
+	got, err := LoadConfig(child)
+	require.NoError(t, err)
+	assert.Equal(t, shell.Aliae{
+		{Name: "child", Value: shell.Template("from-child")},
+	}, got.Aliae)
+}
+
+func TestLoadConfigExtendsConditionalIfTrue(t *testing.T) {
+	root := t.TempDir()
+	base := filepath.Join(root, "base.yaml")
+	child := filepath.Join(root, "child.yaml")
+
+	require.NoError(t, os.WriteFile(base, []byte(`alias:
+  - name: base
+    value: from-base
+`), 0o600))
+	require.NoError(t, os.WriteFile(child, []byte(`extends:
+  - path: ./base.yaml
+    if: 'true'
+alias:
+  - name: child
+    value: from-child
+`), 0o600))
+
+	got, err := LoadConfig(child)
+	require.NoError(t, err)
+	assert.Equal(t, shell.Aliae{
+		{Name: "base", Value: shell.Template("from-base")},
+		{Name: "child", Value: shell.Template("from-child")},
+	}, got.Aliae)
+}
+
 func TestLoadConfigExtendsDirectory(t *testing.T) {
 	root := t.TempDir()
 	parts := filepath.Join(root, "parts")

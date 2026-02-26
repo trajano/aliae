@@ -88,6 +88,7 @@ alias:
 extends:
   - path: ./somepath.yml
     failOnMissing: true # default: true
+    if: 'eq .Shell "bash"' # default: load (when omitted)
 
   - dir: ./somepath/
     recursive: false # default: false
@@ -109,6 +110,7 @@ extends:
 - `dir` entries are processed in alphabetical order and the ordering is case-sensitive.
 - `recursive: true` scans subdirectories.
 - `failOnMissing: false` skips missing files or directories for that entry.
+- `if` can be added to an `extends` entry; when it evaluates to false, that entry is skipped.
 - Cycles in `extends` are rejected.
 - Extends nesting depth is limited to `10` levels.
 
