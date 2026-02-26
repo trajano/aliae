@@ -16,11 +16,12 @@ import (
 )
 
 type stateEntry struct {
-	file     string
-	path     string
+	file    string
+	path    string
+	format  aliaeState.FileFormat
+	lastRun *time.Time
+
 	runEvery time.Duration
-	format   aliaeState.FileFormat
-	lastRun  *time.Time
 }
 
 var stateCmd = &cobra.Command{

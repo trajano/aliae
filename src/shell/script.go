@@ -20,17 +20,17 @@ const (
 )
 
 type Script struct {
-	Value  Template    `yaml:"value"`
-	Type   ScriptType  `yaml:"type"`
-	If     If          `yaml:"if"`
-	Weight float64     `yaml:"weight"`
-	State  ScriptState `yaml:"state"`
+	Value       Template              `yaml:"value"`
+	Type        ScriptType            `yaml:"type"`
+	If          If                    `yaml:"if"`
+	State       ScriptState           `yaml:"state"`
+	statePath   string                `yaml:"-"`
+	stateFormat aliaeState.FileFormat `yaml:"-"`
+	Weight      float64               `yaml:"weight"`
 
-	statePrepared  bool                  `yaml:"-"`
-	stateChecked   bool                  `yaml:"-"`
-	stateShouldRun bool                  `yaml:"-"`
-	statePath      string                `yaml:"-"`
-	stateFormat    aliaeState.FileFormat `yaml:"-"`
+	statePrepared  bool `yaml:"-"`
+	stateChecked   bool `yaml:"-"`
+	stateShouldRun bool `yaml:"-"`
 }
 
 type ScriptState struct {
@@ -41,8 +41,8 @@ type ScriptState struct {
 
 type ScriptStateReference struct {
 	File     string
-	RunEvery time.Duration
 	Format   aliaeState.FileFormat
+	RunEvery time.Duration
 }
 
 func (s *Script) stateReference() (*ScriptStateReference, error) {
