@@ -231,6 +231,20 @@ func TestTemplateWSL(t *testing.T) {
 	assert.Equal(t, "true", got)
 }
 
+func TestTemplateEnv(t *testing.T) {
+	text := `{{ .Env.DOTFILES }}`
+	context.Current = &context.Runtime{
+		Shell: BASH,
+		Env: map[string]string{
+			"DOTFILES": "/home/test/.dotfiles",
+		},
+	}
+
+	got, err := parse(text, context.Current)
+	assert.NoError(t, err)
+	assert.Equal(t, "/home/test/.dotfiles", got)
+}
+
 func TestHasCommand(t *testing.T) {
 	text := `{{ hasCommand .Command}}`
 	t.Cleanup(clearHasCommandCache)

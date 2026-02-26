@@ -31,6 +31,7 @@ Out of the box you get the following functionality:
 | `.Arch`       | `string` | the `aliae` executable architecture   | `{{ .Home }}/go/bin/aliae-{{ .Arch }}{{ if eq .OS "windows" }}.exe{{ end }}` |
 | `.ConfigPath` | `string` | the resolved `aliae` config file path | `{{ .ConfigPath }}`                                                          |
 | `.ConfigDir`  | `string` | the directory of the resolved config  | `{{ .ConfigDir }}/partials/env.yaml`                                         |
+| `.Env`        | `map`    | process environment variables map     | `{{ .Env.DOTFILES }}`                                                        |
 
 ### Functions
 

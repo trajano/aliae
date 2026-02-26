@@ -25,16 +25,20 @@ func TestInitTemplateConfigVariables(t *testing.T) {
     value: '{{ .ConfigDir }}'
   - name: IS_WSL
     value: '{{ .WSL }}'
+  - name: DOTFILES_DIR
+    value: '{{ .Env.DOTFILES }}'
 `
 
 	err := os.WriteFile(configFile, []byte(configContent), 0o600)
 	assert.NoError(t, err)
+	t.Setenv("DOTFILES", "/tmp/dotfiles")
 
 	script := Init(configFile, shell.BASH, true)
 	escapedDir := strings.ReplaceAll(resolveConfigDir(configFile), `\`, `\\`)
 	expected := "export CONFIG_PATH=\"" + configFile + "\"\n" +
 		"export CONFIG_DIR=\"" + escapedDir + "\"\n" +
-		fmt.Sprintf("export IS_WSL=\"%t\"", context.Current.WSL)
+		fmt.Sprintf("export IS_WSL=\"%t\"\n", context.Current.WSL) +
+		"export DOTFILES_DIR=\"/tmp/dotfiles\""
 	assert.Equal(t, expected, script)
 }
 
