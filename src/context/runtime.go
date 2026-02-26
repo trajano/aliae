@@ -3,6 +3,7 @@ package context
 import (
 	"os"
 	"runtime"
+	"strings"
 )
 
 // used for caching runtime information
@@ -14,6 +15,7 @@ var runtimeGOOS = runtime.GOOS
 type Runtime struct {
 	Path       *Path
 	CDPath     *Path
+	Env        map[string]string
 	Shell      string
 	OS         string
 	Hostname   string
@@ -35,6 +37,7 @@ func Init(shell string) {
 		Arch:     runtime.GOARCH,
 		Home:     home,
 		Hostname: hostname,
+		Env:      getEnvironment(),
 	}
 
 	Current.Path = getPath()
@@ -64,4 +67,18 @@ func isWSL() bool {
 	}
 
 	return os.Getenv("WSL_DISTRO_NAME") != "" || os.Getenv("WSL_INTEROP") != ""
+}
+
+func getEnvironment() map[string]string {
+	env := make(map[string]string)
+
+	for _, value := range os.Environ() {
+		key, val, found := strings.Cut(value, "=")
+		if !found {
+			continue
+		}
+		env[key] = val
+	}
+
+	return env
 }

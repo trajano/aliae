@@ -44,3 +44,16 @@ func TestIsWSL(t *testing.T) {
 		}
 	})
 }
+
+func TestInitLoadsEnvironmentMap(t *testing.T) {
+	t.Setenv("ALIAE_ENV_TEST", "test-value")
+	Init("bash")
+
+	if Current == nil {
+		t.Fatalf("expected runtime context to be initialized")
+	}
+
+	if Current.Env["ALIAE_ENV_TEST"] != "test-value" {
+		t.Fatalf("expected environment variable to be available in runtime context")
+	}
+}
