@@ -339,6 +339,37 @@
                         "type": "number",
                         "exclusiveMinimum": 0,
                         "description": "progress weight for this script entry (> 0, default: 1)"
+                    },
+                    "state": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                            "file"
+                        ],
+                        "properties": {
+                            "file": {
+                                "type": "string",
+                                "description": "state file name used under the aliae state directory"
+                            },
+                            "runEvery": {
+                                "type": "string",
+                                "description": "run interval as a Go duration (for example 24h, 30m). If omitted, the script runs once."
+                            },
+                            "format": {
+                                "type": "string",
+                                "default": "json",
+                                "oneOf": [
+                                    {
+                                        "const": "json",
+                                        "description": "store state with a JSON payload containing lastRun timestamp (default)"
+                                    },
+                                    {
+                                        "const": "text",
+                                        "description": "store state as a plain RFC3339 timestamp"
+                                    }
+                                ]
+                            }
+                        }
                     }
                 }
             }

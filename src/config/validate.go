@@ -8,8 +8,10 @@ import (
 	"slices"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/goccy/go-yaml"
+	aliaeState "github.com/jandedobbeleer/aliae/src/state"
 	"github.com/xeipuuv/gojsonschema"
 	yamlv3 "gopkg.in/yaml.v3"
 )
@@ -54,7 +56,11 @@ func ValidateConfig(configPath string) error {
 			return err
 		}
 
-		return validateScriptWeights(aliae, lineResolver)
+		if err := validateScriptWeights(aliae, lineResolver); err != nil {
+			return err
+		}
+
+		return validateScriptStates(aliae, lineResolver)
 	}
 
 	validationErrors := make([]string, 0, len(result.Errors()))
@@ -558,6 +564,18 @@ func scriptSchemaItems(aliae *Aliae) []map[string]any {
 		if script.Weight > 0 {
 			item["weight"] = script.Weight
 		}
+		if len(script.State.File) > 0 {
+			state := map[string]any{
+				"file": string(script.State.File),
+			}
+			if len(script.State.RunEvery) > 0 {
+				state["runEvery"] = script.State.RunEvery
+			}
+			if len(script.State.Format) > 0 {
+				state["format"] = string(script.State.Format)
+			}
+			item["state"] = state
+		}
 		scripts = append(scripts, item)
 	}
 	return scripts
@@ -660,6 +678,62 @@ func validateScriptWeights(aliae *Aliae, lineResolver *yamlLineResolver) error {
 
 	slices.Sort(validationErrors)
 	return fmt.Errorf("config script validation failed:\n- %s", strings.Join(validationErrors, "\n- "))
+}
+
+func validateScriptStates(aliae *Aliae, lineResolver *yamlLineResolver) error {
+	if aliae == nil {
+		return nil
+	}
+
+	validationErrors := make([]string, 0)
+	seenStateFiles := make(map[string]int)
+
+	for i, script := range aliae.Scripts {
+		if script == nil || len(script.State.File) == 0 {
+			continue
+		}
+
+		stateFile := strings.TrimSpace(string(script.State.File))
+		filePath := fmt.Sprintf("script.%d.state.file", i)
+		if !aliaeState.IsValidFileName(stateFile) {
+			validationErrors = append(
+				validationErrors,
+				lineResolver.annotate(filePath, fmt.Sprintf("script[%d].state.file must be a file name only (no path separators)", i)),
+			)
+		}
+
+		if previousIndex, exists := seenStateFiles[stateFile]; exists {
+			validationErrors = append(
+				validationErrors,
+				lineResolver.annotate(filePath, fmt.Sprintf("script[%d].state.file duplicates script[%d].state.file", i, previousIndex)),
+			)
+		} else {
+			seenStateFiles[stateFile] = i
+		}
+
+		if len(script.State.RunEvery) > 0 {
+			runEveryPath := fmt.Sprintf("script.%d.state.runEvery", i)
+			runEvery, err := time.ParseDuration(strings.TrimSpace(script.State.RunEvery))
+			if err != nil {
+				validationErrors = append(
+					validationErrors,
+					lineResolver.annotate(runEveryPath, fmt.Sprintf("script[%d].state.runEvery must be a valid duration", i)),
+				)
+			} else if runEvery <= 0 {
+				validationErrors = append(
+					validationErrors,
+					lineResolver.annotate(runEveryPath, fmt.Sprintf("script[%d].state.runEvery must be greater than 0", i)),
+				)
+			}
+		}
+	}
+
+	if len(validationErrors) == 0 {
+		return nil
+	}
+
+	slices.Sort(validationErrors)
+	return fmt.Errorf("config script state validation failed:\n- %s", strings.Join(validationErrors, "\n- "))
 }
 
 func linkSchemaItems(aliae *Aliae) []map[string]any {

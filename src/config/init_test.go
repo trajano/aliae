@@ -98,6 +98,34 @@ alias:
 	}
 }
 
+func TestInitInternalProgressIncludesStateChecks(t *testing.T) {
+	shell.DotFile.Reset()
+	t.Cleanup(shell.DotFile.Reset)
+
+	tempDir := t.TempDir()
+	configFile := filepath.ToSlash(filepath.Join(tempDir, "aliae.yaml"))
+
+	require.NoError(t, os.WriteFile(configFile, []byte(`progress:
+  start_percentage: 10
+  internal: 5
+  end_percentage: reset
+script:
+  - value: echo once
+    state:
+      file: once.state
+`), 0o600))
+
+	var stderr bytes.Buffer
+	SetInitProgressWriter(&stderr)
+	t.Cleanup(resetInitProgressWriter)
+
+	_ = Init(configFile, shell.BASH, true)
+
+	output := stderr.String()
+	assert.Contains(t, output, "\x1b]9;4;1;13\x07")
+	assert.NotContains(t, output, "\x1b]9;4;1;14\x07")
+}
+
 func TestInitAutoProgressWithWeights(t *testing.T) {
 	shell.DotFile.Reset()
 	t.Cleanup(shell.DotFile.Reset)
@@ -244,4 +272,25 @@ func TestInitRejectsNonPositiveScriptWeight(t *testing.T) {
 	assert.Contains(t, script, "aliae error:")
 	assert.Contains(t, script, "script[0].weight")
 	assert.Contains(t, script, "greater than 0")
+}
+
+func TestInitRejectsInvalidScriptStateRunEvery(t *testing.T) {
+	shell.DotFile.Reset()
+	t.Cleanup(shell.DotFile.Reset)
+
+	tempDir := t.TempDir()
+	configFile := filepath.ToSlash(filepath.Join(tempDir, "aliae.yaml"))
+	configContent := `script:
+  - value: echo hello
+    state:
+      file: hello.state
+      runEvery: nope
+`
+
+	err := os.WriteFile(configFile, []byte(configContent), 0o600)
+	assert.NoError(t, err)
+
+	script := Init(configFile, shell.BASH, true)
+	assert.Contains(t, script, "aliae error:")
+	assert.Contains(t, script, "script[0].state.runEvery")
 }

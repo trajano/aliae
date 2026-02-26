@@ -170,6 +170,53 @@ func TestValidateConfig(t *testing.T) {
 		require.NoError(t, err)
 	})
 
+	t.Run("script state duplicate file fails validation", func(t *testing.T) {
+		root := t.TempDir()
+		file := filepath.Join(root, "aliae.yaml")
+		require.NoError(t, os.WriteFile(file, []byte(`script:
+  - value: echo one
+    state:
+      file: shared.state
+  - value: echo two
+    state:
+      file: shared.state
+`), 0o600))
+
+		err := ValidateConfig(file)
+		require.Error(t, err)
+		assert.Contains(t, strings.ToLower(err.Error()), "script[1].state.file")
+		assert.Contains(t, strings.ToLower(err.Error()), "duplicates")
+	})
+
+	t.Run("script state runEvery duration must be valid", func(t *testing.T) {
+		root := t.TempDir()
+		file := filepath.Join(root, "aliae.yaml")
+		require.NoError(t, os.WriteFile(file, []byte(`script:
+  - value: echo one
+    state:
+      file: one.state
+      runEvery: nope
+`), 0o600))
+
+		err := ValidateConfig(file)
+		require.Error(t, err)
+		assert.Contains(t, strings.ToLower(err.Error()), "script[0].state.runevery")
+	})
+
+	t.Run("script state file must be file name only", func(t *testing.T) {
+		root := t.TempDir()
+		file := filepath.Join(root, "aliae.yaml")
+		require.NoError(t, os.WriteFile(file, []byte(`script:
+  - value: echo one
+    state:
+      file: nested/one.state
+`), 0o600))
+
+		err := ValidateConfig(file)
+		require.Error(t, err)
+		assert.Contains(t, strings.ToLower(err.Error()), "script[0].state.file")
+	})
+
 	t.Run("env ifExists requires isPath", func(t *testing.T) {
 		root := t.TempDir()
 		file := filepath.Join(root, "aliae.yaml")

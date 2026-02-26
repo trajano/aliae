@@ -120,3 +120,27 @@ func TestResolveTemplateContext(t *testing.T) {
 	assert.Equal(t, "/home/user/.aliae.yaml", path)
 	assert.Equal(t, filepath.Dir("/home/user/.aliae.yaml"), dir)
 }
+
+func TestParseConfigRejectsInvalidScriptStateRunEvery(t *testing.T) {
+	_, err := parseConfig([]byte(`script:
+  - value: echo hello
+    state:
+      file: hello.state
+      runEvery: nope
+`))
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "script[0].state.runEvery")
+}
+
+func TestParseConfigRejectsDuplicateScriptStateFile(t *testing.T) {
+	_, err := parseConfig([]byte(`script:
+  - value: echo hello
+    state:
+      file: shared.state
+  - value: echo bye
+    state:
+      file: shared.state
+`))
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "duplicates")
+}

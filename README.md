@@ -36,7 +36,9 @@ focused on Git Bash support and fork-specific distribution.
   - Added `init --tty-only` support and follow-up fixes for piped/non-TTY detection.
   - Added `alias.type` values `python`/`perl` to run inline interpreter source from `PATH`.
   - Added `script.type` values `python`/`perl` to run inline interpreter source from `PATH`.
+  - Added `script.state` (`file`, optional `runEvery`, optional `format`) for run-once or interval-controlled scripts.
 - Added `aliae get variables` diagnostics to print TTY checks and resolved template variables.
+  - Added `aliae state` commands (`list` default, `clear`) to inspect and clear referenced script state files.
   - Improved shell detection for Git Bash and Scoop shim process trees.
 - Added shell resolution trace output through `aliae get variables`.
   - Fixed Git Bash PATH delimiter handling on Windows.
