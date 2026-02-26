@@ -60,17 +60,30 @@ func renderResolvedConfigYAML(configPath string) (string, error) {
 		return "", err
 	}
 
-	output := resolvedConfigOutput{
-		Alias:    toAliasOutput(aliae.Aliae),
-		Env:      toEnvOutput(aliae.Envs),
-		Path:     toPathOutput(aliae.Paths),
-		CDPath:   toCDPathOutput(aliae.CDPaths),
-		Script:   toScriptOutput(aliae.Scripts),
-		Link:     toLinkOutput(aliae.Links),
-		Progress: aliae.Progress,
+	output := map[string]any{}
+	if aliases := toAliasOutput(aliae.Aliae); len(aliases) > 0 {
+		output["alias"] = aliases
+	}
+	if envs := toEnvOutput(aliae.Envs); len(envs) > 0 {
+		output["env"] = envs
+	}
+	if paths := toPathOutput(aliae.Paths); len(paths) > 0 {
+		output["path"] = paths
+	}
+	if cdpaths := toCDPathOutput(aliae.CDPaths); len(cdpaths) > 0 {
+		output["cdpath"] = cdpaths
+	}
+	if scripts := toScriptOutput(aliae.Scripts); len(scripts) > 0 {
+		output["script"] = scripts
+	}
+	if links := toLinkOutput(aliae.Links); len(links) > 0 {
+		output["link"] = links
+	}
+	if aliae.Progress.Enabled {
+		output["progress"] = aliae.Progress
 	}
 	if aliae.StatTimeout > 0 {
-		output.StatTimeout = aliae.StatTimeout.String()
+		output["stat_timeout"] = aliae.StatTimeout.String()
 	}
 
 	data, err := yaml.Marshal(output)
@@ -81,154 +94,99 @@ func renderResolvedConfigYAML(configPath string) (string, error) {
 	return string(data), nil
 }
 
-type resolvedConfigOutput struct {
-	Alias       []aliasOutput  `yaml:"alias,omitempty"`
-	Env         []envOutput    `yaml:"env,omitempty"`
-	Path        []pathOutput   `yaml:"path,omitempty"`
-	CDPath      []pathOutput   `yaml:"cdpath,omitempty"`
-	Script      []scriptOutput `yaml:"script,omitempty"`
-	Link        []linkOutput   `yaml:"link,omitempty"`
-	Progress    cfg.Progress   `yaml:"progress,omitempty"`
-	StatTimeout string         `yaml:"stat_timeout,omitempty"`
-}
-
-type aliasOutput struct {
-	Name        string         `yaml:"name"`
-	Value       shell.Template `yaml:"value"`
-	Type        shell.Type     `yaml:"type,omitempty"`
-	If          shell.If       `yaml:"if,omitempty"`
-	Description string         `yaml:"description,omitempty"`
-	Option      shell.Option   `yaml:"option,omitempty"`
-	Scope       shell.Option   `yaml:"scope,omitempty"`
-	Force       bool           `yaml:"force,omitempty"`
-}
-
-type envOutput struct {
-	Name      string         `yaml:"name"`
-	Value     any            `yaml:"value"`
-	Delimiter shell.Template `yaml:"delimiter,omitempty"`
-	If        shell.If       `yaml:"if,omitempty"`
-	Type      shell.EnvType  `yaml:"type,omitempty"`
-	IsPath    bool           `yaml:"isPath,omitempty"`
-	IfExists  bool           `yaml:"ifExists,omitempty"`
-	Persist   bool           `yaml:"persist,omitempty"`
-}
-
-type pathOutput struct {
-	Value    shell.Template `yaml:"value"`
-	If       shell.If       `yaml:"if,omitempty"`
-	Persist  bool           `yaml:"persist,omitempty"`
-	Force    bool           `yaml:"force,omitempty"`
-	IfExists bool           `yaml:"ifExists,omitempty"`
-}
-
-type scriptOutput struct {
-	Value  shell.Template `yaml:"value"`
-	If     shell.If       `yaml:"if,omitempty"`
-	Weight float64        `yaml:"weight,omitempty"`
-}
-
-type linkOutput struct {
-	Name   shell.Template `yaml:"name"`
-	Target shell.Template `yaml:"target"`
-	If     shell.If       `yaml:"if,omitempty"`
-	MkDir  bool           `yaml:"mkdir,omitempty"`
-}
-
-func toAliasOutput(items shell.Aliae) []aliasOutput {
-	output := make([]aliasOutput, 0, len(items))
+func toAliasOutput(items shell.Aliae) []map[string]any {
+	output := make([]map[string]any, 0, len(items))
 	for _, alias := range items {
 		if alias == nil {
 			continue
 		}
 
-		output = append(output, aliasOutput{
-			Name:        alias.Name,
-			Value:       alias.Value,
-			Type:        alias.Type,
-			If:          alias.If,
-			Description: alias.Description,
-			Option:      alias.Option,
-			Scope:       alias.Scope,
-			Force:       alias.Force,
-		})
+		item := map[string]any{
+			"name":  alias.Name,
+			"value": alias.Value,
+		}
+		if len(alias.Type) > 0 {
+			item["type"] = alias.Type
+		}
+		if len(alias.If) > 0 {
+			item["if"] = alias.If
+		}
+		if len(alias.Description) > 0 {
+			item["description"] = alias.Description
+		}
+		if len(alias.Option) > 0 {
+			item["option"] = alias.Option
+		}
+		if len(alias.Scope) > 0 {
+			item["scope"] = alias.Scope
+		}
+		if alias.Force {
+			item["force"] = true
+		}
+
+		output = append(output, item)
 	}
 
 	return output
 }
 
-func toEnvOutput(items shell.Envs) []envOutput {
-	output := make([]envOutput, 0, len(items))
+func toEnvOutput(items shell.Envs) []map[string]any {
+	output := make([]map[string]any, 0, len(items))
 	for _, env := range items {
 		if env == nil {
 			continue
 		}
 
-		output = append(output, envOutput{
-			Name:      env.Name,
-			Value:     env.Value,
-			Delimiter: env.Delimiter,
-			If:        env.If,
-			Type:      env.Type,
-			IsPath:    env.IsPath,
-			IfExists:  env.IfExists,
-			Persist:   env.Persist,
-		})
+		item := map[string]any{
+			"name":  env.Name,
+			"value": env.Value,
+		}
+		if len(env.Delimiter) > 0 {
+			item["delimiter"] = env.Delimiter
+		}
+		if len(env.If) > 0 {
+			item["if"] = env.If
+		}
+		if len(env.Type) > 0 {
+			item["type"] = env.Type
+		}
+		if env.IsPath {
+			item["isPath"] = true
+		}
+		if env.IfExists {
+			item["ifExists"] = true
+		}
+		if env.Persist {
+			item["persist"] = true
+		}
+
+		output = append(output, item)
 	}
 
 	return output
 }
 
-func toPathOutput(items shell.Paths) []pathOutput {
-	output := make([]pathOutput, 0, len(items))
+func toPathOutput(items shell.Paths) []map[string]any {
+	output := make([]map[string]any, 0, len(items))
 	for _, item := range items {
 		if item == nil {
 			continue
 		}
 
-		output = append(output, pathOutput{
-			Value:    item.Value,
-			If:       item.If,
-			Persist:  item.Persist,
-			Force:    item.Force,
-			IfExists: item.IfExists,
-		})
-	}
-
-	return output
-}
-
-func toCDPathOutput(items shell.CDPaths) []pathOutput {
-	output := make([]pathOutput, 0, len(items))
-	for _, item := range items {
-		if item == nil {
-			continue
+		entry := map[string]any{
+			"value": item.Value,
 		}
-
-		output = append(output, pathOutput{
-			Value:    item.Value,
-			If:       item.If,
-			Force:    item.Force,
-			IfExists: item.IfExists,
-		})
-	}
-
-	return output
-}
-
-func toScriptOutput(items shell.Scripts) []scriptOutput {
-	output := make([]scriptOutput, 0, len(items))
-	for _, script := range items {
-		if script == nil {
-			continue
+		if len(item.If) > 0 {
+			entry["if"] = item.If
 		}
-
-		entry := scriptOutput{
-			Value: script.Value,
-			If:    script.If,
+		if item.Persist {
+			entry["persist"] = true
 		}
-		if script.Weight > 0 {
-			entry.Weight = script.Weight
+		if item.Force {
+			entry["force"] = true
+		}
+		if item.IfExists {
+			entry["ifExists"] = true
 		}
 
 		output = append(output, entry)
@@ -237,19 +195,74 @@ func toScriptOutput(items shell.Scripts) []scriptOutput {
 	return output
 }
 
-func toLinkOutput(items shell.Links) []linkOutput {
-	output := make([]linkOutput, 0, len(items))
+func toCDPathOutput(items shell.CDPaths) []map[string]any {
+	output := make([]map[string]any, 0, len(items))
 	for _, item := range items {
 		if item == nil {
 			continue
 		}
 
-		output = append(output, linkOutput{
-			Name:   item.Name,
-			Target: item.Target,
-			If:     item.If,
-			MkDir:  item.MkDir,
-		})
+		entry := map[string]any{
+			"value": item.Value,
+		}
+		if len(item.If) > 0 {
+			entry["if"] = item.If
+		}
+		if item.Force {
+			entry["force"] = true
+		}
+		if item.IfExists {
+			entry["ifExists"] = true
+		}
+
+		output = append(output, entry)
+	}
+
+	return output
+}
+
+func toScriptOutput(items shell.Scripts) []map[string]any {
+	output := make([]map[string]any, 0, len(items))
+	for _, script := range items {
+		if script == nil {
+			continue
+		}
+
+		entry := map[string]any{
+			"value": script.Value,
+		}
+		if len(script.If) > 0 {
+			entry["if"] = script.If
+		}
+		if script.Weight > 0 {
+			entry["weight"] = script.Weight
+		}
+
+		output = append(output, entry)
+	}
+
+	return output
+}
+
+func toLinkOutput(items shell.Links) []map[string]any {
+	output := make([]map[string]any, 0, len(items))
+	for _, item := range items {
+		if item == nil {
+			continue
+		}
+
+		entry := map[string]any{
+			"name":   item.Name,
+			"target": item.Target,
+		}
+		if len(item.If) > 0 {
+			entry["if"] = item.If
+		}
+		if item.MkDir {
+			entry["mkdir"] = true
+		}
+
+		output = append(output, entry)
 	}
 
 	return output
