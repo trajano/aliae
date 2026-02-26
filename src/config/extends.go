@@ -130,6 +130,11 @@ func loadLocalConfigRecursive(configPath string, stack []string, depth int) (*Al
 	}
 
 	merged.merge(current)
+
+	if err := validateScriptWeightsOnLoad(merged); err != nil {
+		return nil, err
+	}
+
 	return merged, nil
 }
 

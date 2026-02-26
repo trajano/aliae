@@ -79,8 +79,9 @@ func normalizeEffectiveScriptWeights(aliae *cfg.Aliae) {
 			continue
 		}
 
-		if script.Weight <= 0 {
-			script.Weight = 1
+		if script.Weight == nil {
+			defaultWeight := 1.0
+			script.Weight = &defaultWeight
 		}
 	}
 }

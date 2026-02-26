@@ -170,8 +170,29 @@ func parseConfig(data []byte) (*Aliae, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse config file: %s", err)
 	}
+	if err := validateScriptWeightsOnLoad(&aliae); err != nil {
+		return nil, err
+	}
 
 	shell.SetStatTimeout(aliae.StatTimeout)
 
 	return &aliae, nil
+}
+
+func validateScriptWeightsOnLoad(aliae *Aliae) error {
+	if aliae == nil {
+		return nil
+	}
+
+	for i, script := range aliae.Scripts {
+		if script == nil || script.Weight == nil {
+			continue
+		}
+
+		if *script.Weight <= 0 {
+			return fmt.Errorf("invalid script[%d].weight: must be greater than 0", i)
+		}
+	}
+
+	return nil
 }

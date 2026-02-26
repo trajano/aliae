@@ -5,7 +5,7 @@ type Scripts []*Script
 type Script struct {
 	Value  Template `yaml:"value"`
 	If     If       `yaml:"if"`
-	Weight float64  `yaml:"weight"`
+	Weight *float64 `yaml:"weight,omitempty"`
 }
 
 func (s *Script) String() string {
@@ -14,11 +14,11 @@ func (s *Script) String() string {
 }
 
 func (s *Script) effectiveWeight() float64 {
-	if s.Weight <= 0 {
+	if s.Weight == nil {
 		return 1
 	}
 
-	return s.Weight
+	return *s.Weight
 }
 
 func (s Scripts) Render() {

@@ -143,3 +143,23 @@ func TestInitAllowsUnknownPropertiesAtRuntime(t *testing.T) {
 	script := Init(configFile, shell.BASH, true)
 	assert.Contains(t, script, "export ANDROID_HOME=")
 }
+
+func TestInitRejectsNonPositiveScriptWeight(t *testing.T) {
+	shell.DotFile.Reset()
+	t.Cleanup(shell.DotFile.Reset)
+
+	tempDir := t.TempDir()
+	configFile := filepath.ToSlash(filepath.Join(tempDir, "aliae.yaml"))
+	configContent := `script:
+  - value: echo hello
+    weight: 0
+`
+
+	err := os.WriteFile(configFile, []byte(configContent), 0o600)
+	assert.NoError(t, err)
+
+	script := Init(configFile, shell.BASH, true)
+	assert.Contains(t, script, "aliae error:")
+	assert.Contains(t, script, "script[0].weight")
+	assert.Contains(t, script, "greater than 0")
+}

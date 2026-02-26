@@ -524,8 +524,8 @@ func scriptSchemaItems(aliae *Aliae) []map[string]any {
 		if len(script.If) > 0 {
 			item["if"] = string(script.If)
 		}
-		if script.Weight > 0 {
-			item["weight"] = script.Weight
+		if script.Weight != nil {
+			item["weight"] = *script.Weight
 		}
 		scripts = append(scripts, item)
 	}
@@ -593,11 +593,11 @@ func validateScriptWeights(aliae *Aliae, lineResolver *yamlLineResolver) error {
 
 	validationErrors := make([]string, 0)
 	for i, script := range aliae.Scripts {
-		if script == nil {
+		if script == nil || script.Weight == nil {
 			continue
 		}
 
-		if script.Weight < 0 {
+		if *script.Weight <= 0 {
 			path := fmt.Sprintf("script.%d.weight", i)
 			validationErrors = append(
 				validationErrors,
