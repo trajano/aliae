@@ -256,3 +256,33 @@ func TestLoadConfigExtendsDepthLimit(t *testing.T) {
 	require.Error(t, err)
 	assert.Contains(t, strings.ToLower(err.Error()), "depth")
 }
+
+func TestLoadConfigExtendsIgnoresProgressInternalFromIncludedFiles(t *testing.T) {
+	root := t.TempDir()
+	base := filepath.Join(root, "base.yaml")
+	child := filepath.Join(root, "child.yaml")
+
+	require.NoError(t, os.WriteFile(base, []byte(`progress:
+  start_percentage: 0
+  internal: 33
+alias:
+  - name: base
+    value: from-base
+`), 0o600))
+
+	require.NoError(t, os.WriteFile(child, []byte(`extends:
+  - ./base.yaml
+progress:
+  start_percentage: 10
+  internal: 7
+alias:
+  - name: child
+    value: from-child
+`), 0o600))
+
+	got, err := LoadConfig(child)
+	require.NoError(t, err)
+	assert.True(t, got.Progress.Enabled)
+	assert.Equal(t, 10.0, got.Progress.StartPercentage)
+	assert.Equal(t, 7.0, got.Progress.Internal)
+}

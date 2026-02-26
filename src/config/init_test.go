@@ -128,6 +128,28 @@ script:
 	}
 }
 
+func TestInitAutoProgressStartsAfterInternalSpan(t *testing.T) {
+	shell.DotFile.Reset()
+	t.Cleanup(shell.DotFile.Reset)
+
+	tempDir := t.TempDir()
+	configFile := filepath.ToSlash(filepath.Join(tempDir, "aliae.yaml"))
+	configContent := `progress:
+  start_percentage: 10
+  internal: 10
+  end_percentage: 70
+alias:
+  - name: ll
+    value: ls -la
+`
+
+	err := os.WriteFile(configFile, []byte(configContent), 0o600)
+	assert.NoError(t, err)
+
+	got := Init(configFile, shell.BASH, true)
+	assert.Contains(t, got, `printf '\033]9;4;1;20\007'`)
+}
+
 func TestInitAllowsUnknownPropertiesAtRuntime(t *testing.T) {
 	shell.DotFile.Reset()
 	t.Cleanup(shell.DotFile.Reset)

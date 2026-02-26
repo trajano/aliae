@@ -43,9 +43,17 @@ var (
 func LoadConfig(configPath string) (*Aliae, error) {
 	configPathCache = resolveConfigPath(configPath)
 	setTemplateConfigContext(configPathCache)
+	rootProgress, _ := loadRootProgress(configPathCache)
 
 	if strings.HasPrefix(configPathCache, "http://") || strings.HasPrefix(configPathCache, "https://") {
-		return getRemoteConfig(configPathCache)
+		aliae, err := getRemoteConfig(configPathCache)
+		if err != nil {
+			return nil, err
+		}
+
+		// progress.internal is root-only and must ignore included/extended sources.
+		aliae.Progress.Internal = rootProgress.Internal
+		return aliae, nil
 	}
 
 	aliae, err := loadLocalConfig(configPathCache)
@@ -53,6 +61,8 @@ func LoadConfig(configPath string) (*Aliae, error) {
 		return nil, err
 	}
 
+	// progress.internal is root-only and must ignore included/extended sources.
+	aliae.Progress.Internal = rootProgress.Internal
 	shell.SetStatTimeout(aliae.StatTimeout)
 
 	return aliae, nil

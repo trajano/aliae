@@ -22,12 +22,14 @@ func TestParseConfigProgressDefaults(t *testing.T) {
 func TestParseConfigProgressReset(t *testing.T) {
 	aliae, err := parseConfig([]byte(`progress:
   start_percentage: 21.44
+  internal: 10
   end_percentage: reset
 `))
 	require.NoError(t, err)
 
 	assert.True(t, aliae.Progress.Enabled)
 	assert.Equal(t, 21.44, aliae.Progress.StartPercentage)
+	assert.Equal(t, 10.0, aliae.Progress.Internal)
 	assert.True(t, aliae.Progress.EndPercentage.Reset)
 	assert.Equal(t, 100.0, aliae.Progress.EndPercentage.Value)
 }
@@ -43,6 +45,7 @@ func TestParseConfigProgressTrueUsesDefaults(t *testing.T) {
 	require.NoError(t, err)
 	assert.True(t, aliae.Progress.Enabled)
 	assert.Equal(t, 0.0, aliae.Progress.StartPercentage)
+	assert.Equal(t, 0.0, aliae.Progress.Internal)
 	assert.True(t, aliae.Progress.EndPercentage.Reset)
 	assert.Equal(t, 100.0, aliae.Progress.EndPercentage.Value)
 }
@@ -54,11 +57,13 @@ func TestProgressUnmarshalYAMLMethod(t *testing.T) {
 
 	err := yaml.Unmarshal([]byte(`progress:
   start_percentage: 10
+  internal: 15
   end_percentage: 70
 `), &doc)
 	require.NoError(t, err)
 	assert.True(t, doc.Progress.Enabled)
 	assert.Equal(t, 10.0, doc.Progress.StartPercentage)
+	assert.Equal(t, 15.0, doc.Progress.Internal)
 	assert.Equal(t, 70.0, doc.Progress.EndPercentage.Value)
 }
 
@@ -67,6 +72,7 @@ func TestLoadConfigProgressObject(t *testing.T) {
 	file := filepath.Join(root, "aliae.yaml")
 	require.NoError(t, os.WriteFile(file, []byte(`progress:
   start_percentage: 10
+  internal: 8
   end_percentage: 70
 `), 0o600))
 
@@ -74,6 +80,7 @@ func TestLoadConfigProgressObject(t *testing.T) {
 	require.NoError(t, err)
 	assert.True(t, aliae.Progress.Enabled)
 	assert.Equal(t, 10.0, aliae.Progress.StartPercentage)
+	assert.Equal(t, 8.0, aliae.Progress.Internal)
 	assert.Equal(t, 70.0, aliae.Progress.EndPercentage.Value)
 	assert.False(t, aliae.Progress.EndPercentage.Reset)
 }

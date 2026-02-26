@@ -7,9 +7,14 @@ func (a *Aliae) autoProgressConfig() shell.AutoProgressConfig {
 		return shell.AutoProgressConfig{}
 	}
 
+	start := a.Progress.StartPercentage + a.Progress.Internal
+	if start > 100 {
+		start = 100
+	}
+
 	return shell.AutoProgressConfig{
 		Enabled:         true,
-		StartPercentage: a.Progress.StartPercentage,
+		StartPercentage: start,
 		EndPercentage:   a.Progress.EndPercentage.Value,
 		ResetAtEnd:      a.Progress.EndPercentage.Reset,
 		TotalWeight:     a.progressTotalWeight(),

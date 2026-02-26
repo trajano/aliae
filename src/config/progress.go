@@ -12,6 +12,7 @@ import (
 type Progress struct {
 	Enabled         bool                  `yaml:"-"`
 	StartPercentage float64               `yaml:"start_percentage,omitempty"`
+	Internal        float64               `yaml:"internal,omitempty"`
 	EndPercentage   ProgressEndPercentage `yaml:"end_percentage,omitempty"`
 }
 
@@ -31,9 +32,11 @@ func (p Progress) MarshalYAML() (any, error) {
 
 	return struct {
 		StartPercentage float64               `yaml:"start_percentage,omitempty"`
+		Internal        float64               `yaml:"internal,omitempty"`
 		EndPercentage   ProgressEndPercentage `yaml:"end_percentage,omitempty"`
 	}{
 		StartPercentage: p.StartPercentage,
+		Internal:        p.Internal,
 		EndPercentage:   p.EndPercentage,
 	}, nil
 }
@@ -96,6 +99,7 @@ func parseProgressAny(value any) (Progress, error) {
 			return Progress{
 				Enabled:         true,
 				StartPercentage: 0,
+				Internal:        0,
 				EndPercentage: ProgressEndPercentage{
 					Reset: true,
 					Value: 100,
@@ -124,6 +128,7 @@ func parseProgressAny(value any) (Progress, error) {
 			return Progress{
 				Enabled:         true,
 				StartPercentage: 0,
+				Internal:        0,
 				EndPercentage: ProgressEndPercentage{
 					Reset: true,
 					Value: 100,
@@ -138,6 +143,7 @@ func parseProgressObject(raw map[string]any) (Progress, error) {
 	parsed := Progress{
 		Enabled:         true,
 		StartPercentage: 0,
+		Internal:        0,
 		EndPercentage: ProgressEndPercentage{
 			Reset: true,
 			Value: 100,
@@ -150,6 +156,14 @@ func parseProgressObject(raw map[string]any) (Progress, error) {
 			return Progress{}, fmt.Errorf("invalid progress.start_percentage: %w", err)
 		}
 		parsed.StartPercentage = start
+	}
+
+	if rawInternal, ok := raw["internal"]; ok {
+		internal, err := parseProgressNumber(rawInternal)
+		if err != nil {
+			return Progress{}, fmt.Errorf("invalid progress.internal: %w", err)
+		}
+		parsed.Internal = internal
 	}
 
 	if rawEnd, ok := raw["end_percentage"]; ok {
