@@ -7,7 +7,7 @@ const (
 func (a *Alias) fish() *Alias {
 	switch a.Type { //nolint:exhaustive
 	case Command:
-		a.template = `alias {{ .Name }} '{{ .Value }}'`
+		a.template = `alias {{ .Name }} {{ formatString .Value }}`
 	case Function:
 		a.template = `function {{ .Name }}{{ if .Description }} --description {{ formatString .Description }}{{ end }}
     {{ .Value }}
