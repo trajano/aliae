@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -55,7 +56,7 @@ func runInit(cmd *cobra.Command, shellName string) {
 		return
 	}
 	init := cfg.Init(config, shellName, printOutput)
-	cmd.Print(init)
+	fmt.Fprint(cmd.OutOrStdout(), init)
 }
 
 func shouldSkipInitOutput(ttyOnly, stdinTTY bool) bool {
