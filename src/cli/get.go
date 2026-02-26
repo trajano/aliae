@@ -59,6 +59,7 @@ func renderResolvedConfigYAML(configPath string) (string, error) {
 	if err != nil {
 		return "", err
 	}
+	normalizeEffectiveScriptWeights(aliae)
 
 	data, err := yaml.Marshal(aliae)
 	if err != nil {
@@ -66,6 +67,22 @@ func renderResolvedConfigYAML(configPath string) (string, error) {
 	}
 
 	return string(data), nil
+}
+
+func normalizeEffectiveScriptWeights(aliae *cfg.Aliae) {
+	if aliae == nil {
+		return
+	}
+
+	for _, script := range aliae.Scripts {
+		if script == nil {
+			continue
+		}
+
+		if script.Weight < 1 {
+			script.Weight = 1
+		}
+	}
 }
 
 // printVariableDiagnostics prints runtime and template diagnostics for 'aliae get variables'.

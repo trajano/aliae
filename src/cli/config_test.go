@@ -34,6 +34,8 @@ alias:
 	require.NoError(t, os.WriteFile(configFile, []byte(`extends:
   - dir: ./aliases
 env: !include ./env.yaml
+script:
+  - value: echo hello
 alias:
   - name: root
     value: from-root
@@ -48,6 +50,8 @@ alias:
 	assert.Contains(t, output, "name: root")
 	assert.Contains(t, output, "env:")
 	assert.Contains(t, output, "name: TEST_ENV")
+	assert.Contains(t, output, "script:")
+	assert.Contains(t, output, "weight: 1")
 	assert.NotContains(t, output, "extends:")
 	assert.NotContains(t, output, "!include")
 }
