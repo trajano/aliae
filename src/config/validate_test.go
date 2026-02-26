@@ -94,6 +94,27 @@ func TestValidateConfig(t *testing.T) {
 		assert.Contains(t, err.Error(), `if: "{"`)
 	})
 
+	t.Run("invalid extends if expression", func(t *testing.T) {
+		root := t.TempDir()
+		base := filepath.Join(root, "base.yaml")
+		file := filepath.Join(root, "aliae.yaml")
+		require.NoError(t, os.WriteFile(base, []byte(`alias:
+  - name: g
+    value: git
+`), 0o600))
+		require.NoError(t, os.WriteFile(file, []byte(`extends:
+  - path: ./base.yaml
+    if: '{'
+`), 0o600))
+
+		err := ValidateConfig(file)
+		require.Error(t, err)
+		assert.Contains(t, strings.ToLower(err.Error()), "if expression validation failed")
+		assert.Contains(t, err.Error(), "extends[0].if")
+		assert.Contains(t, strings.ToLower(err.Error()), "line")
+		assert.Contains(t, err.Error(), "if: '{'")
+	})
+
 	t.Run("invalid progress percentages", func(t *testing.T) {
 		root := t.TempDir()
 		file := filepath.Join(root, "aliae.yaml")

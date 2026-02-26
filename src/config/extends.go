@@ -12,15 +12,17 @@ import (
 
 	"github.com/goccy/go-yaml"
 	contextpkg "github.com/jandedobbeleer/aliae/src/context"
+	"github.com/jandedobbeleer/aliae/src/shell"
 )
 
 const maxExtendsDepth = 10
 
 type extendsItem struct {
-	FailOnMissing *bool  `yaml:"failOnMissing"`
-	Path          string `yaml:"path"`
-	Dir           string `yaml:"dir"`
-	Recursive     bool   `yaml:"recursive"`
+	FailOnMissing *bool    `yaml:"failOnMissing"`
+	Path          string   `yaml:"path"`
+	Dir           string   `yaml:"dir"`
+	If            shell.If `yaml:"if"`
+	Recursive     bool     `yaml:"recursive"`
 }
 
 func (e *extendsItem) UnmarshalYAML(data []byte) error {
@@ -112,6 +114,10 @@ func loadLocalConfigRecursive(configPath string, stack []string, depth int) (*Al
 	copy(nextStack, stack)
 	nextStack[len(stack)] = absPath
 	for _, item := range extends {
+		if item.If.Ignore() {
+			continue
+		}
+
 		paths, pathErr := resolveExtendsPaths(item, absPath)
 		if pathErr != nil {
 			return nil, pathErr

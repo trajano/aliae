@@ -79,6 +79,9 @@
                             "failOnMissing": {
                                 "type": "boolean",
                                 "description": "if true, fail when path/dir is missing; defaults to true"
+                            },
+                            "if": {
+                                "$ref": "#/definitions/if"
                             }
                         },
                         "allOf": [

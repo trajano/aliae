@@ -129,12 +129,23 @@ func validateSchemaStrictLocalRecursive(configPath string, stack []string, depth
 	if err != nil {
 		return err
 	}
+	lineResolver, lineErr := newYAMLLineResolver(includedData)
+	if lineErr != nil {
+		lineResolver = nil
+	}
+	if err := validateExtendsIfExpressions(extends, lineResolver); err != nil {
+		return err
+	}
 
 	nextStack := make([]string, len(stack)+1)
 	copy(nextStack, stack)
 	nextStack[len(stack)] = absPath
 
 	for _, item := range extends {
+		if item.If.Ignore() {
+			continue
+		}
+
 		paths, pathErr := resolveExtendsPaths(item, absPath)
 		if pathErr != nil {
 			return pathErr
@@ -250,6 +261,23 @@ func validateIfExpressions(aliae *Aliae, lineResolver *yamlLineResolver) error {
 		if err := link.If.Validate(); err != nil {
 			path := fmt.Sprintf("link.%d.if", i)
 			validationErrors = append(validationErrors, lineResolver.annotate(path, fmt.Sprintf("link[%d].if: %s", i, err)))
+		}
+	}
+
+	if len(validationErrors) == 0 {
+		return nil
+	}
+
+	slices.Sort(validationErrors)
+	return fmt.Errorf("config if expression validation failed:\n- %s", strings.Join(validationErrors, "\n- "))
+}
+
+func validateExtendsIfExpressions(extends []extendsItem, lineResolver *yamlLineResolver) error {
+	validationErrors := make([]string, 0)
+	for i, item := range extends {
+		if err := item.If.Validate(); err != nil {
+			path := fmt.Sprintf("extends.%d.if", i)
+			validationErrors = append(validationErrors, lineResolver.annotate(path, fmt.Sprintf("extends[%d].if: %s", i, err)))
 		}
 	}
 

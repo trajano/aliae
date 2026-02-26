@@ -2,7 +2,7 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Init",
+      "name": "Init (zsh)",
       "type": "go",
       "request": "launch",
       "mode": "debug",
@@ -11,6 +11,42 @@
         "init",
         "--tty-only=false",
         "zsh"
+      ]
+    },
+    {
+      "name": "Init (bash)",
+      "type": "go",
+      "request": "launch",
+      "mode": "debug",
+      "program": "${workspaceRoot}/src",
+      "args": [
+        "init",
+        "--tty-only=false",
+        "bash"
+      ]
+    },
+    {
+      "name": "Init (pwsh)",
+      "type": "go",
+      "request": "launch",
+      "mode": "debug",
+      "program": "${workspaceRoot}/src",
+      "args": [
+        "init",
+        "--tty-only=false",
+        "pwsh"
+      ]
+    },
+    {
+      "name": "Init (fish)",
+      "type": "go",
+      "request": "launch",
+      "mode": "debug",
+      "program": "${workspaceRoot}/src",
+      "args": [
+        "init",
+        "--tty-only=false",
+        "fish"
       ]
     },
     {
