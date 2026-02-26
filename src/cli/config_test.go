@@ -51,7 +51,10 @@ alias:
 	assert.Contains(t, output, "env:")
 	assert.Contains(t, output, "name: TEST_ENV")
 	assert.Contains(t, output, "script:")
-	assert.Contains(t, output, "weight: 1")
+	assert.NotContains(t, output, "weight: 0")
+	assert.NotContains(t, output, "description: \"\"")
+	assert.NotContains(t, output, "type: \"\"")
+	assert.NotContains(t, output, "force: false")
 	assert.NotContains(t, output, "extends:")
 	assert.NotContains(t, output, "!include")
 }
