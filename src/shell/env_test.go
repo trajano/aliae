@@ -296,6 +296,23 @@ func TestEnvironmentVariableWithoutPathNormalizationOnWindows(t *testing.T) {
 	assert.Equal(t, `$env:ANDROID_SDK_ROOT = "C:\Users\trajano/AppData/Local/Android/Sdk"`, env.string())
 }
 
+func TestEnvironmentVariablePathNormalizationOnWindowsGitBashUsesMSYSPath(t *testing.T) {
+	t.Setenv("MSYSTEM", "MINGW64")
+
+	env := &Env{
+		Name:   "BAT_CONFIG_DIR",
+		Value:  `C:\Users\trajano\scoop\apps\bat\current`,
+		IsPath: true,
+	}
+	context.Current = &context.Runtime{Shell: BASH, OS: context.WINDOWS, Home: `C:\Users\trajano`}
+
+	assert.Equal(
+		t,
+		`export BAT_CONFIG_DIR="/c/Users/trajano/scoop/apps/bat/current"`,
+		env.string(),
+	)
+}
+
 func TestEnvironmentVariableIfExists(t *testing.T) {
 	existing := t.TempDir()
 	missing := filepath.Join(t.TempDir(), "missing")

@@ -122,6 +122,15 @@ func (e *Env) normalizePath() {
 			continue
 		}
 
+		if context.Current.Shell == BASH && isMSYS2Environment() {
+			if msysPath, isWindowsPath := windowsToMSYSPath(trimmed); isWindowsPath {
+				trimmed = msysPath
+			}
+
+			lines[i] = strings.ReplaceAll(trimmed, `\`, "/")
+			continue
+		}
+
 		if windowsPath, isMSYSPath := msysToWindowsPath(trimmed); isMSYSPath {
 			trimmed = windowsPath
 		}
