@@ -21,8 +21,8 @@ type extendsItem struct {
 	FailOnMissing *bool    `yaml:"failOnMissing"`
 	Path          string   `yaml:"path"`
 	Dir           string   `yaml:"dir"`
-	Recursive     bool     `yaml:"recursive"`
 	If            shell.If `yaml:"if"`
+	Recursive     bool     `yaml:"recursive"`
 }
 
 func (e *extendsItem) UnmarshalYAML(data []byte) error {
