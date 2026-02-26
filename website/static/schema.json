@@ -156,6 +156,10 @@
                     },
                     "if": {
                         "$ref": "#/definitions/if"
+                    },
+                    "description": {
+                        "type": "string",
+                        "description": "alias description (used by supported shells such as Fish/Nushell functions)"
                     }
                 },
                 "required": [
