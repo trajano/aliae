@@ -12,6 +12,9 @@ func Init(configPath, sh string, printOutput bool) string {
 		return fmt.Sprintf("(@(& aliae init %s --config=%s --print) -join \"`n\") | Invoke-Expression", sh, configPath)
 	}
 
+	beginInitInternalProgress(configPath)
+	defer endInitInternalProgress()
+
 	context.Init(sh)
 
 	aliae, err := LoadConfig(configPath)
@@ -22,6 +25,7 @@ func Init(configPath, sh string, printOutput bool) string {
 		}
 		return errorString
 	}
+	markInternalProgressConfigValidated()
 
 	shell.StartAutoProgress(aliae.autoProgressConfig())
 
@@ -32,8 +36,11 @@ func Init(configPath, sh string, printOutput bool) string {
 	aliae.Links.Render()
 	aliae.Scripts.Render()
 	shell.EndAutoProgress()
+	markInternalProgressStatPhaseComplete()
 
+	markInternalProgressOutputFormulated()
 	script := shell.DotFile.String()
+	markInternalProgressReadyToOutput()
 
 	if sh != shell.NU || printOutput {
 		return script

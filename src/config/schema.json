@@ -34,6 +34,12 @@
                             "maximum": 100,
                             "description": "starting percentage for automatic progress (default: 0)"
                         },
+                        "internal": {
+                            "type": "number",
+                            "minimum": 0,
+                            "maximum": 100,
+                            "description": "reserved percentage span for internal init processing (root config only, default: 0)"
+                        },
                         "end_percentage": {
                             "description": "ending percentage for automatic progress (default: reset)",
                             "oneOf": [

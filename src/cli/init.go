@@ -55,6 +55,9 @@ func runInit(cmd *cobra.Command, shellName string) {
 	if skip {
 		return
 	}
+	cfg.SetInitProgressWriter(cmd.ErrOrStderr())
+	defer cfg.SetInitProgressWriter(os.Stderr)
+
 	init := cfg.Init(config, shellName, printOutput)
 	fmt.Fprint(cmd.OutOrStdout(), init)
 }

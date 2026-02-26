@@ -129,6 +129,21 @@ func TestValidateConfig(t *testing.T) {
 		assert.Contains(t, err.Error(), "progress.end_percentage")
 	})
 
+	t.Run("invalid progress internal span", func(t *testing.T) {
+		root := t.TempDir()
+		file := filepath.Join(root, "aliae.yaml")
+		require.NoError(t, os.WriteFile(file, []byte(`progress:
+  start_percentage: 95
+  internal: 10
+  end_percentage: reset
+`), 0o600))
+
+		err := ValidateConfig(file)
+		require.Error(t, err)
+		assert.Contains(t, strings.ToLower(err.Error()), "progress validation failed")
+		assert.Contains(t, err.Error(), "progress.internal")
+	})
+
 	t.Run("invalid script weight", func(t *testing.T) {
 		root := t.TempDir()
 		file := filepath.Join(root, "aliae.yaml")
