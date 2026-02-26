@@ -34,6 +34,8 @@ Set `end_percentage: reset` to emit a final 100% update and then reset the progr
 You can also use `progress: true` as shorthand for `start_percentage: 0` with `end_percentage: reset`.
 Set `internal` to reserve an initial span for internal init processing before script output is generated.
 `progress.internal` is read only from the root configuration file and is ignored in included or extended files.
+Internal progress OSC codes are written to `stderr`, allowing them to render before `eval`
+processes the init script from `stdout`.
 
 ## Example
 
