@@ -2,6 +2,7 @@ package cli
 
 import (
 	"fmt"
+	"io"
 	"os"
 
 	"github.com/goccy/go-yaml"
@@ -32,21 +33,20 @@ This command is used to get the value of the following variables:
 	RunE: func(cmd *cobra.Command, args []string) error {
 		switch args[0] {
 		case "shell":
-			fmt.Println(shell.Name())
+			cmd.Println(shell.Name())
 			return nil
 		case "config":
 			output, err := renderResolvedConfigYAML(config)
 			if err != nil {
 				return err
 			}
-			fmt.Println(output)
+			cmd.Println(output)
 			return nil
 		case "variables":
-			return printVariableDiagnostics()
-		default:
-			_ = cmd.Help()
-			return nil
+			return printVariableDiagnostics(cmd.OutOrStdout())
 		}
+
+		return nil
 	},
 }
 
@@ -69,7 +69,7 @@ func renderResolvedConfigYAML(configPath string) (string, error) {
 }
 
 // printVariableDiagnostics prints runtime and template diagnostics for 'aliae get variables'.
-func printVariableDiagnostics() error {
+func printVariableDiagnostics(out io.Writer) error {
 	shellName, trace := shell.NameVerbose()
 	context.Init(shellName)
 
@@ -80,19 +80,19 @@ func printVariableDiagnostics() error {
 	stdinTTY := term.IsTerminal(int(os.Stdin.Fd()))
 	stdoutTTY := term.IsTerminal(int(os.Stdout.Fd()))
 
-	fmt.Fprintln(os.Stdout, "aliae get variables")
-	fmt.Fprintf(os.Stdout, "tty.stdin=%t\n", stdinTTY)
-	fmt.Fprintf(os.Stdout, "tty.stdout=%t\n", stdoutTTY)
-	fmt.Fprintf(os.Stdout, "template.Shell=%s\n", context.Current.Shell)
-	fmt.Fprintf(os.Stdout, "template.OS=%s\n", context.Current.OS)
-	fmt.Fprintf(os.Stdout, "template.WSL=%t\n", context.Current.WSL)
-	fmt.Fprintf(os.Stdout, "template.Hostname=%s\n", context.Current.Hostname)
-	fmt.Fprintf(os.Stdout, "template.Home=%s\n", context.Current.Home)
-	fmt.Fprintf(os.Stdout, "template.Arch=%s\n", context.Current.Arch)
-	fmt.Fprintf(os.Stdout, "template.ConfigPath=%s\n", context.Current.ConfigPath)
-	fmt.Fprintf(os.Stdout, "template.ConfigDir=%s\n", context.Current.ConfigDir)
+	fmt.Fprintln(out, "aliae get variables")
+	fmt.Fprintf(out, "tty.stdin=%t\n", stdinTTY)
+	fmt.Fprintf(out, "tty.stdout=%t\n", stdoutTTY)
+	fmt.Fprintf(out, "template.Shell=%s\n", context.Current.Shell)
+	fmt.Fprintf(out, "template.OS=%s\n", context.Current.OS)
+	fmt.Fprintf(out, "template.WSL=%t\n", context.Current.WSL)
+	fmt.Fprintf(out, "template.Hostname=%s\n", context.Current.Hostname)
+	fmt.Fprintf(out, "template.Home=%s\n", context.Current.Home)
+	fmt.Fprintf(out, "template.Arch=%s\n", context.Current.Arch)
+	fmt.Fprintf(out, "template.ConfigPath=%s\n", context.Current.ConfigPath)
+	fmt.Fprintf(out, "template.ConfigDir=%s\n", context.Current.ConfigDir)
 	for _, line := range trace {
-		fmt.Fprintf(os.Stdout, "shell.trace=%s\n", line)
+		fmt.Fprintf(out, "shell.trace=%s\n", line)
 	}
 
 	return nil

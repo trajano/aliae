@@ -1,10 +1,6 @@
 package cli
 
-import (
-	"fmt"
-
-	"github.com/spf13/cobra"
-)
+import "github.com/spf13/cobra"
 
 // versionCmd represents the version command
 var versionCmd = &cobra.Command{
@@ -12,8 +8,8 @@ var versionCmd = &cobra.Command{
 	Short: "Print the version",
 	Long:  "Print the version number of aliae.",
 	Args:  cobra.NoArgs,
-	Run: func(_ *cobra.Command, _ []string) {
-		fmt.Println(cliVersion)
+	Run: func(cmd *cobra.Command, _ []string) {
+		cmd.Println(cliVersion)
 	},
 }
 
