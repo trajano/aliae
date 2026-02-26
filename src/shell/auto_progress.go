@@ -43,7 +43,7 @@ func advanceAutoProgress(weight float64) {
 		return
 	}
 
-	if weight < 1 {
+	if weight <= 0 {
 		weight = 1
 	}
 

@@ -593,15 +593,15 @@ func validateScriptWeights(aliae *Aliae, lineResolver *yamlLineResolver) error {
 
 	validationErrors := make([]string, 0)
 	for i, script := range aliae.Scripts {
-		if script == nil || script.Weight == 0 {
+		if script == nil {
 			continue
 		}
 
-		if script.Weight < 1 {
+		if script.Weight < 0 {
 			path := fmt.Sprintf("script.%d.weight", i)
 			validationErrors = append(
 				validationErrors,
-				lineResolver.annotate(path, fmt.Sprintf("script[%d].weight must be greater than or equal to 1", i)),
+				lineResolver.annotate(path, fmt.Sprintf("script[%d].weight must be greater than 0", i)),
 			)
 		}
 	}

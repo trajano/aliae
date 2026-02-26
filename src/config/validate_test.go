@@ -113,13 +113,25 @@ func TestValidateConfig(t *testing.T) {
 		file := filepath.Join(root, "aliae.yaml")
 		require.NoError(t, os.WriteFile(file, []byte(`script:
   - value: echo hello
-    weight: 0.5
+    weight: 0
 `), 0o600))
 
 		err := ValidateConfig(file)
 		require.Error(t, err)
 		assert.Contains(t, strings.ToLower(err.Error()), "schema validation failed")
 		assert.Contains(t, err.Error(), "weight")
+	})
+
+	t.Run("fractional script weight is valid", func(t *testing.T) {
+		root := t.TempDir()
+		file := filepath.Join(root, "aliae.yaml")
+		require.NoError(t, os.WriteFile(file, []byte(`script:
+  - value: echo hello
+    weight: 0.5
+`), 0o600))
+
+		err := ValidateConfig(file)
+		require.NoError(t, err)
 	})
 
 	t.Run("env ifExists requires isPath", func(t *testing.T) {
