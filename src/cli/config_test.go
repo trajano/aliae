@@ -3,6 +3,7 @@ package cli
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -39,6 +40,7 @@ script:
 alias:
   - name: root
     value: from-root
+    type: command
 `), 0o600))
 
 	output, err := renderResolvedConfigYAML(configFile)
@@ -57,4 +59,16 @@ alias:
 	assert.NotContains(t, output, "force: false")
 	assert.NotContains(t, output, "extends:")
 	assert.NotContains(t, output, "!include")
+
+	rootName := "name: root"
+	rootType := "type: command"
+	rootValue := "value: from-root"
+	nameIndex := strings.Index(output, rootName)
+	typeIndex := strings.Index(output, rootType)
+	valueIndex := strings.Index(output, rootValue)
+	assert.Greater(t, nameIndex, -1)
+	assert.Greater(t, typeIndex, -1)
+	assert.Greater(t, valueIndex, -1)
+	assert.Less(t, nameIndex, typeIndex)
+	assert.Less(t, typeIndex, valueIndex)
 }

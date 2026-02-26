@@ -60,30 +60,30 @@ func renderResolvedConfigYAML(configPath string) (string, error) {
 		return "", err
 	}
 
-	output := map[string]any{}
+	output := yaml.MapSlice{}
 	if aliases := toAliasOutput(aliae.Aliae); len(aliases) > 0 {
-		output["alias"] = aliases
+		output = append(output, yaml.MapItem{Key: "alias", Value: aliases})
 	}
 	if envs := toEnvOutput(aliae.Envs); len(envs) > 0 {
-		output["env"] = envs
+		output = append(output, yaml.MapItem{Key: "env", Value: envs})
 	}
 	if paths := toPathOutput(aliae.Paths); len(paths) > 0 {
-		output["path"] = paths
+		output = append(output, yaml.MapItem{Key: "path", Value: paths})
 	}
 	if cdpaths := toCDPathOutput(aliae.CDPaths); len(cdpaths) > 0 {
-		output["cdpath"] = cdpaths
+		output = append(output, yaml.MapItem{Key: "cdpath", Value: cdpaths})
 	}
 	if scripts := toScriptOutput(aliae.Scripts); len(scripts) > 0 {
-		output["script"] = scripts
+		output = append(output, yaml.MapItem{Key: "script", Value: scripts})
 	}
 	if links := toLinkOutput(aliae.Links); len(links) > 0 {
-		output["link"] = links
+		output = append(output, yaml.MapItem{Key: "link", Value: links})
 	}
 	if aliae.Progress.Enabled {
-		output["progress"] = aliae.Progress
+		output = append(output, yaml.MapItem{Key: "progress", Value: aliae.Progress})
 	}
 	if aliae.StatTimeout > 0 {
-		output["stat_timeout"] = aliae.StatTimeout.String()
+		output = append(output, yaml.MapItem{Key: "stat_timeout", Value: aliae.StatTimeout.String()})
 	}
 
 	data, err := yaml.Marshal(output)
@@ -94,34 +94,32 @@ func renderResolvedConfigYAML(configPath string) (string, error) {
 	return string(data), nil
 }
 
-func toAliasOutput(items shell.Aliae) []map[string]any {
-	output := make([]map[string]any, 0, len(items))
+func toAliasOutput(items shell.Aliae) []yaml.MapSlice {
+	output := make([]yaml.MapSlice, 0, len(items))
 	for _, alias := range items {
 		if alias == nil {
 			continue
 		}
 
-		item := map[string]any{
-			"name":  alias.Name,
-			"value": alias.Value,
-		}
+		item := yaml.MapSlice{{Key: "name", Value: alias.Name}}
 		if len(alias.Type) > 0 {
-			item["type"] = alias.Type
+			item = append(item, yaml.MapItem{Key: "type", Value: alias.Type})
 		}
-		if len(alias.If) > 0 {
-			item["if"] = alias.If
-		}
+		item = append(item, yaml.MapItem{Key: "value", Value: alias.Value})
 		if len(alias.Description) > 0 {
-			item["description"] = alias.Description
-		}
-		if len(alias.Option) > 0 {
-			item["option"] = alias.Option
-		}
-		if len(alias.Scope) > 0 {
-			item["scope"] = alias.Scope
+			item = append(item, yaml.MapItem{Key: "description", Value: alias.Description})
 		}
 		if alias.Force {
-			item["force"] = true
+			item = append(item, yaml.MapItem{Key: "force", Value: true})
+		}
+		if len(alias.If) > 0 {
+			item = append(item, yaml.MapItem{Key: "if", Value: alias.If})
+		}
+		if len(alias.Option) > 0 {
+			item = append(item, yaml.MapItem{Key: "option", Value: alias.Option})
+		}
+		if len(alias.Scope) > 0 {
+			item = append(item, yaml.MapItem{Key: "scope", Value: alias.Scope})
 		}
 
 		output = append(output, item)
@@ -130,34 +128,32 @@ func toAliasOutput(items shell.Aliae) []map[string]any {
 	return output
 }
 
-func toEnvOutput(items shell.Envs) []map[string]any {
-	output := make([]map[string]any, 0, len(items))
+func toEnvOutput(items shell.Envs) []yaml.MapSlice {
+	output := make([]yaml.MapSlice, 0, len(items))
 	for _, env := range items {
 		if env == nil {
 			continue
 		}
 
-		item := map[string]any{
-			"name":  env.Name,
-			"value": env.Value,
+		item := yaml.MapSlice{{Key: "name", Value: env.Name}}
+		if len(env.Type) > 0 {
+			item = append(item, yaml.MapItem{Key: "type", Value: env.Type})
 		}
+		item = append(item, yaml.MapItem{Key: "value", Value: env.Value})
 		if len(env.Delimiter) > 0 {
-			item["delimiter"] = env.Delimiter
+			item = append(item, yaml.MapItem{Key: "delimiter", Value: env.Delimiter})
 		}
 		if len(env.If) > 0 {
-			item["if"] = env.If
-		}
-		if len(env.Type) > 0 {
-			item["type"] = env.Type
-		}
-		if env.IsPath {
-			item["isPath"] = true
+			item = append(item, yaml.MapItem{Key: "if", Value: env.If})
 		}
 		if env.IfExists {
-			item["ifExists"] = true
+			item = append(item, yaml.MapItem{Key: "ifExists", Value: true})
+		}
+		if env.IsPath {
+			item = append(item, yaml.MapItem{Key: "isPath", Value: true})
 		}
 		if env.Persist {
-			item["persist"] = true
+			item = append(item, yaml.MapItem{Key: "persist", Value: true})
 		}
 
 		output = append(output, item)
@@ -166,27 +162,25 @@ func toEnvOutput(items shell.Envs) []map[string]any {
 	return output
 }
 
-func toPathOutput(items shell.Paths) []map[string]any {
-	output := make([]map[string]any, 0, len(items))
+func toPathOutput(items shell.Paths) []yaml.MapSlice {
+	output := make([]yaml.MapSlice, 0, len(items))
 	for _, item := range items {
 		if item == nil {
 			continue
 		}
 
-		entry := map[string]any{
-			"value": item.Value,
+		entry := yaml.MapSlice{{Key: "value", Value: item.Value}}
+		if item.Force {
+			entry = append(entry, yaml.MapItem{Key: "force", Value: true})
 		}
 		if len(item.If) > 0 {
-			entry["if"] = item.If
+			entry = append(entry, yaml.MapItem{Key: "if", Value: item.If})
+		}
+		if item.IfExists {
+			entry = append(entry, yaml.MapItem{Key: "ifExists", Value: true})
 		}
 		if item.Persist {
-			entry["persist"] = true
-		}
-		if item.Force {
-			entry["force"] = true
-		}
-		if item.IfExists {
-			entry["ifExists"] = true
+			entry = append(entry, yaml.MapItem{Key: "persist", Value: true})
 		}
 
 		output = append(output, entry)
@@ -195,24 +189,22 @@ func toPathOutput(items shell.Paths) []map[string]any {
 	return output
 }
 
-func toCDPathOutput(items shell.CDPaths) []map[string]any {
-	output := make([]map[string]any, 0, len(items))
+func toCDPathOutput(items shell.CDPaths) []yaml.MapSlice {
+	output := make([]yaml.MapSlice, 0, len(items))
 	for _, item := range items {
 		if item == nil {
 			continue
 		}
 
-		entry := map[string]any{
-			"value": item.Value,
+		entry := yaml.MapSlice{{Key: "value", Value: item.Value}}
+		if item.Force {
+			entry = append(entry, yaml.MapItem{Key: "force", Value: true})
 		}
 		if len(item.If) > 0 {
-			entry["if"] = item.If
-		}
-		if item.Force {
-			entry["force"] = true
+			entry = append(entry, yaml.MapItem{Key: "if", Value: item.If})
 		}
 		if item.IfExists {
-			entry["ifExists"] = true
+			entry = append(entry, yaml.MapItem{Key: "ifExists", Value: true})
 		}
 
 		output = append(output, entry)
@@ -221,21 +213,19 @@ func toCDPathOutput(items shell.CDPaths) []map[string]any {
 	return output
 }
 
-func toScriptOutput(items shell.Scripts) []map[string]any {
-	output := make([]map[string]any, 0, len(items))
+func toScriptOutput(items shell.Scripts) []yaml.MapSlice {
+	output := make([]yaml.MapSlice, 0, len(items))
 	for _, script := range items {
 		if script == nil {
 			continue
 		}
 
-		entry := map[string]any{
-			"value": script.Value,
-		}
+		entry := yaml.MapSlice{{Key: "value", Value: script.Value}}
 		if len(script.If) > 0 {
-			entry["if"] = script.If
+			entry = append(entry, yaml.MapItem{Key: "if", Value: script.If})
 		}
 		if script.Weight > 0 {
-			entry["weight"] = script.Weight
+			entry = append(entry, yaml.MapItem{Key: "weight", Value: script.Weight})
 		}
 
 		output = append(output, entry)
@@ -244,22 +234,22 @@ func toScriptOutput(items shell.Scripts) []map[string]any {
 	return output
 }
 
-func toLinkOutput(items shell.Links) []map[string]any {
-	output := make([]map[string]any, 0, len(items))
+func toLinkOutput(items shell.Links) []yaml.MapSlice {
+	output := make([]yaml.MapSlice, 0, len(items))
 	for _, item := range items {
 		if item == nil {
 			continue
 		}
 
-		entry := map[string]any{
-			"name":   item.Name,
-			"target": item.Target,
+		entry := yaml.MapSlice{
+			{Key: "name", Value: item.Name},
+			{Key: "target", Value: item.Target},
 		}
 		if len(item.If) > 0 {
-			entry["if"] = item.If
+			entry = append(entry, yaml.MapItem{Key: "if", Value: item.If})
 		}
 		if item.MkDir {
-			entry["mkdir"] = true
+			entry = append(entry, yaml.MapItem{Key: "mkdir", Value: true})
 		}
 
 		output = append(output, entry)
