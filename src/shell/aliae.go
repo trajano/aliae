@@ -32,6 +32,8 @@ const (
 	Command  Type = "command"
 	Function Type = "function"
 	Git      Type = "git"
+	Python   Type = "python"
+	Perl     Type = "perl"
 )
 
 func (a *Alias) string() string {

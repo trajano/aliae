@@ -20,6 +20,20 @@ func (a *Alias) xonsh() *Alias {
 def __%s():
     {{ .Value }}`, funcName)
 		a.template = template
+	case Python:
+		funcName := strings.ReplaceAll(a.Name, `-`, ``)
+		template := fmt.Sprintf(`@aliases.register("{{ .Name }}")
+def __%s(args):
+    import subprocess
+    subprocess.run(["python", "-c", {{ formatString .Value }}, *args], check=False)`, funcName)
+		a.template = template
+	case Perl:
+		funcName := strings.ReplaceAll(a.Name, `-`, ``)
+		template := fmt.Sprintf(`@aliases.register("{{ .Name }}")
+def __%s(args):
+    import subprocess
+    subprocess.run(["perl", "-e", {{ formatString .Value }}, *args], check=False)`, funcName)
+		a.template = template
 	}
 
 	return a

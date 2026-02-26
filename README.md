@@ -34,6 +34,8 @@ focused on Git Bash support and fork-specific distribution.
 - Shell behavior and detection:
   - Added Scoop support and shim-aware shell detection behavior.
   - Added `init --tty-only` support and follow-up fixes for piped/non-TTY detection.
+  - Added `alias.type` values `python`/`perl` to run inline interpreter source from `PATH`.
+  - Added `script.type` values `python`/`perl` to run inline interpreter source from `PATH`.
 - Added `aliae get variables` diagnostics to print TTY checks and resolved template variables.
   - Improved shell detection for Git Bash and Scoop shim process trees.
 - Added shell resolution trace output through `aliae get variables`.

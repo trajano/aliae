@@ -5,8 +5,13 @@ const (
 )
 
 func (a *Alias) tcsh() *Alias {
-	if a.Type == Command {
+	switch a.Type { //nolint:exhaustive
+	case Command:
 		a.template = `alias {{ .Name }} '{{ .Value }}';`
+	case Python:
+		a.template = `alias {{ .Name }} 'python -c {{ formatString .Value }}';`
+	case Perl:
+		a.template = `alias {{ .Name }} 'perl -e {{ formatString .Value }}';`
 	}
 
 	return a

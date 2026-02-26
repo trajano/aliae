@@ -18,6 +18,14 @@ func (a *Alias) bash() *Alias {
 		a.template = `{{ .Name }}() {
     {{ .Value }}
 }`
+	case Python:
+		a.template = `{{ .Name }}() {
+    python -c {{ formatString .Value }} "$@"
+}`
+	case Perl:
+		a.template = `{{ .Name }}() {
+    perl -e {{ formatString .Value }} "$@"
+}`
 	}
 
 	return a

@@ -1,6 +1,7 @@
 package shell
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/jandedobbeleer/aliae/src/context"
@@ -256,4 +257,121 @@ func TestAliasSingleQuoteFish(t *testing.T) {
 	alias := &Alias{Name: "foo", Value: "echo 'bar'"}
 	context.Current = &context.Runtime{Shell: FISH}
 	assert.Equal(t, `alias foo "echo 'bar'"`, alias.string())
+}
+
+func TestAliasInlineInterpreters(t *testing.T) {
+	interpreterCases := []struct {
+		AliasType    Type
+		Name         string
+		Value        string
+		Interpreter  string
+		Switch       string
+		QuotedForCmd string
+	}{
+		{
+			AliasType:    Python,
+			Name:         "pyfoo",
+			Value:        "print(123)",
+			Interpreter:  "python",
+			Switch:       "-c",
+			QuotedForCmd: "print(123)",
+		},
+		{
+			AliasType:    Perl,
+			Name:         "plfoo",
+			Value:        "print qq(123)",
+			Interpreter:  "perl",
+			Switch:       "-e",
+			QuotedForCmd: "print qq(123)",
+		},
+	}
+
+	shellCases := []struct {
+		Case     string
+		Shell    string
+		Template string
+	}{
+		{
+			Case:  "PWSH",
+			Shell: PWSH,
+			Template: `function %s() {
+    %s %s "%s" $args
+}`,
+		},
+		{
+			Case:     "CMD",
+			Shell:    CMD,
+			Template: `macrofile:write("%s=%s %s \"%s\" $*", "\n")`,
+		},
+		{
+			Case:  "FISH",
+			Shell: FISH,
+			Template: `function %s
+    %s %s "%s" $argv
+end`,
+		},
+		{
+			Case:  "NU",
+			Shell: NU,
+			Template: `def %s [...args] {
+    %s %s "%s" ...$args
+}`,
+		},
+		{
+			Case:     "TCSH",
+			Shell:    TCSH,
+			Template: `alias %s '%s %s "%s"';`,
+		},
+		{
+			Case:  "XONSH",
+			Shell: XONSH,
+			Template: `@aliases.register("%s")
+def __%s(args):
+    import subprocess
+    subprocess.run(["%s", "%s", "%s", *args], check=False)`,
+		},
+		{
+			Case:  "ZSH",
+			Shell: ZSH,
+			Template: `%s() {
+    %s %s "%s" "$@"
+}`,
+		},
+		{
+			Case:  "BASH",
+			Shell: BASH,
+			Template: `%s() {
+    %s %s "%s" "$@"
+}`,
+		},
+	}
+
+	for _, interpreter := range interpreterCases {
+		for _, shellCase := range shellCases {
+			alias := &Alias{Name: interpreter.Name, Value: Template(interpreter.Value), Type: interpreter.AliasType}
+			context.Current = &context.Runtime{Shell: shellCase.Shell}
+
+			var expected string
+			if shellCase.Shell == XONSH {
+				expected = fmt.Sprintf(
+					shellCase.Template,
+					interpreter.Name,
+					interpreter.Name,
+					interpreter.Interpreter,
+					interpreter.Switch,
+					interpreter.Value,
+				)
+			} else {
+				expected = fmt.Sprintf(
+					shellCase.Template,
+					interpreter.Name,
+					interpreter.Interpreter,
+					interpreter.Switch,
+					interpreter.QuotedForCmd,
+				)
+			}
+
+			assert.Equal(t, expected, alias.string(), interpreter.Interpreter+" "+shellCase.Case)
+		}
+	}
 }

@@ -5,8 +5,13 @@ const (
 )
 
 func (a *Alias) cmd() *Alias {
-	if a.Type == Command {
+	switch a.Type { //nolint:exhaustive
+	case Command:
 		a.template = "macrofile:write(\"{{ .Name }}={{ escapeString .Value }}\", \"\\n\")"
+	case Python:
+		a.template = "macrofile:write(\"{{ .Name }}=python -c \\\"{{ escapeString .Value }}\\\" $*\", \"\\n\")"
+	case Perl:
+		a.template = "macrofile:write(\"{{ .Name }}=perl -e \\\"{{ escapeString .Value }}\\\" $*\", \"\\n\")"
 	}
 
 	return a

@@ -18,6 +18,12 @@ alias:
   - name: sync
     value: "!git fetch origin; git rebase origin/HEAD"
     type: git
+  - name: pyfmt
+    value: "import sys; print(' '.join(sys.argv[1:]))"
+    type: python
+  - name: plfmt
+    value: "print join(' ', @ARGV)"
+    type: perl
 ```
 
 ### Alias
@@ -26,8 +32,10 @@ alias:
 | ------- | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `name`  | `string` | the alias name                                                                                                                                                                          |
 | `value` | `string` | the command(s) you want to execute, supports [templating][templates]                                                                                                                    |
-| `type`  | `string` | <ul><li>`command`: a regular alias, value is a one-liner (**default**) </li><li>`function`: a code block to be placed inside a function</li><li>`git`: a git alias definition</li></ul> |
+| `type`  | `string` | <ul><li>`command`: a regular alias, value is a one-liner (**default**) </li><li>`function`: a code block to be placed inside a function</li><li>`git`: a git alias definition</li><li>`python`: runs `value` as inline Python source with `python` from `PATH`</li><li>`perl`: runs `value` as inline Perl source with `perl` from `PATH`</li></ul> |
 | `if`    | `string` | golang [template][go-text-template] conditional statement, see [if][if]                                                                                                                 |
+
+`python` and `perl` alias types are not available in `tcsh`.
 
 ### Shell specific configuration
 
