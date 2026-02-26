@@ -108,6 +108,9 @@ func loadLocalConfigRecursive(configPath string, stack []string, depth int) (*Al
 	if err != nil {
 		return nil, err
 	}
+	if depth == 1 {
+		markInternalProgressDiscoveryComplete()
+	}
 
 	merged := &Aliae{}
 	nextStack := make([]string, len(stack)+1)
@@ -130,6 +133,9 @@ func loadLocalConfigRecursive(configPath string, stack []string, depth int) (*Al
 			}
 
 			merged.merge(parent)
+			if depth == 1 {
+				markInternalProgressLinkedConfigLoaded()
+			}
 		}
 	}
 

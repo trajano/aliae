@@ -97,3 +97,41 @@ func TestRunInitWritesToStdout(t *testing.T) {
 	assert.NotEmpty(t, strings.TrimSpace(stdout.String()))
 	assert.Empty(t, stderr.String())
 }
+
+func TestRunInitWritesInternalProgressToStderr(t *testing.T) {
+	originalConfig := config
+	originalPrintOutput := printOutput
+	originalTTYOnly := ttyOnly
+	t.Cleanup(func() {
+		config = originalConfig
+		printOutput = originalPrintOutput
+		ttyOnly = originalTTYOnly
+	})
+
+	configFile := filepath.Join(t.TempDir(), "aliae.yaml")
+	err := os.WriteFile(configFile, []byte(`progress:
+  start_percentage: 10
+  internal: 2
+alias:
+  - name: ll
+    value: ls -la
+`), 0o600)
+	if err != nil {
+		t.Fatalf("write config: %v", err)
+	}
+
+	config = configFile
+	printOutput = true
+	ttyOnly = false
+
+	var stdout bytes.Buffer
+	var stderr bytes.Buffer
+	cmd := &cobra.Command{}
+	cmd.SetOut(&stdout)
+	cmd.SetErr(&stderr)
+
+	runInit(cmd, "zsh")
+
+	assert.NotEmpty(t, strings.TrimSpace(stdout.String()))
+	assert.Contains(t, stderr.String(), "\x1b]9;4;1;10\x07")
+}

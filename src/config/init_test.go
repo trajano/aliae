@@ -1,6 +1,7 @@
 package config
 
 import (
+	"bytes"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -10,6 +11,7 @@ import (
 	"github.com/jandedobbeleer/aliae/src/context"
 	"github.com/jandedobbeleer/aliae/src/shell"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestInitTemplateConfigVariables(t *testing.T) {
@@ -40,6 +42,60 @@ func TestInitTemplateConfigVariables(t *testing.T) {
 		fmt.Sprintf("export IS_WSL=\"%t\"\n", context.Current.WSL) +
 		"export DOTFILES_DIR=\"/tmp/dotfiles\""
 	assert.Equal(t, expected, script)
+}
+
+func TestInitInternalProgressSequence(t *testing.T) {
+	shell.DotFile.Reset()
+	t.Cleanup(shell.DotFile.Reset)
+
+	tempDir := t.TempDir()
+	base1 := filepath.ToSlash(filepath.Join(tempDir, "base1.yaml"))
+	base2 := filepath.ToSlash(filepath.Join(tempDir, "base2.yaml"))
+	configFile := filepath.ToSlash(filepath.Join(tempDir, "aliae.yaml"))
+
+	require.NoError(t, os.WriteFile(base1, []byte(`alias:
+  - name: b1
+    value: one
+`), 0o600))
+	require.NoError(t, os.WriteFile(base2, []byte(`alias:
+  - name: b2
+    value: two
+`), 0o600))
+	require.NoError(t, os.WriteFile(configFile, []byte(`progress:
+  start_percentage: 10
+  internal: 10
+  end_percentage: reset
+extends:
+  - ./base1.yaml
+  - ./base2.yaml
+alias:
+  - name: root
+    value: root
+`), 0o600))
+
+	var stderr bytes.Buffer
+	SetInitProgressWriter(&stderr)
+	t.Cleanup(resetInitProgressWriter)
+
+	_ = Init(configFile, shell.BASH, true)
+
+	output := stderr.String()
+	expected := []string{
+		"\x1b]9;4;1;10\x07",
+		"\x1b]9;4;1;11\x07",
+		"\x1b]9;4;1;12\x07",
+		"\x1b]9;4;1;13\x07",
+		"\x1b]9;4;1;14\x07",
+		"\x1b]9;4;1;16\x07",
+		"\x1b]9;4;1;17\x07",
+	}
+
+	currentIndex := 0
+	for _, value := range expected {
+		index := strings.Index(output[currentIndex:], value)
+		assert.GreaterOrEqual(t, index, 0, "missing internal progress %q", value)
+		currentIndex += index + len(value)
+	}
 }
 
 func TestInitAutoProgressWithWeights(t *testing.T) {
