@@ -32,6 +32,8 @@ When `progress` is enabled, aliae distributes progress across included `alias`, 
 Items skipped by `if` are excluded from the calculation.
 Set `end_percentage: reset` to emit a final 100% update and then reset the progress state.
 You can also use `progress: true` as shorthand for `start_percentage: 0` with `end_percentage: reset`.
+Set `internal` to reserve an initial span for internal init processing before script output is generated.
+`progress.internal` is read only from the root configuration file and is ignored in included or extended files.
 
 ## Example
 
@@ -40,6 +42,7 @@ You can also use `progress: true` as shorthand for `start_percentage: 0` with `e
 stat_timeout: 1s
 progress:
   start_percentage: 21.44
+  internal: 10
   end_percentage: reset
 alias:
   - name: a

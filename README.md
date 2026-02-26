@@ -57,7 +57,9 @@ focused on Git Bash support and fork-specific distribution.
   - Added top-level `stat_timeout` to control filesystem stat/existence timeout.
   - Added top-level `extends` with short/long syntax, cycle detection, and a depth limit.
   - Added conditional `extends[].if` support to skip individual entries when false.
-  - Added top-level `progress` with weighted automatic OSC progress across `alias`, `env`, `path`, and `script`.
+  - Added top-level `progress` with weighted automatic OSC progress across `alias`, `env`,
+    `path`, and `script` (`progress.internal` is read from the root config only and ignored
+    in included/extended files).
   - Added `env.isPath` to normalize rendered path-valued env vars to OS-native separators.
   - Added `env.ifExists` (path-only) to export env vars only when the rendered directory exists.
   - Added multiline `env` path fallback: picks the first existing entry when `isPath` is true.
