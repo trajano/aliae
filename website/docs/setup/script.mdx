@@ -36,6 +36,12 @@ script:
   - value: |
       print $^O
     type: perl
+  - value: |
+      eval "$(starship init bash)"
+    state:
+      file: starship-init.state
+      runEvery: 24h
+      format: json
 ```
 
 ## Path
@@ -47,9 +53,21 @@ script:
 | `type`   | `string`  | `shell` (default), `python`, or `perl`                                 |
 | `if`     | `string`  | golang [template][go-text-template] conditional statement, see [if][if] |
 | `weight` | `float64` | optional automatic progress weight (`> 0`, default: `1`)               |
+| `state`  | `object`  | optional script state controls (`file`, optional `runEvery`, optional `format`) |
 <!-- markdownlint-enable MD060 -->
 
 `python` and `perl` script types are not available in `tcsh`.
+
+When `state.file` is set, aliae tracks last run time in a state file:
+
+- Windows: `%LOCALAPPDATA%/aliae/state/<file>`
+- Linux/macOS: `~/.local/aliae/state/<file>`
+
+`state.runEvery` uses Go duration syntax (for example `15m`, `24h`).
+If omitted, the script runs once and then stays skipped.
+
+Use `aliae state` (or `aliae state list`) to inspect configured states, and
+`aliae state clear` to remove referenced state files.
 
 [templates]: templates.mdx
 [go-text-template]: https://golang.org/pkg/text/template/

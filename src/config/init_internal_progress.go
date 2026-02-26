@@ -93,6 +93,14 @@ func markInternalProgressStatPhaseComplete() {
 	internalProgress.advance(2)
 }
 
+func markInternalProgressStateChecksComplete(count int) {
+	if internalProgress == nil || count <= 0 {
+		return
+	}
+
+	internalProgress.advance(count)
+}
+
 func markInternalProgressOutputFormulated() {
 	if internalProgress == nil {
 		return

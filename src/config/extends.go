@@ -103,6 +103,9 @@ func loadLocalConfigRecursive(configPath string, stack []string, depth int) (*Al
 	if err := validateScriptWeightsInYAML(includedData); err != nil {
 		return nil, err
 	}
+	if err := validateScriptStateInYAML(includedData); err != nil {
+		return nil, err
+	}
 
 	extends, err := parseExtends(includedData)
 	if err != nil {

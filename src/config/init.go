@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/jandedobbeleer/aliae/src/context"
 	"github.com/jandedobbeleer/aliae/src/shell"
@@ -26,6 +27,8 @@ func Init(configPath, sh string, printOutput bool) string {
 		return errorString
 	}
 	markInternalProgressConfigValidated()
+	stateChecks := aliae.Scripts.PrimeState(time.Now())
+	markInternalProgressStateChecksComplete(stateChecks)
 
 	shell.StartAutoProgress(aliae.autoProgressConfig())
 

@@ -30,29 +30,25 @@ Before treating a branch as a merge candidate, the agent must rebase it onto `or
 
 Run checks based on the files changed in the commit.
 
-If any file under `src/**` changed, run these commands from the repo root:
+Use grouped validation by changed scope:
 
-`cd src && go fmt ./...`
+- `src/**` changes:
+  - `cd src && go fmt ./...`
+  - `cd src && go mod tidy`
+  - `cd src && go test ./...`
+  - `cd src && go run github.com/golangci/golangci-lint/cmd/golangci-lint@latest run`
+  - `cd src && go install golang.org/x/tools/go/analysis/passes/fieldalignment/cmd/fieldalignment@latest`
+  - `cd src && "$(go env GOPATH)"/bin/fieldalignment ./...`
+- `website/**` changes:
+  - `cd website && npm ci && npm run build`
+- Markdown/MDX changes (`*.md`, `*.mdx`):
+  - `npx --yes markdownlint-cli $(rg --files -g "*.md" -g "*.mdx")`
 
-`cd src && go mod tidy`
+If multiple scopes changed, run all applicable groups.
 
-`cd src && go test ./...`
+If neither `src/**` nor `website/**` changed, those scoped groups are not required.
 
-`cd src && go run github.com/golangci/golangci-lint/cmd/golangci-lint@latest run`
-
-If any Markdown or MDX files changed, run this command from the repo root:
-
-`npx --yes markdownlint-cli $(rg --files -g "*.md" -g "*.mdx")`
-
-If any file under `website/**` changed, run this command from the repo root:
-
-`cd website && npm ci && npm run build`
-
-If any file under `packages/scoop/**` changed, run this command from the repo root:
-
-If multiple scopes changed, run all applicable check sets.
-
-If neither `src/**` nor `website/**` changed, these scoped pre-commit checks are not required.
+Field alignment is part of definition of done for `src/**` changes: local `fieldalignment ./...` must pass before pushing.
 
 ## Website documentation requirement
 

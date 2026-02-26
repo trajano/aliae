@@ -19,6 +19,7 @@ import (
 	"github.com/goccy/go-yaml"
 	"github.com/jandedobbeleer/aliae/src/context"
 	"github.com/jandedobbeleer/aliae/src/shell"
+	aliaeState "github.com/jandedobbeleer/aliae/src/state"
 	yamlv3 "gopkg.in/yaml.v3"
 )
 
@@ -50,6 +51,9 @@ func LoadConfig(configPath string) (*Aliae, error) {
 		if err != nil {
 			return nil, err
 		}
+		if err := validateScriptStateRuntime(aliae); err != nil {
+			return nil, err
+		}
 
 		// progress.internal is root-only and must ignore included/extended sources.
 		aliae.Progress.Internal = rootProgress.Internal
@@ -58,6 +62,9 @@ func LoadConfig(configPath string) (*Aliae, error) {
 
 	aliae, err := loadLocalConfig(configPathCache)
 	if err != nil {
+		return nil, err
+	}
+	if err := validateScriptStateRuntime(aliae); err != nil {
 		return nil, err
 	}
 
@@ -178,6 +185,9 @@ func parseConfig(data []byte) (*Aliae, error) {
 	if err := validateScriptWeightsInYAML(data); err != nil {
 		return nil, err
 	}
+	if err := validateScriptStateInYAML(data); err != nil {
+		return nil, err
+	}
 
 	var aliae Aliae
 
@@ -239,6 +249,73 @@ func validateScriptWeightsInYAML(data []byte) error {
 	return nil
 }
 
+func validateScriptStateInYAML(data []byte) error {
+	if len(data) == 0 {
+		return nil
+	}
+
+	var root yamlv3.Node
+	if err := yamlv3.Unmarshal(data, &root); err != nil {
+		return fmt.Errorf("failed to parse config file: %s", err)
+	}
+
+	if len(root.Content) == 0 {
+		return nil
+	}
+
+	doc := root.Content[0]
+	if doc == nil || doc.Kind != yamlv3.MappingNode {
+		return nil
+	}
+
+	scriptNode := findMappingValue(doc, "script")
+	if scriptNode == nil || scriptNode.Kind != yamlv3.SequenceNode {
+		return nil
+	}
+
+	seenStateFiles := make(map[string]int)
+	for i, item := range scriptNode.Content {
+		if item == nil || item.Kind != yamlv3.MappingNode {
+			continue
+		}
+
+		stateNode := findMappingValue(item, "state")
+		if stateNode == nil || stateNode.Kind != yamlv3.MappingNode {
+			continue
+		}
+
+		fileNode := findMappingValue(stateNode, "file")
+		stateFile := ""
+		if fileNode != nil {
+			stateFile = strings.TrimSpace(fileNode.Value)
+		}
+
+		if !aliaeState.IsValidFileName(stateFile) {
+			return fmt.Errorf("invalid script[%d].state.file: %q", i, stateFile)
+		}
+
+		if previousIndex, exists := seenStateFiles[stateFile]; exists {
+			return fmt.Errorf("invalid script[%d].state.file: duplicates script[%d].state.file", i, previousIndex)
+		}
+		seenStateFiles[stateFile] = i
+
+		runEveryNode := findMappingValue(stateNode, "runEvery")
+		if runEveryNode == nil || len(strings.TrimSpace(runEveryNode.Value)) == 0 {
+			continue
+		}
+
+		runEvery, err := time.ParseDuration(strings.TrimSpace(runEveryNode.Value))
+		if err != nil {
+			return fmt.Errorf("invalid script[%d].state.runEvery: %q", i, runEveryNode.Value)
+		}
+		if runEvery <= 0 {
+			return fmt.Errorf("invalid script[%d].state.runEvery: must be greater than 0", i)
+		}
+	}
+
+	return nil
+}
+
 func findMappingValue(node *yamlv3.Node, key string) *yamlv3.Node {
 	if node == nil || node.Kind != yamlv3.MappingNode {
 		return nil
@@ -247,6 +324,43 @@ func findMappingValue(node *yamlv3.Node, key string) *yamlv3.Node {
 	for i := 0; i < len(node.Content)-1; i += 2 {
 		if node.Content[i].Value == key {
 			return node.Content[i+1]
+		}
+	}
+
+	return nil
+}
+
+func validateScriptStateRuntime(aliae *Aliae) error {
+	if aliae == nil {
+		return nil
+	}
+
+	seenStateFiles := make(map[string]int)
+	for i, script := range aliae.Scripts {
+		if script == nil || len(script.State.File) == 0 {
+			continue
+		}
+
+		stateFile := strings.TrimSpace(string(script.State.File))
+		if !aliaeState.IsValidFileName(stateFile) {
+			return fmt.Errorf("invalid script[%d].state.file: %q", i, stateFile)
+		}
+
+		if previousIndex, exists := seenStateFiles[stateFile]; exists {
+			return fmt.Errorf("invalid script[%d].state.file: duplicates script[%d].state.file", i, previousIndex)
+		}
+		seenStateFiles[stateFile] = i
+
+		if len(strings.TrimSpace(script.State.RunEvery)) == 0 {
+			continue
+		}
+
+		runEvery, err := time.ParseDuration(strings.TrimSpace(script.State.RunEvery))
+		if err != nil {
+			return fmt.Errorf("invalid script[%d].state.runEvery: %q", i, script.State.RunEvery)
+		}
+		if runEvery <= 0 {
+			return fmt.Errorf("invalid script[%d].state.runEvery: must be greater than 0", i)
 		}
 	}
 

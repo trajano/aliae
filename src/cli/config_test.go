@@ -37,6 +37,9 @@ alias:
 env: !include ./env.yaml
 script:
   - value: echo hello
+    state:
+      file: hello.state
+      runEvery: 24h
 alias:
   - name: root
     value: from-root
@@ -53,6 +56,9 @@ alias:
 	assert.Contains(t, output, "env:")
 	assert.Contains(t, output, "name: TEST_ENV")
 	assert.Contains(t, output, "script:")
+	assert.Contains(t, output, "state:")
+	assert.Contains(t, output, "file: hello.state")
+	assert.Contains(t, output, "runEvery: 24h")
 	assert.NotContains(t, output, "weight: 0")
 	assert.NotContains(t, output, "description: \"\"")
 	assert.NotContains(t, output, "type: \"\"")

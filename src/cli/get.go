@@ -221,11 +221,24 @@ func toScriptOutput(items shell.Scripts) []yaml.MapSlice {
 		}
 
 		entry := yaml.MapSlice{{Key: "value", Value: script.Value}}
+		if len(script.Type) > 0 {
+			entry = append(entry, yaml.MapItem{Key: "type", Value: script.Type})
+		}
 		if len(script.If) > 0 {
 			entry = append(entry, yaml.MapItem{Key: "if", Value: script.If})
 		}
 		if script.Weight > 0 {
 			entry = append(entry, yaml.MapItem{Key: "weight", Value: script.Weight})
+		}
+		if len(script.State.File) > 0 {
+			stateEntry := yaml.MapSlice{{Key: "file", Value: script.State.File}}
+			if len(script.State.RunEvery) > 0 {
+				stateEntry = append(stateEntry, yaml.MapItem{Key: "runEvery", Value: script.State.RunEvery})
+			}
+			if len(script.State.Format) > 0 {
+				stateEntry = append(stateEntry, yaml.MapItem{Key: "format", Value: script.State.Format})
+			}
+			entry = append(entry, yaml.MapItem{Key: "state", Value: stateEntry})
 		}
 
 		output = append(output, entry)
