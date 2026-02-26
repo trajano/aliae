@@ -3,6 +3,7 @@ package cli
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -34,9 +35,12 @@ alias:
 	require.NoError(t, os.WriteFile(configFile, []byte(`extends:
   - dir: ./aliases
 env: !include ./env.yaml
+script:
+  - value: echo hello
 alias:
   - name: root
     value: from-root
+    type: command
 `), 0o600))
 
 	output, err := renderResolvedConfigYAML(configFile)
@@ -48,6 +52,23 @@ alias:
 	assert.Contains(t, output, "name: root")
 	assert.Contains(t, output, "env:")
 	assert.Contains(t, output, "name: TEST_ENV")
+	assert.Contains(t, output, "script:")
+	assert.NotContains(t, output, "weight: 0")
+	assert.NotContains(t, output, "description: \"\"")
+	assert.NotContains(t, output, "type: \"\"")
+	assert.NotContains(t, output, "force: false")
 	assert.NotContains(t, output, "extends:")
 	assert.NotContains(t, output, "!include")
+
+	rootName := "name: root"
+	rootType := "type: command"
+	rootValue := "value: from-root"
+	nameIndex := strings.Index(output, rootName)
+	typeIndex := strings.Index(output, rootType)
+	valueIndex := strings.Index(output, rootValue)
+	assert.Greater(t, nameIndex, -1)
+	assert.Greater(t, typeIndex, -1)
+	assert.Greater(t, valueIndex, -1)
+	assert.Less(t, nameIndex, typeIndex)
+	assert.Less(t, typeIndex, valueIndex)
 }

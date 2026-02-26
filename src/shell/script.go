@@ -14,7 +14,7 @@ func (s *Script) String() string {
 }
 
 func (s *Script) effectiveWeight() float64 {
-	if s.Weight < 1 {
+	if s.Weight <= 0 {
 		return 1
 	}
 

@@ -156,6 +156,10 @@
                     },
                     "if": {
                         "$ref": "#/definitions/if"
+                    },
+                    "description": {
+                        "type": "string",
+                        "description": "alias description (used by supported shells such as Fish/Nushell functions)"
                     }
                 },
                 "required": [
@@ -298,8 +302,8 @@
                     },
                     "weight": {
                         "type": "number",
-                        "minimum": 1,
-                        "description": "progress weight for this script entry (default: 1)"
+                        "exclusiveMinimum": 0,
+                        "description": "progress weight for this script entry (> 0, default: 1)"
                     }
                 }
             }

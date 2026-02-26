@@ -27,7 +27,7 @@ func TestAliasCommand(t *testing.T) {
 		{
 			Case:     "FISH",
 			Shell:    FISH,
-			Expected: "alias foo 'bar'",
+			Expected: `alias foo "bar"`,
 		},
 		{
 			Case:     "NU",
@@ -250,4 +250,10 @@ func TestAliasWithSpacePowerShell(t *testing.T) {
 	assert.Equal(t, `function foo() {
 	bar baz $args
 }`, alias.string())
+}
+
+func TestAliasSingleQuoteFish(t *testing.T) {
+	alias := &Alias{Name: "foo", Value: "echo 'bar'"}
+	context.Current = &context.Runtime{Shell: FISH}
+	assert.Equal(t, `alias foo "echo 'bar'"`, alias.string())
 }

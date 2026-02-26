@@ -12,12 +12,14 @@ import (
 	"path"
 	"path/filepath"
 	"runtime"
+	"strconv"
 	"strings"
 	"time"
 
 	"github.com/goccy/go-yaml"
 	"github.com/jandedobbeleer/aliae/src/context"
 	"github.com/jandedobbeleer/aliae/src/shell"
+	yamlv3 "gopkg.in/yaml.v3"
 )
 
 type httpClient interface {
@@ -163,6 +165,10 @@ func getRemoteConfig(configURL string) (*Aliae, error) {
 }
 
 func parseConfig(data []byte) (*Aliae, error) {
+	if err := validateScriptWeightsInYAML(data); err != nil {
+		return nil, err
+	}
+
 	var aliae Aliae
 
 	decoder := yaml.NewDecoder(bytes.NewBuffer(data), yaml.CustomUnmarshaler(aliaeUnmarshaler))
@@ -174,4 +180,65 @@ func parseConfig(data []byte) (*Aliae, error) {
 	shell.SetStatTimeout(aliae.StatTimeout)
 
 	return &aliae, nil
+}
+
+func validateScriptWeightsInYAML(data []byte) error {
+	if len(data) == 0 {
+		return nil
+	}
+
+	var root yamlv3.Node
+	if err := yamlv3.Unmarshal(data, &root); err != nil {
+		return fmt.Errorf("failed to parse config file: %s", err)
+	}
+
+	if len(root.Content) == 0 {
+		return nil
+	}
+
+	doc := root.Content[0]
+	if doc == nil || doc.Kind != yamlv3.MappingNode {
+		return nil
+	}
+
+	scriptNode := findMappingValue(doc, "script")
+	if scriptNode == nil || scriptNode.Kind != yamlv3.SequenceNode {
+		return nil
+	}
+
+	for i, item := range scriptNode.Content {
+		if item == nil || item.Kind != yamlv3.MappingNode {
+			continue
+		}
+
+		weightNode := findMappingValue(item, "weight")
+		if weightNode == nil {
+			continue
+		}
+
+		weight, err := strconv.ParseFloat(strings.TrimSpace(weightNode.Value), 64)
+		if err != nil {
+			return fmt.Errorf("invalid script[%d].weight: %q", i, weightNode.Value)
+		}
+
+		if weight <= 0 {
+			return fmt.Errorf("invalid script[%d].weight: must be greater than 0", i)
+		}
+	}
+
+	return nil
+}
+
+func findMappingValue(node *yamlv3.Node, key string) *yamlv3.Node {
+	if node == nil || node.Kind != yamlv3.MappingNode {
+		return nil
+	}
+
+	for i := 0; i < len(node.Content)-1; i += 2 {
+		if node.Content[i].Value == key {
+			return node.Content[i+1]
+		}
+	}
+
+	return nil
 }

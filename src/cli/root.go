@@ -1,7 +1,6 @@
 package cli
 
 import (
-	"fmt"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -25,7 +24,7 @@ on getting started, have a look at the docs at https://trajano.github.io/aliae.
 This is a personal fork. For the official project and docs, see https://aliae.dev.`,
 	Run: func(cmd *cobra.Command, _ []string) {
 		if displayVersion {
-			fmt.Println(cliVersion)
+			cmd.Println(cliVersion)
 			return
 		}
 		_ = cmd.Help()
