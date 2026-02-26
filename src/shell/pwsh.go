@@ -46,6 +46,14 @@ func (a *Alias) pwsh() *Alias {
 		a.template = `function {{ .Name }}() {
     {{ .Value }}
 }`
+	case Python:
+		a.template = `function {{ .Name }}() {
+    python -c {{ formatString .Value }} $args
+}`
+	case Perl:
+		a.template = `function {{ .Name }}() {
+    perl -e {{ formatString .Value }} $args
+}`
 	}
 
 	return a

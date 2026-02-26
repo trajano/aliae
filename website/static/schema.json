@@ -154,6 +154,14 @@
                             {
                                 "const": "git",
                                 "description": "a git alias definition"
+                            },
+                            {
+                                "const": "python",
+                                "description": "runs value as inline Python source using python from PATH"
+                            },
+                            {
+                                "const": "perl",
+                                "description": "runs value as inline Perl source using perl from PATH"
                             }
                         ]
                     },
@@ -302,6 +310,24 @@
                     },
                     "if": {
                         "$ref": "#/definitions/if"
+                    },
+                    "type": {
+                        "type": "string",
+                        "default": "shell",
+                        "oneOf": [
+                            {
+                                "const": "shell",
+                                "description": "script content is emitted as shell-specific source (default)"
+                            },
+                            {
+                                "const": "python",
+                                "description": "runs value as inline Python source using python from PATH"
+                            },
+                            {
+                                "const": "perl",
+                                "description": "runs value as inline Perl source using perl from PATH"
+                            }
+                        ]
                     },
                     "weight": {
                         "type": "number",

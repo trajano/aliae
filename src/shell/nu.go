@@ -23,6 +23,16 @@ func (a *Alias) nu() *Alias {
 {{ end }}def {{ .Name }} [] {
     {{ .Value }}
 }`
+	case Python:
+		a.template = `{{ if .Description }}# {{ .Description }}
+{{ end }}def {{ .Name }} [...args] {
+    python -c {{ formatString .Value }} ...$args
+}`
+	case Perl:
+		a.template = `{{ if .Description }}# {{ .Description }}
+{{ end }}def {{ .Name }} [...args] {
+    perl -e {{ formatString .Value }} ...$args
+}`
 	}
 
 	return a

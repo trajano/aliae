@@ -549,6 +549,9 @@ func scriptSchemaItems(aliae *Aliae) []map[string]any {
 		item := map[string]any{
 			"value": string(script.Value),
 		}
+		if len(script.Type) > 0 {
+			item["type"] = string(script.Type)
+		}
 		if len(script.If) > 0 {
 			item["if"] = string(script.If)
 		}
