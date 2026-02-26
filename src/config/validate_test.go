@@ -64,6 +64,19 @@ func TestValidateConfig(t *testing.T) {
 		require.NoError(t, err)
 	})
 
+	t.Run("alias description is valid", func(t *testing.T) {
+		root := t.TempDir()
+		file := filepath.Join(root, "aliae.yaml")
+		require.NoError(t, os.WriteFile(file, []byte(`alias:
+  - name: g
+    value: git
+    description: git shorthand
+`), 0o600))
+
+		err := ValidateConfig(file)
+		require.NoError(t, err)
+	})
+
 	t.Run("invalid if expression", func(t *testing.T) {
 		root := t.TempDir()
 		file := filepath.Join(root, "aliae.yaml")
