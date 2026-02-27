@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"time"
 
 	"github.com/goccy/go-yaml"
 	cfg "github.com/jandedobbeleer/aliae/src/config"
@@ -15,7 +16,7 @@ import (
 
 // getCmd represents the get command
 var getCmd = &cobra.Command{
-	Use:   "get [shell|config|variables]",
+	Use:   "get [shell|config|variables|benchmark [shell]]",
 	Short: "Get a value from aliae",
 	Long: `Get a value from aliae.
 
@@ -23,13 +24,15 @@ This command is used to get the value of the following variables:
 
 - shell
 - config
-- variables`,
+- variables
+- benchmark [shell]`,
 	ValidArgs: []string{
 		"shell",
 		"config",
 		"variables",
+		"benchmark",
 	},
-	Args: cobra.MatchAll(cobra.ExactArgs(1), cobra.OnlyValidArgs),
+	Args: validateGetArgs,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		switch args[0] {
 		case "shell":
@@ -44,6 +47,13 @@ This command is used to get the value of the following variables:
 			return nil
 		case "variables":
 			return printVariableDiagnostics(cmd.OutOrStdout())
+		case "benchmark":
+			benchmarkShell := ""
+			if len(args) == 2 {
+				benchmarkShell = args[1]
+			}
+
+			return printBenchmark(cmd.OutOrStdout(), benchmarkShell)
 		}
 
 		return nil
@@ -63,6 +73,9 @@ func renderResolvedConfigYAML(configPath string) (string, error) {
 	output := yaml.MapSlice{}
 	if aliases := toAliasOutput(aliae.Aliae); len(aliases) > 0 {
 		output = append(output, yaml.MapItem{Key: "alias", Value: aliases})
+	}
+	if vars := toVarOutput(aliae.Vars); len(vars) > 0 {
+		output = append(output, yaml.MapItem{Key: "var", Value: vars})
 	}
 	if envs := toEnvOutput(aliae.Envs); len(envs) > 0 {
 		output = append(output, yaml.MapItem{Key: "env", Value: envs})
@@ -154,6 +167,27 @@ func toEnvOutput(items shell.Envs) []yaml.MapSlice {
 		}
 		if env.Persist {
 			item = append(item, yaml.MapItem{Key: "persist", Value: true})
+		}
+
+		output = append(output, item)
+	}
+
+	return output
+}
+
+func toVarOutput(items cfg.Vars) []yaml.MapSlice {
+	output := make([]yaml.MapSlice, 0, len(items))
+	for _, variable := range items {
+		if variable == nil {
+			continue
+		}
+
+		item := yaml.MapSlice{
+			{Key: "name", Value: variable.Name},
+			{Key: "value", Value: variable.Value},
+		}
+		if len(variable.If) > 0 {
+			item = append(item, yaml.MapItem{Key: "if", Value: variable.If})
 		}
 
 		output = append(output, item)
@@ -297,6 +331,124 @@ func printVariableDiagnostics(out io.Writer) error {
 	for _, line := range trace {
 		fmt.Fprintf(out, "shell.trace=%s\n", line)
 	}
+
+	return nil
+}
+
+func validateGetArgs(_ *cobra.Command, args []string) error {
+	if len(args) == 0 || len(args) > 2 {
+		return fmt.Errorf("accepts 1 or 2 args, received %d", len(args))
+	}
+
+	switch args[0] {
+	case "shell", "config", "variables":
+		if len(args) != 1 {
+			return fmt.Errorf("%s does not accept extra arguments", args[0])
+		}
+		return nil
+	case "benchmark":
+		if len(args) == 1 {
+			return nil
+		}
+
+		if !isSupportedBenchmarkShell(args[1]) {
+			return fmt.Errorf("unsupported shell for benchmark: %s", args[1])
+		}
+		return nil
+	default:
+		return fmt.Errorf("invalid argument %q, expected shell, config, variables, or benchmark", args[0])
+	}
+}
+
+func isSupportedBenchmarkShell(shellName string) bool {
+	switch shellName {
+	case shell.BASH, shell.ZSH, shell.PWSH, shell.POWERSHELL, shell.FISH, shell.NU, shell.TCSH, shell.XONSH, shell.CMD:
+		return true
+	default:
+		return false
+	}
+}
+
+func printBenchmark(out io.Writer, benchmarkShell string) error {
+	type benchmarkStep struct {
+		name     string
+		duration time.Duration
+	}
+
+	steps := make([]benchmarkStep, 0, 4)
+	record := func(name string, run func() error) error {
+		start := time.Now()
+		if err := run(); err != nil {
+			return err
+		}
+		steps = append(steps, benchmarkStep{name: name, duration: time.Since(start)})
+		return nil
+	}
+
+	totalStart := time.Now()
+	var aliae *cfg.Aliae
+
+	if err := record("load_config", func() error {
+		var err error
+		aliae, err = cfg.LoadConfigWithoutVars(config)
+		return err
+	}); err != nil {
+		return err
+	}
+
+	if err := record("evaluate_vars", func() error {
+		return aliae.ComputeVars()
+	}); err != nil {
+		return err
+	}
+
+	if err := record("render_config", func() error {
+		_, err := renderResolvedConfigYAML(config)
+		return err
+	}); err != nil {
+		return err
+	}
+
+	if err := record("validate_config", func() error {
+		return cfg.ValidateConfig(config)
+	}); err != nil {
+		return err
+	}
+
+	if len(benchmarkShell) > 0 {
+		stepName := "generate_init_" + benchmarkShell
+		if err := record(stepName, func() error {
+			cfg.SetInitProgressWriter(io.Discard)
+			defer cfg.SetInitProgressWriter(os.Stderr)
+
+			initSteps, err := cfg.BenchmarkInit(config, benchmarkShell)
+			if err != nil {
+				return fmt.Errorf("init benchmark failed for shell %s: %w", benchmarkShell, err)
+			}
+
+			for _, step := range initSteps {
+				steps = append(steps, benchmarkStep{
+					name:     step.Name,
+					duration: step.Duration,
+				})
+			}
+
+			return nil
+		}); err != nil {
+			return err
+		}
+	}
+
+	total := time.Since(totalStart)
+
+	fmt.Fprintln(out, "aliae get benchmark")
+	if len(benchmarkShell) > 0 {
+		fmt.Fprintf(out, "benchmark.shell=%s\n", benchmarkShell)
+	}
+	for _, step := range steps {
+		fmt.Fprintf(out, "benchmark.%s=%s\n", step.name, step.duration)
+	}
+	fmt.Fprintf(out, "benchmark.total=%s\n", total)
 
 	return nil
 }

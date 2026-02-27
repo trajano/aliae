@@ -34,6 +34,9 @@ alias:
 	configFile := filepath.Join(root, "aliae.yaml")
 	require.NoError(t, os.WriteFile(configFile, []byte(`extends:
   - dir: ./aliases
+var:
+  - name: ROOT
+    value: '{{ .Home }}'
 env: !include ./env.yaml
 script:
   - value: echo hello
@@ -53,6 +56,8 @@ alias:
 	assert.Contains(t, output, "name: base")
 	assert.Contains(t, output, "name: nested")
 	assert.Contains(t, output, "name: root")
+	assert.Contains(t, output, "var:")
+	assert.Contains(t, output, "name: ROOT")
 	assert.Contains(t, output, "env:")
 	assert.Contains(t, output, "name: TEST_ENV")
 	assert.Contains(t, output, "script:")

@@ -14,6 +14,7 @@ It allows you to use a single, template enabled `YAML` [configuration][config] t
 
 - [Alias][alias]
 - [Function][alias]
+- [Precomputed variable (`var`)][templates]
 - [Environment variable][env]
 - [PATH entry][path]
 - [CDPATH entry][cdpath]
@@ -43,6 +44,7 @@ with emphasis on Git Bash compatibility and fork-owned release/documentation flo
   - `progress` helper for OSC progress output and reset.
   - `.ConfigPath` and `.ConfigDir` template variables.
   - `.Env` template map for environment variable access like `{{ .Env.DOTFILES }}`.
+  - Top-level `var` entries with precomputed values, available as `.Var.<Name>`.
   - `.Hostname` template variable that exposes the system hostname.
   - `.WSL` template variable that indicates Windows Subsystem for Linux runtime.
 - PATH capabilities:
@@ -74,6 +76,7 @@ for your platform and have a look at the alias [configuration][config] page to g
 [omp]: https://ohmyposh.dev
 [config]: setup/configuration.mdx
 [alias]: setup/alias.mdx
+[templates]: setup/templates.mdx
 [env]: setup/env.mdx
 [path]: setup/path.mdx
 [cdpath]: setup/cdpath.mdx

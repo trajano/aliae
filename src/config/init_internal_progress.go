@@ -85,6 +85,14 @@ func markInternalProgressConfigValidated() {
 	internalProgress.advance(1)
 }
 
+func markInternalProgressVarsComputed() {
+	if internalProgress == nil {
+		return
+	}
+
+	internalProgress.advance(1)
+}
+
 func markInternalProgressStatPhaseComplete() {
 	if internalProgress == nil {
 		return

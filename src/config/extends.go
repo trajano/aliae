@@ -290,6 +290,7 @@ func (a *Aliae) merge(other *Aliae) {
 	}
 
 	a.Aliae = append(a.Aliae, other.Aliae...)
+	a.Vars = append(a.Vars, other.Vars...)
 	a.Envs = append(a.Envs, other.Envs...)
 	a.Paths = append(a.Paths, other.Paths...)
 	a.CDPaths = append(a.CDPaths, other.CDPaths...)

@@ -48,6 +48,10 @@ func ValidateConfig(configPath string) error {
 	}
 
 	if result.Valid() {
+		if err := aliae.computeVars(lineResolver); err != nil {
+			return err
+		}
+
 		if err := validateIfExpressions(aliae, lineResolver); err != nil {
 			return err
 		}
@@ -217,6 +221,16 @@ func validateIfExpressions(aliae *Aliae, lineResolver *yamlLineResolver) error {
 		if err := alias.If.Validate(); err != nil {
 			path := fmt.Sprintf("alias.%d.if", i)
 			validationErrors = append(validationErrors, lineResolver.annotate(path, fmt.Sprintf("alias[%d].if: %s", i, err)))
+		}
+	}
+
+	for i, variable := range aliae.Vars {
+		if variable == nil {
+			continue
+		}
+		if err := variable.If.Validate(); err != nil {
+			path := fmt.Sprintf("var.%d.if", i)
+			validationErrors = append(validationErrors, lineResolver.annotate(path, fmt.Sprintf("var[%d].if: %s", i, err)))
 		}
 	}
 
@@ -407,6 +421,10 @@ func schemaDocument(aliae *Aliae) map[string]any {
 		document["alias"] = aliases
 	}
 
+	if vars := varSchemaItems(aliae); len(vars) > 0 {
+		document["var"] = vars
+	}
+
 	if envs := envSchemaItems(aliae); len(envs) > 0 {
 		document["env"] = envs
 	}
@@ -436,6 +454,25 @@ func schemaDocument(aliae *Aliae) map[string]any {
 	}
 
 	return document
+}
+
+func varSchemaItems(aliae *Aliae) []map[string]any {
+	vars := make([]map[string]any, 0, len(aliae.Vars))
+	for _, variable := range aliae.Vars {
+		if variable == nil {
+			continue
+		}
+
+		item := map[string]any{
+			"name":  variable.Name,
+			"value": string(variable.Value),
+		}
+		if len(variable.If) > 0 {
+			item["if"] = string(variable.If)
+		}
+		vars = append(vars, item)
+	}
+	return vars
 }
 
 func aliasSchemaItems(aliae *Aliae) []map[string]any {

@@ -21,6 +21,7 @@ Out of the box you get the following functionality:
 
 ### Variables
 
+<!-- markdownlint-disable MD060 -->
 | Name          | Type     | Description                           | Example                                                                      |
 | ------------- | -------- | ------------------------------------- | ---------------------------------------------------------------------------- |
 | `.Shell`      | `string` | the current shell name                | `{{ .Shell }}`                                                               |
@@ -32,6 +33,8 @@ Out of the box you get the following functionality:
 | `.ConfigPath` | `string` | the resolved `aliae` config file path | `{{ .ConfigPath }}`                                                          |
 | `.ConfigDir`  | `string` | the directory of the resolved config  | `{{ .ConfigDir }}/partials/env.yaml`                                         |
 | `.Env`        | `map`    | process environment variables map     | `{{ .Env.DOTFILES }}`                                                        |
+| `.Var`        | `map`    | precomputed variables from top-level `var` entries | `{{ .Var.WORKSPACE }}`                                            |
+<!-- markdownlint-enable MD060 -->
 
 ### Functions
 
@@ -55,6 +58,10 @@ the cached result is reused instead of checking the filesystem again.
 `hasCommand` caches results per command during the current run.
 Use `hasCommandNoCache` when you need a fresh check after mutating `PATH` in the same run.
 
+`var` entries are computed before other config sections render.
+You can use `.Var.<Name>` in other template values and `if` expressions.
+To prevent loops, `var` entries cannot reference `.Var` in their own `value` or `if`.
+
 `progress` renders shell-specific commands:
 
 - Bash/Zsh/Fish/Tcsh: `printf '\033]9;4;1;71\007'`
@@ -71,5 +78,24 @@ env:
 ```
 
 :::
+
+### Precomputed `var` example
+
+```yaml
+var:
+  - name: WORKSPACE
+    value: '{{ .Home }}/src'
+  - name: ENABLE_TOOLS
+    value: enabled
+
+env:
+  - name: WORKSPACE
+    value: '{{ .Var.WORKSPACE }}'
+
+alias:
+  - name: cws
+    value: cd '{{ .Var.WORKSPACE }}'
+    if: eq .Var.ENABLE_TOOLS "enabled"
+```
 
 [go-text-template]: https://golang.org/pkg/text/template/

@@ -86,8 +86,9 @@ alias:
 		"\x1b]9;4;1;12\x07",
 		"\x1b]9;4;1;13\x07",
 		"\x1b]9;4;1;14\x07",
-		"\x1b]9;4;1;16\x07",
+		"\x1b]9;4;1;15\x07",
 		"\x1b]9;4;1;17\x07",
+		"\x1b]9;4;1;18\x07",
 	}
 
 	currentIndex := 0
@@ -123,7 +124,7 @@ script:
 
 	output := stderr.String()
 	assert.Contains(t, output, "\x1b]9;4;1;13\x07")
-	assert.NotContains(t, output, "\x1b]9;4;1;14\x07")
+	assert.Contains(t, output, "\x1b]9;4;1;14\x07")
 }
 
 func TestInitAutoProgressWithWeights(t *testing.T) {
@@ -293,4 +294,87 @@ func TestInitRejectsInvalidScriptStateRunEvery(t *testing.T) {
 	script := Init(configFile, shell.BASH, true)
 	assert.Contains(t, script, "aliae error:")
 	assert.Contains(t, script, "script[0].state.runEvery")
+}
+
+func TestInitSupportsTopLevelVars(t *testing.T) {
+	shell.DotFile.Reset()
+	t.Cleanup(shell.DotFile.Reset)
+
+	tempDir := t.TempDir()
+	configFile := filepath.ToSlash(filepath.Join(tempDir, "aliae.yaml"))
+	configContent := `var:
+  - name: TOOL_DIR
+    value: '{{ .Home }}/tools'
+  - name: ENABLE_ALIAS
+    value: enabled
+env:
+  - name: TOOL_DIR
+    value: '{{ .Var.TOOL_DIR }}'
+alias:
+  - name: tools
+    value: cd '{{ .Var.TOOL_DIR }}'
+    if: eq .Var.ENABLE_ALIAS "enabled"
+`
+
+	err := os.WriteFile(configFile, []byte(configContent), 0o600)
+	assert.NoError(t, err)
+
+	script := Init(configFile, shell.BASH, true)
+
+	assert.Contains(t, script, `export TOOL_DIR="`)
+	assert.Contains(t, script, `/tools"`)
+	assert.Contains(t, script, `alias tools="cd '`)
+	assert.Contains(t, script, `/tools'"`)
+}
+
+func TestInitSupportsTopLevelVarBareExpression(t *testing.T) {
+	shell.DotFile.Reset()
+	t.Cleanup(shell.DotFile.Reset)
+
+	tempDir := t.TempDir()
+	configFile := filepath.ToSlash(filepath.Join(tempDir, "aliae.yaml"))
+	configContent := `var:
+  - name: ENABLE_ALIAS
+    value: eq 1 1
+alias:
+  - name: tools
+    value: echo tools
+    if: eq .Var.ENABLE_ALIAS "true"
+`
+
+	err := os.WriteFile(configFile, []byte(configContent), 0o600)
+	assert.NoError(t, err)
+
+	script := Init(configFile, shell.BASH, true)
+	assert.Contains(t, script, `alias tools="echo tools"`)
+}
+
+func TestInitInternalProgressIncludesVarComputation(t *testing.T) {
+	shell.DotFile.Reset()
+	t.Cleanup(shell.DotFile.Reset)
+
+	tempDir := t.TempDir()
+	configFile := filepath.ToSlash(filepath.Join(tempDir, "aliae.yaml"))
+
+	require.NoError(t, os.WriteFile(configFile, []byte(`progress:
+  start_percentage: 10
+  internal: 10
+  end_percentage: reset
+var:
+  - name: ROOT
+    value: '{{ .Home }}'
+alias:
+  - name: root
+    value: '{{ .Var.ROOT }}'
+`), 0o600))
+
+	var stderr bytes.Buffer
+	SetInitProgressWriter(&stderr)
+	t.Cleanup(resetInitProgressWriter)
+
+	_ = Init(configFile, shell.BASH, true)
+
+	output := stderr.String()
+	assert.Contains(t, output, "\x1b]9;4;1;12\x07")
+	assert.Contains(t, output, "\x1b]9;4;1;13\x07")
 }

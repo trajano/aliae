@@ -247,4 +247,49 @@ func TestValidateConfig(t *testing.T) {
 		assert.Contains(t, strings.ToLower(err.Error()), "schema validation failed")
 		assert.Contains(t, err.Error(), "mysterySetting")
 	})
+
+	t.Run("var can be referenced by if expressions", func(t *testing.T) {
+		root := t.TempDir()
+		file := filepath.Join(root, "aliae.yaml")
+		require.NoError(t, os.WriteFile(file, []byte(`var:
+  - name: ENABLED
+    value: yes
+alias:
+  - name: g
+    value: git
+    if: eq .Var.ENABLED "yes"
+`), 0o600))
+
+		err := ValidateConfig(file)
+		require.NoError(t, err)
+	})
+
+	t.Run("var value cannot reference Var", func(t *testing.T) {
+		root := t.TempDir()
+		file := filepath.Join(root, "aliae.yaml")
+		require.NoError(t, os.WriteFile(file, []byte(`var:
+  - name: A
+    value: '{{ .Var.B }}'
+`), 0o600))
+
+		err := ValidateConfig(file)
+		require.Error(t, err)
+		assert.Contains(t, strings.ToLower(err.Error()), "var validation failed")
+		assert.Contains(t, err.Error(), "var[0].value")
+	})
+
+	t.Run("var if cannot reference Var", func(t *testing.T) {
+		root := t.TempDir()
+		file := filepath.Join(root, "aliae.yaml")
+		require.NoError(t, os.WriteFile(file, []byte(`var:
+  - name: A
+    value: hello
+    if: eq .Var.B "yes"
+`), 0o600))
+
+		err := ValidateConfig(file)
+		require.Error(t, err)
+		assert.Contains(t, strings.ToLower(err.Error()), "var validation failed")
+		assert.Contains(t, err.Error(), "var[0].if")
+	})
 }

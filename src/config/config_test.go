@@ -107,7 +107,7 @@ func TestResolveConfigDir(t *testing.T) {
 }
 
 func TestParseConfigStatTimeout(t *testing.T) {
-	aliae, err := parseConfig([]byte("stat_timeout: 250ms\n"))
+	aliae, err := parseConfig([]byte("stat_timeout: 250ms\n"), true)
 	assert.NoError(t, err)
 	assert.Equal(t, 250*time.Millisecond, aliae.StatTimeout)
 }
@@ -127,7 +127,7 @@ func TestParseConfigRejectsInvalidScriptStateRunEvery(t *testing.T) {
     state:
       file: hello.state
       runEvery: nope
-`))
+`), true)
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "script[0].state.runEvery")
 }
@@ -140,7 +140,16 @@ func TestParseConfigRejectsDuplicateScriptStateFile(t *testing.T) {
   - value: echo bye
     state:
       file: shared.state
-`))
+`), true)
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "duplicates")
+}
+
+func TestParseConfigRejectsVarUsingVarTemplateValue(t *testing.T) {
+	_, err := parseConfig([]byte(`var:
+  - name: A
+    value: '{{ .Var.B }}'
+`), true)
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "var[0].value")
 }

@@ -14,7 +14,7 @@ func TestParseConfigProgressDefaults(t *testing.T) {
 	aliae, err := parseConfig([]byte(`alias:
   - name: g
     value: git
-`))
+`), true)
 	require.NoError(t, err)
 	assert.False(t, aliae.Progress.Enabled)
 }
@@ -24,7 +24,7 @@ func TestParseConfigProgressReset(t *testing.T) {
   start_percentage: 21.44
   internal: 10
   end_percentage: reset
-`))
+`), true)
 	require.NoError(t, err)
 
 	assert.True(t, aliae.Progress.Enabled)
@@ -35,13 +35,13 @@ func TestParseConfigProgressReset(t *testing.T) {
 }
 
 func TestParseConfigProgressFalse(t *testing.T) {
-	aliae, err := parseConfig([]byte(`progress: false`))
+	aliae, err := parseConfig([]byte(`progress: false`), true)
 	require.NoError(t, err)
 	assert.False(t, aliae.Progress.Enabled)
 }
 
 func TestParseConfigProgressTrueUsesDefaults(t *testing.T) {
-	aliae, err := parseConfig([]byte(`progress: true`))
+	aliae, err := parseConfig([]byte(`progress: true`), true)
 	require.NoError(t, err)
 	assert.True(t, aliae.Progress.Enabled)
 	assert.Equal(t, 0.0, aliae.Progress.StartPercentage)
