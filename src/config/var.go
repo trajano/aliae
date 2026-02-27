@@ -44,12 +44,31 @@ func (a *Aliae) computeVars(lineResolver *yamlLineResolver) error {
 			continue
 		}
 
-		computed[variable.Name] = variable.Value.String()
+		computed[variable.Name] = evaluateVarValue(variable.Value)
 	}
 
 	ctx.Var = computed
 	markInternalProgressVarsComputed()
 	return nil
+}
+
+func evaluateVarValue(value shell.Template) string {
+	text := strings.TrimSpace(string(value))
+	if len(text) == 0 {
+		return ""
+	}
+
+	if strings.Contains(text, "{{") && strings.Contains(text, "}}") {
+		return value.String()
+	}
+
+	// Allow `var.value` to behave like `if`, where bare expressions are valid.
+	parsed := shell.Template(fmt.Sprintf("{{ %s }}", text)).String()
+	if parsed == fmt.Sprintf("{{ %s }}", text) {
+		return text
+	}
+
+	return parsed
 }
 
 func ensureTemplateRuntime() *context.Runtime {

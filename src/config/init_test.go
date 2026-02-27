@@ -327,6 +327,28 @@ alias:
 	assert.Contains(t, script, `/tools'"`)
 }
 
+func TestInitSupportsTopLevelVarBareExpression(t *testing.T) {
+	shell.DotFile.Reset()
+	t.Cleanup(shell.DotFile.Reset)
+
+	tempDir := t.TempDir()
+	configFile := filepath.ToSlash(filepath.Join(tempDir, "aliae.yaml"))
+	configContent := `var:
+  - name: ENABLE_ALIAS
+    value: eq 1 1
+alias:
+  - name: tools
+    value: echo tools
+    if: eq .Var.ENABLE_ALIAS "true"
+`
+
+	err := os.WriteFile(configFile, []byte(configContent), 0o600)
+	assert.NoError(t, err)
+
+	script := Init(configFile, shell.BASH, true)
+	assert.Contains(t, script, `alias tools="echo tools"`)
+}
+
 func TestInitInternalProgressIncludesVarComputation(t *testing.T) {
 	shell.DotFile.Reset()
 	t.Cleanup(shell.DotFile.Reset)
