@@ -419,6 +419,9 @@ func printBenchmark(out io.Writer, benchmarkShell string) error {
 	if len(benchmarkShell) > 0 {
 		stepName := "generate_init_" + benchmarkShell
 		if err := record(stepName, func() error {
+			cfg.SetInitProgressWriter(io.Discard)
+			defer cfg.SetInitProgressWriter(os.Stderr)
+
 			script := cfg.Init(config, benchmarkShell, true)
 			if strings.Contains(strings.ToLower(script), "aliae error:") {
 				return fmt.Errorf("init failed for shell %s", benchmarkShell)
