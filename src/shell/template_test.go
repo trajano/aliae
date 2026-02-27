@@ -245,6 +245,20 @@ func TestTemplateEnv(t *testing.T) {
 	assert.Equal(t, "/home/test/.dotfiles", got)
 }
 
+func TestTemplateEnvMissingValueBehavesAsEmptyString(t *testing.T) {
+	text := `{{ eq .Env.TMUX "" }}`
+	context.Current = &context.Runtime{
+		Shell: BASH,
+		Env: map[string]string{
+			"DOTFILES": "/home/test/.dotfiles",
+		},
+	}
+
+	got, err := parse(text, context.Current)
+	assert.NoError(t, err)
+	assert.Equal(t, "true", got)
+}
+
 func TestHasCommand(t *testing.T) {
 	text := `{{ hasCommand .Command}}`
 	t.Cleanup(clearHasCommandCache)
