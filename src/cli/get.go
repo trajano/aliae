@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"strings"
 	"time"
 
 	"github.com/goccy/go-yaml"
@@ -422,10 +421,18 @@ func printBenchmark(out io.Writer, benchmarkShell string) error {
 			cfg.SetInitProgressWriter(io.Discard)
 			defer cfg.SetInitProgressWriter(os.Stderr)
 
-			script := cfg.Init(config, benchmarkShell, true)
-			if strings.Contains(strings.ToLower(script), "aliae error:") {
-				return fmt.Errorf("init failed for shell %s", benchmarkShell)
+			initSteps, err := cfg.BenchmarkInit(config, benchmarkShell)
+			if err != nil {
+				return fmt.Errorf("init benchmark failed for shell %s: %w", benchmarkShell, err)
 			}
+
+			for _, step := range initSteps {
+				steps = append(steps, benchmarkStep{
+					name:     step.Name,
+					duration: step.Duration,
+				})
+			}
+
 			return nil
 		}); err != nil {
 			return err

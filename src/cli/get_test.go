@@ -81,6 +81,8 @@ func TestGetBenchmarkWithShell(t *testing.T) {
 	require.NoError(t, err)
 	assert.Contains(t, stdout.String(), "benchmark.shell=bash")
 	assert.Contains(t, stdout.String(), "benchmark.generate_init_bash=")
+	assert.Contains(t, stdout.String(), "benchmark.init.render_env=")
+	assert.Contains(t, stdout.String(), "benchmark.init.render_script=")
 	assert.Empty(t, stderr.String())
 }
 
