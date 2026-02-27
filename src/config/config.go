@@ -42,12 +42,20 @@ var (
 )
 
 func LoadConfig(configPath string) (*Aliae, error) {
+	return loadConfig(configPath, true)
+}
+
+func LoadConfigWithoutVars(configPath string) (*Aliae, error) {
+	return loadConfig(configPath, false)
+}
+
+func loadConfig(configPath string, computeVars bool) (*Aliae, error) {
 	configPathCache = resolveConfigPath(configPath)
 	setTemplateConfigContext(configPathCache)
 	rootProgress, _ := loadRootProgress(configPathCache)
 
 	if strings.HasPrefix(configPathCache, "http://") || strings.HasPrefix(configPathCache, "https://") {
-		aliae, err := getRemoteConfig(configPathCache)
+		aliae, err := getRemoteConfig(configPathCache, computeVars)
 		if err != nil {
 			return nil, err
 		}
@@ -64,8 +72,10 @@ func LoadConfig(configPath string) (*Aliae, error) {
 	if err != nil {
 		return nil, err
 	}
-	if err := aliae.computeVars(nil); err != nil {
-		return nil, err
+	if computeVars {
+		if err := aliae.computeVars(nil); err != nil {
+			return nil, err
+		}
 	}
 	if err := validateScriptStateRuntime(aliae); err != nil {
 		return nil, err
@@ -161,7 +171,7 @@ func isSeparator(c uint8) bool {
 	return false
 }
 
-func getRemoteConfig(configURL string) (*Aliae, error) {
+func getRemoteConfig(configURL string, computeVars bool) (*Aliae, error) {
 	req, err := http.NewRequestWithContext(context_.Background(), "GET", configURL, nil)
 	if err != nil {
 		return nil, err
@@ -181,10 +191,10 @@ func getRemoteConfig(configURL string) (*Aliae, error) {
 		return nil, err
 	}
 
-	return parseConfig(data)
+	return parseConfig(data, computeVars)
 }
 
-func parseConfig(data []byte) (*Aliae, error) {
+func parseConfig(data []byte, computeVars bool) (*Aliae, error) {
 	if err := validateScriptWeightsInYAML(data); err != nil {
 		return nil, err
 	}
@@ -201,8 +211,10 @@ func parseConfig(data []byte) (*Aliae, error) {
 	}
 
 	shell.SetStatTimeout(aliae.StatTimeout)
-	if err := aliae.computeVars(nil); err != nil {
-		return nil, err
+	if computeVars {
+		if err := aliae.computeVars(nil); err != nil {
+			return nil, err
+		}
 	}
 
 	return &aliae, nil

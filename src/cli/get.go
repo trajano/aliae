@@ -391,7 +391,7 @@ func printBenchmark(out io.Writer, benchmarkShell string) error {
 
 	if err := record("load_config", func() error {
 		var err error
-		aliae, err = cfg.LoadConfig(config)
+		aliae, err = cfg.LoadConfigWithoutVars(config)
 		return err
 	}); err != nil {
 		return err
