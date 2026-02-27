@@ -17,6 +17,10 @@ type Var struct {
 	If    shell.If       `yaml:"if"`
 }
 
+func (a *Aliae) ComputeVars() error {
+	return a.computeVars(nil)
+}
+
 func (a *Aliae) computeVars(lineResolver *yamlLineResolver) error {
 	if a == nil {
 		return nil
@@ -35,20 +39,16 @@ func (a *Aliae) computeVars(lineResolver *yamlLineResolver) error {
 	computed := make(map[string]string, len(a.Vars))
 	ctx.Var = computed
 
-	hasVariables := false
 	for _, variable := range a.Vars {
 		if variable == nil || variable.If.Ignore() {
 			continue
 		}
 
-		hasVariables = true
 		computed[variable.Name] = variable.Value.String()
 	}
 
 	ctx.Var = computed
-	if hasVariables || len(a.Vars) > 0 {
-		markInternalProgressVarsComputed()
-	}
+	markInternalProgressVarsComputed()
 	return nil
 }
 

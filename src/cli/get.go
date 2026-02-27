@@ -387,10 +387,18 @@ func printBenchmark(out io.Writer, benchmarkShell string) error {
 	}
 
 	totalStart := time.Now()
+	var aliae *cfg.Aliae
 
 	if err := record("load_config", func() error {
-		_, err := cfg.LoadConfig(config)
+		var err error
+		aliae, err = cfg.LoadConfig(config)
 		return err
+	}); err != nil {
+		return err
+	}
+
+	if err := record("evaluate_vars", func() error {
+		return aliae.ComputeVars()
 	}); err != nil {
 		return err
 	}

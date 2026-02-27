@@ -86,8 +86,9 @@ alias:
 		"\x1b]9;4;1;12\x07",
 		"\x1b]9;4;1;13\x07",
 		"\x1b]9;4;1;14\x07",
-		"\x1b]9;4;1;16\x07",
+		"\x1b]9;4;1;15\x07",
 		"\x1b]9;4;1;17\x07",
+		"\x1b]9;4;1;18\x07",
 	}
 
 	currentIndex := 0
@@ -123,7 +124,7 @@ script:
 
 	output := stderr.String()
 	assert.Contains(t, output, "\x1b]9;4;1;13\x07")
-	assert.NotContains(t, output, "\x1b]9;4;1;14\x07")
+	assert.Contains(t, output, "\x1b]9;4;1;14\x07")
 }
 
 func TestInitAutoProgressWithWeights(t *testing.T) {

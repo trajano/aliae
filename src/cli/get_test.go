@@ -50,6 +50,7 @@ func TestGetBenchmarkWithoutShell(t *testing.T) {
 	require.NoError(t, err)
 	assert.Contains(t, stdout.String(), "aliae get benchmark")
 	assert.Contains(t, stdout.String(), "benchmark.load_config=")
+	assert.Contains(t, stdout.String(), "benchmark.evaluate_vars=")
 	assert.Contains(t, stdout.String(), "benchmark.render_config=")
 	assert.Contains(t, stdout.String(), "benchmark.validate_config=")
 	assert.Contains(t, stdout.String(), "benchmark.total=")
