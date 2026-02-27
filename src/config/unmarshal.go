@@ -15,6 +15,7 @@ import (
 
 type Aliae struct {
 	Aliae       shell.Aliae   `yaml:"alias"`
+	Vars        Vars          `yaml:"var"`
 	Envs        shell.Envs    `yaml:"env"`
 	Paths       shell.Paths   `yaml:"path"`
 	CDPaths     shell.CDPaths `yaml:"cdpath"`

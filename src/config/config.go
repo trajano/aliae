@@ -64,6 +64,9 @@ func LoadConfig(configPath string) (*Aliae, error) {
 	if err != nil {
 		return nil, err
 	}
+	if err := aliae.computeVars(nil); err != nil {
+		return nil, err
+	}
 	if err := validateScriptStateRuntime(aliae); err != nil {
 		return nil, err
 	}
@@ -198,6 +201,9 @@ func parseConfig(data []byte) (*Aliae, error) {
 	}
 
 	shell.SetStatTimeout(aliae.StatTimeout)
+	if err := aliae.computeVars(nil); err != nil {
+		return nil, err
+	}
 
 	return &aliae, nil
 }

@@ -185,6 +185,31 @@
                 ]
             }
         },
+        "var": {
+            "type": "array",
+            "description": "precomputed template variables available as .Var.<Name>",
+            "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "description": "the variable name available under .Var"
+                    },
+                    "value": {
+                        "type": "string",
+                        "description": "the variable value, supports templating except .Var references"
+                    },
+                    "if": {
+                        "$ref": "#/definitions/if"
+                    }
+                },
+                "required": [
+                    "name",
+                    "value"
+                ]
+            }
+        },
         "env": {
             "type": "array",
             "description": "environment variable definitions (https://aliae.dev/docs/setup/env)",

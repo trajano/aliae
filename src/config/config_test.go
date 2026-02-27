@@ -144,3 +144,12 @@ func TestParseConfigRejectsDuplicateScriptStateFile(t *testing.T) {
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "duplicates")
 }
+
+func TestParseConfigRejectsVarUsingVarTemplateValue(t *testing.T) {
+	_, err := parseConfig([]byte(`var:
+  - name: A
+    value: '{{ .Var.B }}'
+`))
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "var[0].value")
+}

@@ -26,6 +26,7 @@ The custom location can be a local file, or a URL pointing to a remote config.
 | -------------- | ------------- | ------------------------------------------------------------------ |
 | `stat_timeout` | `string`      | filesystem stat/existence timeout (default: `1s`, example `250ms`) |
 | `progress`     | `bool/object` | automatic OSC progress output (default: `false`)                  |
+| `var`          | `array`       | precomputed template variables exposed as `.Var.<Name>`           |
 <!-- markdownlint-enable MD060 -->
 
 When `progress` is enabled, aliae distributes progress across included `alias`, `env`, `path`, and `script` items.
@@ -46,6 +47,9 @@ progress:
   start_percentage: 21.44
   internal: 10
   end_percentage: reset
+var:
+  - name: WORKSPACE
+    value: '{{ .Home }}/src'
 alias:
   - name: a
     value: aliae
@@ -75,6 +79,7 @@ path:
     if: match .OS "darwin"
   - value: |
       {{ .Home }}/go/bin/
+    if: hasCommand "go"
 cdpath:
   - value: |
       {{ .Home }}/src
@@ -104,6 +109,9 @@ script:
   - value: |
       eval "$(oh-my-posh init {{ .Shell }})"
     if: match .Shell "bash" "zsh"
+  - value: |
+      echo "workspace: {{ .Var.WORKSPACE }}"
+    if: ne .Var.WORKSPACE ""
 link:
   - name: ~/.aliae.yaml
     target: ~/dotfiles/aliae.yaml
@@ -115,6 +123,7 @@ You can find out more about the configuration options below.
 
 - [Alias][alias]
 - [Function][alias]
+- [Precomputed variable (`var`)][templates]
 - [Environment variable][env]
 - [PATH entry][path]
 - [CDPATH entry][cdpath]
@@ -122,6 +131,7 @@ You can find out more about the configuration options below.
 - [Symbolic link][link]
 
 [alias]: setup/alias.mdx
+[templates]: setup/templates.mdx
 [env]: setup/env.mdx
 [path]: setup/path.mdx
 [cdpath]: setup/cdpath.mdx
