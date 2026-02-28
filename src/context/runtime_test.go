@@ -56,4 +56,8 @@ func TestInitLoadsEnvironmentMap(t *testing.T) {
 	if Current.Env["ALIAE_ENV_TEST"] != "test-value" {
 		t.Fatalf("expected environment variable to be available in runtime context")
 	}
+
+	if Current.Cygpath != CygpathInternal {
+		t.Fatalf("expected default cygpath mode to be internal")
+	}
 }

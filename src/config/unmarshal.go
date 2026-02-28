@@ -20,6 +20,7 @@ type Aliae struct {
 	Paths       shell.Paths   `yaml:"path"`
 	CDPaths     shell.CDPaths `yaml:"cdpath"`
 	Scripts     shell.Scripts `yaml:"script"`
+	Cygpath     string        `yaml:"cygpath"`
 	Links       shell.Links   `yaml:"link"`
 	Progress    Progress      `yaml:"progress,omitempty"`
 	StatTimeout time.Duration `yaml:"stat_timeout"`

@@ -13,6 +13,15 @@
             "type": "string",
             "description": "timeout for filesystem stat/existence checks (for example: 250ms, 1s). Defaults to 1s."
         },
+        "cygpath": {
+            "type": "string",
+            "default": "internal",
+            "description": "cygpath conversion backend. Use internal (default) for built-in conversion or external to call the cygpath executable.",
+            "enum": [
+                "internal",
+                "external"
+            ]
+        },
         "progress": {
             "description": "automatic OSC progress output settings. Use false to disable.",
             "oneOf": [

@@ -25,6 +25,7 @@ The custom location can be a local file, or a URL pointing to a remote config.
 | Name           | Type          | Description                                                        |
 | -------------- | ------------- | ------------------------------------------------------------------ |
 | `stat_timeout` | `string`      | filesystem stat/existence timeout (default: `1s`, example `250ms`) |
+| `cygpath`      | `string`      | cygpath backend mode: `internal` (default) or `external`          |
 | `progress`     | `bool/object` | automatic OSC progress output (default: `false`)                  |
 | `var`          | `array`       | precomputed template variables exposed as `.Var.<Name>`           |
 <!-- markdownlint-enable MD060 -->
@@ -43,6 +44,7 @@ processes the init script from `stdout`.
 ```yaml
 # yaml-language-server: $schema=https://trajano.github.io/aliae/schema.json
 stat_timeout: 1s
+cygpath: internal
 progress:
   start_percentage: 21.44
   internal: 10

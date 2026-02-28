@@ -7,11 +7,13 @@ import (
 	"slices"
 	"strings"
 	"sync"
+
+	internalcygpath "github.com/jandedobbeleer/aliae/src/cygpath"
 )
 
 type Path []string
 
-var runCygpath = func(path string) (string, error) {
+var runExternalCygpath = func(path string) (string, error) {
 	output, err := exec.Command("cygpath", "-u", path).Output()
 	if err != nil {
 		return "", err
@@ -95,8 +97,13 @@ func cleanPath(path string) string {
 	}
 
 	if isMSYS2Shell() {
-		if normalized, err := runCygpath(path); err == nil && normalized != "" {
-			path = normalized
+		switch cygpathMode() {
+		case CygpathExternal:
+			if normalized, err := runExternalCygpath(path); err == nil && normalized != "" {
+				path = normalized
+			}
+		default:
+			path = internalcygpath.ToUnix(path)
 		}
 	}
 
@@ -107,12 +114,25 @@ func cleanPath(path string) string {
 	return clean
 }
 
+func cygpathMode() string {
+	if Current == nil {
+		return CygpathInternal
+	}
+
+	mode := NormalizeCygpathMode(Current.Cygpath)
+	if mode == CygpathExternal {
+		return CygpathExternal
+	}
+
+	return CygpathInternal
+}
+
 func cleanPathCacheKey(path string) string {
 	if Current == nil {
 		return "|:" + os.Getenv("MSYSTEM") + ":" + path
 	}
 
-	return Current.OS + "|" + Current.Shell + ":" + os.Getenv("MSYSTEM") + ":" + path
+	return Current.OS + "|" + Current.Shell + "|" + cygpathMode() + ":" + os.Getenv("MSYSTEM") + ":" + path
 }
 
 func clearCleanPathCache() {

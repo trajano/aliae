@@ -453,6 +453,10 @@ func schemaDocument(aliae *Aliae) map[string]any {
 		document["stat_timeout"] = aliae.StatTimeout.String()
 	}
 
+	if len(strings.TrimSpace(aliae.Cygpath)) > 0 {
+		document["cygpath"] = aliae.Cygpath
+	}
+
 	return document
 }
 
