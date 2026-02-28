@@ -457,6 +457,10 @@ func schemaDocument(aliae *Aliae) map[string]any {
 		document["cygpath"] = aliae.Cygpath
 	}
 
+	if aliae.Cache {
+		document["cache"] = true
+	}
+
 	return document
 }
 

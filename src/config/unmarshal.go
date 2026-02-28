@@ -14,16 +14,17 @@ import (
 )
 
 type Aliae struct {
+	Cygpath     string        `yaml:"cygpath"`
 	Aliae       shell.Aliae   `yaml:"alias"`
 	Vars        Vars          `yaml:"var"`
 	Envs        shell.Envs    `yaml:"env"`
 	Paths       shell.Paths   `yaml:"path"`
 	CDPaths     shell.CDPaths `yaml:"cdpath"`
 	Scripts     shell.Scripts `yaml:"script"`
-	Cygpath     string        `yaml:"cygpath"`
 	Links       shell.Links   `yaml:"link"`
 	Progress    Progress      `yaml:"progress,omitempty"`
 	StatTimeout time.Duration `yaml:"stat_timeout"`
+	Cache       bool          `yaml:"cache,omitempty"`
 }
 
 type FuncMap []StringFunc

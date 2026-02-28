@@ -50,9 +50,15 @@ func LoadConfigWithoutVars(configPath string) (*Aliae, error) {
 }
 
 func loadConfig(configPath string, computeVars bool) (*Aliae, error) {
+	setLastLoadUsedCache(false)
+
 	configPathCache = resolveConfigPath(configPath)
 	setTemplateConfigContext(configPathCache)
 	rootProgress, _ := loadRootProgress(configPathCache)
+	rootCache, _ := loadRootCache(configPathCache)
+	if isCacheBypassed() {
+		rootCache = false
+	}
 
 	if strings.HasPrefix(configPathCache, "http://") || strings.HasPrefix(configPathCache, "https://") {
 		aliae, err := getRemoteConfig(configPathCache, computeVars)
@@ -70,18 +76,39 @@ func loadConfig(configPath string, computeVars bool) (*Aliae, error) {
 
 		// progress.internal is root-only and must ignore included/extended sources.
 		aliae.Progress.Internal = rootProgress.Internal
+		aliae.Cache = rootCache
 		return aliae, nil
 	}
 
-	aliae, err := loadLocalConfig(configPathCache)
-	if err != nil {
-		return nil, err
-	}
-	if computeVars {
-		if err := aliae.computeVars(nil); err != nil {
-			return nil, err
+	var (
+		aliae      *Aliae
+		inputFiles []string
+		err        error
+	)
+
+	if rootCache {
+		cached, ok, cacheErr := loadConfigCache(configPathCache, computeVars)
+		if cacheErr == nil && ok {
+			aliae = cached
+			setLastLoadUsedCache(true)
 		}
 	}
+
+	if aliae == nil {
+		aliae, inputFiles, err = loadLocalConfigWithInputs(configPathCache)
+		if err != nil {
+			return nil, err
+		}
+		if computeVars {
+			if err := aliae.computeVars(nil); err != nil {
+				return nil, err
+			}
+		}
+		if rootCache {
+			_ = storeConfigCache(configPathCache, computeVars, inputFiles, aliae)
+		}
+	}
+
 	applyCygpathDefaults(aliae)
 	if err := validateCygpathMode(aliae); err != nil {
 		return nil, err
@@ -93,6 +120,7 @@ func loadConfig(configPath string, computeVars bool) (*Aliae, error) {
 
 	// progress.internal is root-only and must ignore included/extended sources.
 	aliae.Progress.Internal = rootProgress.Internal
+	aliae.Cache = rootCache
 	shell.SetStatTimeout(aliae.StatTimeout)
 
 	return aliae, nil

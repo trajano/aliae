@@ -22,6 +22,11 @@
                 "external"
             ]
         },
+        "cache": {
+            "type": "boolean",
+            "default": true,
+            "description": "enable root-level merged+validated config cache to speed up subsequent runs."
+        },
         "progress": {
             "description": "automatic OSC progress output settings. Use false to disable.",
             "oneOf": [

@@ -286,3 +286,27 @@ alias:
 	assert.Equal(t, 10.0, got.Progress.StartPercentage)
 	assert.Equal(t, 7.0, got.Progress.Internal)
 }
+
+func TestLoadConfigExtendsIgnoresCacheFromIncludedFiles(t *testing.T) {
+	root := t.TempDir()
+	base := filepath.Join(root, "base.yaml")
+	child := filepath.Join(root, "child.yaml")
+
+	require.NoError(t, os.WriteFile(base, []byte(`cache: true
+alias:
+  - name: base
+    value: from-base
+`), 0o600))
+
+	require.NoError(t, os.WriteFile(child, []byte(`extends:
+  - ./base.yaml
+cache: false
+alias:
+  - name: child
+    value: from-child
+`), 0o600))
+
+	got, err := LoadConfig(child)
+	require.NoError(t, err)
+	assert.False(t, got.Cache)
+}

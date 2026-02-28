@@ -46,13 +46,13 @@ func (e extendsItem) shouldFailOnMissing() bool {
 	return e.FailOnMissing == nil || *e.FailOnMissing
 }
 
-func loadLocalConfig(configPath string) (*Aliae, error) {
+func loadLocalConfigWithInputs(configPath string) (*Aliae, []string, error) {
 	return loadLocalConfigRecursive(configPath, nil, 1)
 }
 
-func loadLocalConfigRecursive(configPath string, stack []string, depth int) (*Aliae, error) {
+func loadLocalConfigRecursive(configPath string, stack []string, depth int) (*Aliae, []string, error) {
 	if depth > maxExtendsDepth {
-		return nil, fmt.Errorf("extends depth limit exceeded: max %d", maxExtendsDepth)
+		return nil, nil, fmt.Errorf("extends depth limit exceeded: max %d", maxExtendsDepth)
 	}
 
 	absPath, err := filepath.Abs(configPath)
@@ -62,11 +62,11 @@ func loadLocalConfigRecursive(configPath string, stack []string, depth int) (*Al
 
 	absPath = filepath.Clean(absPath)
 	if slices.Contains(stack, absPath) {
-		return nil, fmt.Errorf("extends cycle detected for %s", absPath)
+		return nil, nil, fmt.Errorf("extends cycle detected for %s", absPath)
 	}
 
 	if stat, statErr := os.Stat(absPath); os.IsNotExist(statErr) || (statErr == nil && stat.IsDir()) {
-		return nil, fmt.Errorf("config file not found: %s", absPath)
+		return nil, nil, fmt.Errorf("config file not found: %s", absPath)
 	}
 
 	previousConfigPath := configPathCache
@@ -93,29 +93,30 @@ func loadLocalConfigRecursive(configPath string, stack []string, depth int) (*Al
 
 	data, err := os.ReadFile(absPath)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	includedData, err := includeUnmarshaler(data)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	if err := validateScriptWeightsInYAML(includedData); err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	if err := validateScriptStateInYAML(includedData); err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	extends, err := parseExtends(includedData)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	if depth == 1 {
 		markInternalProgressDiscoveryComplete()
 	}
 
 	merged := &Aliae{}
+	inputs := []string{absPath}
 	nextStack := make([]string, len(stack)+1)
 	copy(nextStack, stack)
 	nextStack[len(stack)] = absPath
@@ -126,16 +127,17 @@ func loadLocalConfigRecursive(configPath string, stack []string, depth int) (*Al
 
 		paths, pathErr := resolveExtendsPaths(item, absPath)
 		if pathErr != nil {
-			return nil, pathErr
+			return nil, nil, pathErr
 		}
 
 		for _, path := range paths {
-			parent, loadErr := loadLocalConfigRecursive(path, nextStack, depth+1)
+			parent, parentInputs, loadErr := loadLocalConfigRecursive(path, nextStack, depth+1)
 			if loadErr != nil {
-				return nil, loadErr
+				return nil, nil, loadErr
 			}
 
 			merged.merge(parent)
+			inputs = append(inputs, parentInputs...)
 			if depth == 1 {
 				markInternalProgressLinkedConfigLoaded()
 			}
@@ -144,12 +146,12 @@ func loadLocalConfigRecursive(configPath string, stack []string, depth int) (*Al
 
 	current, err := decodeAliae(includedData)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	merged.merge(current)
 
-	return merged, nil
+	return merged, inputs, nil
 }
 
 func decodeAliae(data []byte) (*Aliae, error) {

@@ -52,6 +52,7 @@ with emphasis on Git Bash compatibility and fork-owned release/documentation flo
   - `cdpath` support with shell-specific rendering and duplicate suppression.
 - Configuration capabilities:
   - Top-level `cygpath` mode (`internal` by default, `external` optional) to choose conversion backend.
+  - Top-level `cache` (enabled by default) to reuse merged+validated config when source files are unchanged.
   - Top-level `extends` with short/long syntax, cycle detection, and a depth limit.
   - Conditional `extends[].if` support to skip individual extends entries when false.
   - Top-level `progress` with weighted automatic OSC progress across `alias`, `env`, `path`, and `script`.

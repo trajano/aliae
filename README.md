@@ -59,6 +59,7 @@ focused on Git Bash support and fork-specific distribution.
 - Configuration features:
   - Added top-level `stat_timeout` to control filesystem stat/existence timeout.
   - Added top-level `cygpath` mode (`internal` default, `external` optional) to choose conversion backend.
+  - Added top-level `cache` (enabled by default) to reuse merged+validated config when source files are unchanged.
   - Added top-level `extends` with short/long syntax, cycle detection, and a depth limit.
   - Added conditional `extends[].if` support to skip individual entries when false.
   - Added top-level `progress` with weighted automatic OSC progress across `alias`, `env`,
