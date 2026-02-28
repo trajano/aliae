@@ -50,6 +50,7 @@ func TestLoadConfig(t *testing.T) {
 					{Name: "TEST_ENV", Value: "test"},
 				},
 				Cygpath: context.CygpathInternal,
+				Cache:   true,
 			},
 		},
 		{
@@ -67,6 +68,7 @@ func TestLoadConfig(t *testing.T) {
 					{Name: "test3", Value: shell.Template("test3")},
 				},
 				Cygpath: context.CygpathInternal,
+				Cache:   true,
 			},
 		},
 	}
@@ -120,6 +122,7 @@ func TestLoadConfigCygpathDefaultInternal(t *testing.T) {
 	aliae, err := LoadConfig(configFile)
 	assert.NoError(t, err)
 	assert.Equal(t, context.CygpathInternal, aliae.Cygpath)
+	assert.True(t, aliae.Cache)
 }
 
 func TestLoadConfigCygpathExternal(t *testing.T) {

@@ -60,7 +60,10 @@ This command is used to get the value of the following variables:
 	},
 }
 
+var benchmarkNoCache bool
+
 func init() {
+	getCmd.Flags().BoolVar(&benchmarkNoCache, "no-cache", false, "disable config cache while running benchmark")
 	RootCmd.AddCommand(getCmd)
 }
 
@@ -370,6 +373,9 @@ func isSupportedBenchmarkShell(shellName string) bool {
 }
 
 func printBenchmark(out io.Writer, benchmarkShell string) error {
+	cfg.SetCacheBypass(benchmarkNoCache)
+	defer cfg.SetCacheBypass(false)
+
 	type benchmarkStep struct {
 		name     string
 		duration time.Duration
@@ -387,10 +393,14 @@ func printBenchmark(out io.Writer, benchmarkShell string) error {
 
 	totalStart := time.Now()
 	var aliae *cfg.Aliae
+	cacheUsed := false
+	cygpathMode := context.CygpathInternal
 
 	if err := record("load_config", func() error {
 		var err error
 		aliae, err = cfg.LoadConfigWithoutVars(config)
+		cacheUsed = cfg.LastLoadUsedCache()
+		cygpathMode = context.NormalizeCygpathMode(aliae.Cygpath)
 		return err
 	}); err != nil {
 		return err
@@ -409,10 +419,14 @@ func printBenchmark(out io.Writer, benchmarkShell string) error {
 		return err
 	}
 
-	if err := record("validate_config", func() error {
-		return cfg.ValidateConfig(config)
-	}); err != nil {
-		return err
+	validateSkipped := true
+	if benchmarkNoCache {
+		validateSkipped = false
+		if err := record("validate_config", func() error {
+			return cfg.ValidateConfig(config)
+		}); err != nil {
+			return err
+		}
 	}
 
 	if len(benchmarkShell) > 0 {
@@ -444,6 +458,11 @@ func printBenchmark(out io.Writer, benchmarkShell string) error {
 	fmt.Fprintln(out, "aliae get benchmark")
 	if len(benchmarkShell) > 0 {
 		fmt.Fprintf(out, "benchmark.shell=%s\n", benchmarkShell)
+	}
+	fmt.Fprintf(out, "benchmark.cache_used=%t\n", cacheUsed)
+	fmt.Fprintf(out, "benchmark.cygpath=%s\n", cygpathMode)
+	if validateSkipped {
+		fmt.Fprintln(out, "benchmark.validate_config=skipped")
 	}
 	for _, step := range steps {
 		fmt.Fprintf(out, "benchmark.%s=%s\n", step.name, step.duration)

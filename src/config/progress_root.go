@@ -11,13 +11,8 @@ import (
 )
 
 func loadRootProgress(configPath string) (Progress, error) {
-	data, err := readRootConfigBytes(configPath)
+	document, err := loadRootConfigDocument(configPath)
 	if err != nil {
-		return Progress{}, err
-	}
-
-	document := map[string]any{}
-	if err := yaml.Unmarshal(data, &document); err != nil {
 		return Progress{}, err
 	}
 
@@ -27,6 +22,39 @@ func loadRootProgress(configPath string) (Progress, error) {
 	}
 
 	return parseProgressAny(progressValue)
+}
+
+func loadRootCache(configPath string) (bool, error) {
+	document, err := loadRootConfigDocument(configPath)
+	if err != nil {
+		return false, err
+	}
+
+	cacheValue, hasCache := document["cache"]
+	if !hasCache {
+		return true, nil
+	}
+
+	cache, ok := cacheValue.(bool)
+	if !ok {
+		return false, fmt.Errorf("cache must be a boolean")
+	}
+
+	return cache, nil
+}
+
+func loadRootConfigDocument(configPath string) (map[string]any, error) {
+	data, err := readRootConfigBytes(configPath)
+	if err != nil {
+		return nil, err
+	}
+
+	document := map[string]any{}
+	if err := yaml.Unmarshal(data, &document); err != nil {
+		return nil, err
+	}
+
+	return document, nil
 }
 
 func readRootConfigBytes(configPath string) ([]byte, error) {

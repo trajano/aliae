@@ -26,6 +26,7 @@ The custom location can be a local file, or a URL pointing to a remote config.
 | -------------- | ------------- | ------------------------------------------------------------------ |
 | `stat_timeout` | `string`      | filesystem stat/existence timeout (default: `1s`, example `250ms`) |
 | `cygpath`      | `string`      | cygpath backend mode: `internal` (default) or `external`          |
+| `cache`        | `bool`        | enable root-level merged+validated config cache (default: `true`) |
 | `progress`     | `bool/object` | automatic OSC progress output (default: `false`)                  |
 | `var`          | `array`       | precomputed template variables exposed as `.Var.<Name>`           |
 <!-- markdownlint-enable MD060 -->
@@ -38,6 +39,8 @@ Set `internal` to reserve an initial span for internal init processing before sc
 `progress.internal` is read only from the root configuration file and is ignored in included or extended files.
 Internal progress OSC codes are written to `stderr`, allowing them to render before `eval`
 processes the init script from `stdout`.
+`cache` is read only from the root configuration file and is ignored in included or extended files.
+Set `cache: false` if you want to disable cache reuse.
 
 ## Example
 
@@ -45,6 +48,7 @@ processes the init script from `stdout`.
 # yaml-language-server: $schema=https://trajano.github.io/aliae/schema.json
 stat_timeout: 1s
 cygpath: internal
+cache: true
 progress:
   start_percentage: 21.44
   internal: 10
