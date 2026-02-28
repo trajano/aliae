@@ -1,9 +1,11 @@
 package cygpath
 
 import (
+	"context"
 	"os/exec"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -96,7 +98,10 @@ func hasSystemCygpath() bool {
 func mustRunSystemCygpath(t *testing.T, args ...string) string {
 	t.Helper()
 
-	output, err := exec.Command("cygpath", args...).Output()
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	output, err := exec.CommandContext(ctx, "cygpath", args...).Output()
 	if err != nil {
 		t.Fatalf("running cygpath failed: %v", err)
 	}

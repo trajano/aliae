@@ -24,6 +24,7 @@ type Runtime struct {
 	Arch       string
 	ConfigPath string
 	ConfigDir  string
+	Cygpath    string
 	WSL        bool
 }
 
@@ -40,6 +41,7 @@ func Init(shell string) {
 		Hostname: hostname,
 		Env:      getEnvironment(),
 		Var:      map[string]string{},
+		Cygpath:  CygpathInternal,
 	}
 
 	Current.Path = getPath()

@@ -301,6 +301,10 @@ func (a *Aliae) merge(other *Aliae) {
 		a.StatTimeout = other.StatTimeout
 	}
 
+	if len(strings.TrimSpace(other.Cygpath)) > 0 {
+		a.Cygpath = other.Cygpath
+	}
+
 	if other.Progress.Enabled || other.Progress.EndPercentage.Reset || other.Progress.EndPercentage.Value > 0 || other.Progress.StartPercentage > 0 {
 		a.Progress = other.Progress
 	}

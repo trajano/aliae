@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/jandedobbeleer/aliae/src/context"
 	"github.com/jandedobbeleer/aliae/src/shell"
 	"github.com/stretchr/testify/assert"
 )
@@ -48,6 +49,7 @@ func TestLoadConfig(t *testing.T) {
 				Envs: shell.Envs{
 					{Name: "TEST_ENV", Value: "test"},
 				},
+				Cygpath: context.CygpathInternal,
 			},
 		},
 		{
@@ -64,6 +66,7 @@ func TestLoadConfig(t *testing.T) {
 					{Name: "test2", Value: shell.Template("test2")},
 					{Name: "test3", Value: shell.Template("test3")},
 				},
+				Cygpath: context.CygpathInternal,
 			},
 		},
 	}
@@ -110,6 +113,33 @@ func TestParseConfigStatTimeout(t *testing.T) {
 	aliae, err := parseConfig([]byte("stat_timeout: 250ms\n"), true)
 	assert.NoError(t, err)
 	assert.Equal(t, 250*time.Millisecond, aliae.StatTimeout)
+}
+
+func TestLoadConfigCygpathDefaultInternal(t *testing.T) {
+	configFile := filepath.Join("test", "aliae.valid.yaml")
+	aliae, err := LoadConfig(configFile)
+	assert.NoError(t, err)
+	assert.Equal(t, context.CygpathInternal, aliae.Cygpath)
+}
+
+func TestLoadConfigCygpathExternal(t *testing.T) {
+	configFile := filepath.Join(t.TempDir(), "aliae.yaml")
+	err := os.WriteFile(configFile, []byte("cygpath: external\n"), 0o600)
+	assert.NoError(t, err)
+
+	aliae, loadErr := LoadConfig(configFile)
+	assert.NoError(t, loadErr)
+	assert.Equal(t, context.CygpathExternal, aliae.Cygpath)
+}
+
+func TestLoadConfigRejectsInvalidCygpath(t *testing.T) {
+	configFile := filepath.Join(t.TempDir(), "aliae.yaml")
+	err := os.WriteFile(configFile, []byte("cygpath: invalid\n"), 0o600)
+	assert.NoError(t, err)
+
+	_, loadErr := LoadConfig(configFile)
+	assert.Error(t, loadErr)
+	assert.Contains(t, loadErr.Error(), "invalid cygpath")
 }
 
 func TestResolveTemplateContext(t *testing.T) {

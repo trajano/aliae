@@ -59,6 +59,11 @@ func loadConfig(configPath string, computeVars bool) (*Aliae, error) {
 		if err != nil {
 			return nil, err
 		}
+		applyCygpathDefaults(aliae)
+		if err := validateCygpathMode(aliae); err != nil {
+			return nil, err
+		}
+		setRuntimeCygpathMode(aliae)
 		if err := validateScriptStateRuntime(aliae); err != nil {
 			return nil, err
 		}
@@ -77,6 +82,11 @@ func loadConfig(configPath string, computeVars bool) (*Aliae, error) {
 			return nil, err
 		}
 	}
+	applyCygpathDefaults(aliae)
+	if err := validateCygpathMode(aliae); err != nil {
+		return nil, err
+	}
+	setRuntimeCygpathMode(aliae)
 	if err := validateScriptStateRuntime(aliae); err != nil {
 		return nil, err
 	}
