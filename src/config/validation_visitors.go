@@ -225,41 +225,21 @@ func buildValidationIndex(aliae *Aliae) validationIndex {
 		linkIndex:   map[*shell.Link]int{},
 	}
 
-	for i, item := range aliae.Aliae {
-		if item != nil {
-			index.aliasIndex[item] = i
-		}
-	}
-	for i, item := range aliae.Vars {
-		if item != nil {
-			index.varIndex[item] = i
-		}
-	}
-	for i, item := range aliae.Envs {
-		if item != nil {
-			index.envIndex[item] = i
-		}
-	}
-	for i, item := range aliae.Paths {
-		if item != nil {
-			index.pathIndex[item] = i
-		}
-	}
-	for i, item := range aliae.CDPaths {
-		if item != nil {
-			index.cdpathIndex[item] = i
-		}
-	}
-	for i, item := range aliae.Scripts {
-		if item != nil {
-			index.scriptIndex[item] = i
-		}
-	}
-	for i, item := range aliae.Links {
-		if item != nil {
-			index.linkIndex[item] = i
-		}
-	}
+	addIndexEntries([]*shell.Alias(aliae.Aliae), index.aliasIndex)
+	addIndexEntries([]*Var(aliae.Vars), index.varIndex)
+	addIndexEntries([]*shell.Env(aliae.Envs), index.envIndex)
+	addIndexEntries([]*shell.Path(aliae.Paths), index.pathIndex)
+	addIndexEntries([]*shell.CDPath(aliae.CDPaths), index.cdpathIndex)
+	addIndexEntries([]*shell.Script(aliae.Scripts), index.scriptIndex)
+	addIndexEntries([]*shell.Link(aliae.Links), index.linkIndex)
 
 	return index
+}
+
+func addIndexEntries[T any](items []*T, index map[*T]int) {
+	for i, item := range items {
+		if item != nil {
+			index[item] = i
+		}
+	}
 }
