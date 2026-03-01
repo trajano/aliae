@@ -152,6 +152,39 @@ func (v scriptStateValidationVisitor) Visit(aliae *Aliae, collector *validationC
 	}
 }
 
+type progressValidationVisitor struct{}
+
+func (v progressValidationVisitor) Visit(aliae *Aliae, collector *validationCollector) {
+	if aliae == nil || !aliae.Progress.Enabled {
+		return
+	}
+
+	start := aliae.Progress.StartPercentage
+	internal := aliae.Progress.Internal
+	effectiveStart := start + internal
+	end := aliae.Progress.EndPercentage.Value
+
+	if start < 0 || start > 100 {
+		collector.add("progress.start_percentage", "progress.start_percentage must be between 0 and 100")
+	}
+
+	if internal < 0 || internal > 100 {
+		collector.add("progress.internal", "progress.internal must be between 0 and 100")
+	}
+
+	if effectiveStart > 100 {
+		collector.add("progress.internal", "progress.start_percentage + progress.internal must be less than or equal to 100")
+	}
+
+	if end < 0 || end > 100 {
+		collector.add("progress.end_percentage", "progress.end_percentage must be between 0 and 100")
+	}
+
+	if !aliae.Progress.EndPercentage.Reset && end <= effectiveStart {
+		collector.add("progress.end_percentage", "progress.end_percentage must be greater than progress.start_percentage + progress.internal")
+	}
+}
+
 type validationIndex struct {
 	aliasIndex  map[*shell.Alias]int
 	varIndex    map[*Var]int

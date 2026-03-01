@@ -564,57 +564,9 @@ func progressSchemaItem(aliae *Aliae) (map[string]any, bool) {
 }
 
 func validateProgress(aliae *Aliae, lineResolver *yamlLineResolver) error {
-	if aliae == nil || !aliae.Progress.Enabled {
-		return nil
-	}
-
-	start := aliae.Progress.StartPercentage
-	internal := aliae.Progress.Internal
-	effectiveStart := start + internal
-	end := aliae.Progress.EndPercentage.Value
-
-	validationErrors := make([]string, 0, 5)
-	if start < 0 || start > 100 {
-		validationErrors = append(
-			validationErrors,
-			lineResolver.annotate("progress.start_percentage", "progress.start_percentage must be between 0 and 100"),
-		)
-	}
-
-	if internal < 0 || internal > 100 {
-		validationErrors = append(
-			validationErrors,
-			lineResolver.annotate("progress.internal", "progress.internal must be between 0 and 100"),
-		)
-	}
-
-	if effectiveStart > 100 {
-		validationErrors = append(
-			validationErrors,
-			lineResolver.annotate("progress.internal", "progress.start_percentage + progress.internal must be less than or equal to 100"),
-		)
-	}
-
-	if end < 0 || end > 100 {
-		validationErrors = append(
-			validationErrors,
-			lineResolver.annotate("progress.end_percentage", "progress.end_percentage must be between 0 and 100"),
-		)
-	}
-
-	if !aliae.Progress.EndPercentage.Reset && end <= effectiveStart {
-		validationErrors = append(
-			validationErrors,
-			lineResolver.annotate("progress.end_percentage", "progress.end_percentage must be greater than progress.start_percentage + progress.internal"),
-		)
-	}
-
-	if len(validationErrors) == 0 {
-		return nil
-	}
-
-	slices.Sort(validationErrors)
-	return fmt.Errorf("config progress validation failed:\n- %s", strings.Join(validationErrors, "\n- "))
+	collector := newValidationCollector(lineResolver)
+	progressValidationVisitor{}.Visit(aliae, collector)
+	return collector.err("config progress validation failed")
 }
 
 func validateScriptWeights(aliae *Aliae, lineResolver *yamlLineResolver) error {
