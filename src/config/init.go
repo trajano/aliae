@@ -2,9 +2,7 @@ package config
 
 import (
 	"fmt"
-	"time"
 
-	"github.com/jandedobbeleer/aliae/src/context"
 	"github.com/jandedobbeleer/aliae/src/shell"
 )
 
@@ -16,9 +14,10 @@ func Init(configPath, sh string, printOutput bool) string {
 	beginInitInternalProgress(configPath)
 	defer endInitInternalProgress()
 
-	context.Init(sh)
-
-	aliae, err := LoadConfig(configPath)
+	script, err := runInitWithObserver(configPath, sh, nil, initRunOptions{
+		computeVars: true,
+		primeState:  true,
+	})
 	if err != nil {
 		errorString := formatError(err)
 		if sh == shell.NU {
@@ -26,24 +25,6 @@ func Init(configPath, sh string, printOutput bool) string {
 		}
 		return errorString
 	}
-	markInternalProgressConfigValidated()
-	stateChecks := aliae.Scripts.PrimeState(time.Now())
-	markInternalProgressStateChecksComplete(stateChecks)
-
-	shell.StartAutoProgress(aliae.autoProgressConfig())
-
-	aliae.Envs.Render()
-	aliae.Paths.Render()
-	aliae.CDPaths.Render()
-	aliae.Aliae.Render()
-	aliae.Links.Render()
-	aliae.Scripts.Render()
-	shell.EndAutoProgress()
-	markInternalProgressStatPhaseComplete()
-
-	markInternalProgressOutputFormulated()
-	script := shell.DotFile.String()
-	markInternalProgressReadyToOutput()
 
 	if sh != shell.NU || printOutput {
 		return script
