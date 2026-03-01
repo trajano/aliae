@@ -86,6 +86,7 @@ alias:
 	got, err := LoadConfig(child)
 	require.NoError(t, err)
 	assert.Equal(t, shell.Aliae{
+		{Name: "base", Value: shell.Template("from-base"), If: shell.If("false")},
 		{Name: "child", Value: shell.Template("from-child")},
 	}, got.Aliae)
 }
@@ -110,7 +111,7 @@ alias:
 	got, err := LoadConfig(child)
 	require.NoError(t, err)
 	assert.Equal(t, shell.Aliae{
-		{Name: "base", Value: shell.Template("from-base")},
+		{Name: "base", Value: shell.Template("from-base"), If: shell.If("true")},
 		{Name: "child", Value: shell.Template("from-child")},
 	}, got.Aliae)
 }

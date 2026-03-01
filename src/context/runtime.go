@@ -16,7 +16,7 @@ type Runtime struct {
 	Path       *Path
 	CDPath     *Path
 	Env        map[string]string
-	Var        map[string]string
+	Var        map[string]any
 	Shell      string
 	OS         string
 	Hostname   string
@@ -40,7 +40,7 @@ func Init(shell string) {
 		Home:     home,
 		Hostname: hostname,
 		Env:      getEnvironment(),
-		Var:      map[string]string{},
+		Var:      map[string]any{},
 		Cygpath:  CygpathInternal,
 	}
 
