@@ -196,12 +196,19 @@ func (v extendsIfValidationVisitor) Visit(aliae *Aliae, collector *validationCol
 		return
 	}
 
+	index := make(map[*Extend]int, len(aliae.Extends))
 	for i := range aliae.Extends {
-		item := aliae.Extends[i]
-		if err := item.If.Validate(); err != nil {
-			collector.add(fmt.Sprintf("extends.%d.if", i), fmt.Sprintf("extends[%d].if: %s", i, err))
-		}
+		index[&aliae.Extends[i]] = i
 	}
+
+	WalkConfig(aliae, ConfigVisitorFuncs{
+		OnExtend: func(item *Extend) {
+			if err := item.If.Validate(); err != nil {
+				i := index[item]
+				collector.add(fmt.Sprintf("extends.%d.if", i), fmt.Sprintf("extends[%d].if: %s", i, err))
+			}
+		},
+	})
 }
 
 type validationIndex struct {
