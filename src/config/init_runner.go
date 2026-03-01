@@ -67,6 +67,7 @@ func runInitWithObserver(configPath, sh string, observer InitObserver, options i
 	}); err != nil {
 		return "", err
 	}
+	shell.AdvanceAutoProgress(aliae.progressVarWeight())
 
 	if err := runInitPhase(observer, InitPhaseRenderEnv, func() error {
 		aliae.Envs.Render()

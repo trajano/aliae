@@ -84,8 +84,12 @@ func (l Links) Render() {
 
 	first := true
 	for _, link := range l {
+		if link.If.Ignore() {
+			continue
+		}
 		script := link.string()
-		if len(script) == 0 || link.If.Ignore() {
+		if len(script) == 0 {
+			advanceAutoProgress(1)
 			continue
 		}
 
@@ -100,5 +104,6 @@ func (l Links) Render() {
 		DotFile.WriteString(script)
 
 		first = false
+		advanceAutoProgress(1)
 	}
 }
