@@ -292,7 +292,7 @@ func validateIfExpressions(aliae *Aliae, lineResolver *yamlLineResolver) error {
 	return fmt.Errorf("config if expression validation failed:\n- %s", strings.Join(validationErrors, "\n- "))
 }
 
-func validateExtendsIfExpressions(extends []extendsItem, lineResolver *yamlLineResolver) error {
+func validateExtendsIfExpressions(extends []Extend, lineResolver *yamlLineResolver) error {
 	validationErrors := make([]string, 0)
 	for i, item := range extends {
 		if err := item.If.Validate(); err != nil {

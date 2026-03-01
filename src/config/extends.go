@@ -17,7 +17,7 @@ import (
 
 const maxExtendsDepth = 10
 
-type extendsItem struct {
+type Extend struct {
 	FailOnMissing *bool    `yaml:"failOnMissing"`
 	Path          string   `yaml:"path"`
 	Dir           string   `yaml:"dir"`
@@ -25,24 +25,24 @@ type extendsItem struct {
 	Recursive     bool     `yaml:"recursive"`
 }
 
-func (e *extendsItem) UnmarshalYAML(data []byte) error {
+func (e *Extend) UnmarshalYAML(data []byte) error {
 	var path string
 	if err := yaml.Unmarshal(data, &path); err == nil {
 		e.Path = path
 		return nil
 	}
 
-	type rawExtendsItem extendsItem
-	var raw rawExtendsItem
+	type rawExtend Extend
+	var raw rawExtend
 	if err := yaml.Unmarshal(data, &raw); err != nil {
 		return err
 	}
 
-	*e = extendsItem(raw)
+	*e = Extend(raw)
 	return nil
 }
 
-func (e extendsItem) shouldFailOnMissing() bool {
+func (e Extend) shouldFailOnMissing() bool {
 	return e.FailOnMissing == nil || *e.FailOnMissing
 }
 
@@ -170,9 +170,9 @@ func decodeAliae(data []byte) (*Aliae, error) {
 	return &aliae, nil
 }
 
-func parseExtends(data []byte) ([]extendsItem, error) {
+func parseExtends(data []byte) ([]Extend, error) {
 	var doc struct {
-		Extends []extendsItem `yaml:"extends"`
+		Extends []Extend `yaml:"extends"`
 	}
 
 	if err := yaml.Unmarshal(data, &doc); err != nil {
@@ -182,7 +182,7 @@ func parseExtends(data []byte) ([]extendsItem, error) {
 	return doc.Extends, nil
 }
 
-func resolveExtendsPaths(item extendsItem, configPath string) ([]string, error) {
+func resolveExtendsPaths(item Extend, configPath string) ([]string, error) {
 	hasPath := len(strings.TrimSpace(item.Path)) > 0
 	hasDir := len(strings.TrimSpace(item.Dir)) > 0
 
@@ -289,6 +289,7 @@ func (a *Aliae) merge(other *Aliae) {
 	}
 
 	a.Aliae = append(a.Aliae, other.Aliae...)
+	a.Extends = append(a.Extends, other.Extends...)
 	a.Vars = append(a.Vars, other.Vars...)
 	a.Envs = append(a.Envs, other.Envs...)
 	a.Paths = append(a.Paths, other.Paths...)

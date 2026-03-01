@@ -15,6 +15,7 @@ import (
 
 type Aliae struct {
 	Cygpath     string        `yaml:"cygpath"`
+	Extends     []Extend      `yaml:"extends,omitempty"`
 	Aliae       shell.Aliae   `yaml:"alias"`
 	Vars        Vars          `yaml:"var"`
 	Envs        shell.Envs    `yaml:"env"`
