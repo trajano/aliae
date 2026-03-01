@@ -40,6 +40,19 @@ const (
 	InitSectionScript InitSection = "script"
 )
 
+func OrderedInitSections() []InitSection {
+	return []InitSection{
+		InitSectionExtend,
+		InitSectionVar,
+		InitSectionEnv,
+		InitSectionPath,
+		InitSectionCDPath,
+		InitSectionAlias,
+		InitSectionLink,
+		InitSectionScript,
+	}
+}
+
 func runInitPhase(observer InitObserver, phase InitPhase, run func() error) error {
 	if observer != nil {
 		observer.OnInitPhaseStart(phase)

@@ -70,19 +70,9 @@ func (o *initBenchmarkObserver) OnInitVisitEnd(section InitSection, _ string, du
 }
 
 func (o *initBenchmarkObserver) visitSummaries() []InitVisitBenchmark {
-	order := []InitSection{
-		InitSectionExtend,
-		InitSectionVar,
-		InitSectionEnv,
-		InitSectionPath,
-		InitSectionCDPath,
-		InitSectionAlias,
-		InitSectionLink,
-		InitSectionScript,
-	}
-
-	summaries := make([]InitVisitBenchmark, 0, len(order))
-	for _, section := range order {
+	sections := OrderedInitSections()
+	summaries := make([]InitVisitBenchmark, 0, len(sections))
+	for _, section := range sections {
 		item, ok := o.visit[section]
 		if !ok || item.Count == 0 {
 			continue
