@@ -96,18 +96,22 @@ func (v scriptWeightValidationVisitor) Visit(aliae *Aliae, collector *validation
 		return
 	}
 
-	for i, script := range aliae.Scripts {
-		if script == nil || script.Weight == 0 {
-			continue
-		}
+	index := buildValidationIndex(aliae)
+	WalkConfig(aliae, ConfigVisitorFuncs{
+		OnScript: func(script *shell.Script) {
+			if script.Weight == 0 {
+				return
+			}
 
-		if script.Weight < 0 {
-			collector.add(
-				fmt.Sprintf("script.%d.weight", i),
-				fmt.Sprintf("script[%d].weight must be greater than 0", i),
-			)
-		}
-	}
+			if script.Weight < 0 {
+				i := index.scriptIndex[script]
+				collector.add(
+					fmt.Sprintf("script.%d.weight", i),
+					fmt.Sprintf("script[%d].weight must be greater than 0", i),
+				)
+			}
+		},
+	})
 }
 
 type scriptStateValidationVisitor struct{}
@@ -117,35 +121,39 @@ func (v scriptStateValidationVisitor) Visit(aliae *Aliae, collector *validationC
 		return
 	}
 
+	index := buildValidationIndex(aliae)
 	seenStateFiles := make(map[string]int)
 
-	for i, script := range aliae.Scripts {
-		if script == nil || len(script.State.File) == 0 {
-			continue
-		}
-
-		stateFile := strings.TrimSpace(string(script.State.File))
-		filePath := fmt.Sprintf("script.%d.state.file", i)
-		if !aliaeState.IsValidFileName(stateFile) {
-			collector.add(filePath, fmt.Sprintf("script[%d].state.file must be a file name only (no path separators)", i))
-		}
-
-		if previousIndex, exists := seenStateFiles[stateFile]; exists {
-			collector.add(filePath, fmt.Sprintf("script[%d].state.file duplicates script[%d].state.file", i, previousIndex))
-		} else {
-			seenStateFiles[stateFile] = i
-		}
-
-		if len(script.State.RunEvery) > 0 {
-			runEveryPath := fmt.Sprintf("script.%d.state.runEvery", i)
-			runEvery, err := time.ParseDuration(strings.TrimSpace(script.State.RunEvery))
-			if err != nil {
-				collector.add(runEveryPath, fmt.Sprintf("script[%d].state.runEvery must be a valid duration", i))
-			} else if runEvery <= 0 {
-				collector.add(runEveryPath, fmt.Sprintf("script[%d].state.runEvery must be greater than 0", i))
+	WalkConfig(aliae, ConfigVisitorFuncs{
+		OnScript: func(script *shell.Script) {
+			if len(script.State.File) == 0 {
+				return
 			}
-		}
-	}
+
+			i := index.scriptIndex[script]
+			stateFile := strings.TrimSpace(string(script.State.File))
+			filePath := fmt.Sprintf("script.%d.state.file", i)
+			if !aliaeState.IsValidFileName(stateFile) {
+				collector.add(filePath, fmt.Sprintf("script[%d].state.file must be a file name only (no path separators)", i))
+			}
+
+			if previousIndex, exists := seenStateFiles[stateFile]; exists {
+				collector.add(filePath, fmt.Sprintf("script[%d].state.file duplicates script[%d].state.file", i, previousIndex))
+			} else {
+				seenStateFiles[stateFile] = i
+			}
+
+			if len(script.State.RunEvery) > 0 {
+				runEveryPath := fmt.Sprintf("script.%d.state.runEvery", i)
+				runEvery, err := time.ParseDuration(strings.TrimSpace(script.State.RunEvery))
+				if err != nil {
+					collector.add(runEveryPath, fmt.Sprintf("script[%d].state.runEvery must be a valid duration", i))
+				} else if runEvery <= 0 {
+					collector.add(runEveryPath, fmt.Sprintf("script[%d].state.runEvery must be greater than 0", i))
+				}
+			}
+		},
+	})
 }
 
 type progressValidationVisitor struct{}
