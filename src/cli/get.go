@@ -468,15 +468,17 @@ func printBenchmark(out io.Writer, benchmarkShell string) error {
 			}
 			for _, visit := range initVisits {
 				section := string(visit.Section)
-				steps = append(steps, benchmarkStep{
-					name:     benchmarkStepInitVisitPrefix + section + benchmarkStepInitVisitDuration,
-					duration: visit.Duration,
-				})
-				steps = append(steps, benchmarkStep{
-					name:     benchmarkStepInitVisitPrefix + section + benchmarkStepInitVisitCount,
-					count:    visit.Count,
-					hasCount: true,
-				})
+				steps = append(steps,
+					benchmarkStep{
+						name:     benchmarkStepInitVisitPrefix + section + benchmarkStepInitVisitDuration,
+						duration: visit.Duration,
+					},
+					benchmarkStep{
+						name:     benchmarkStepInitVisitPrefix + section + benchmarkStepInitVisitCount,
+						count:    visit.Count,
+						hasCount: true,
+					},
+				)
 			}
 
 			return nil

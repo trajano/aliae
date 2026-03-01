@@ -42,8 +42,8 @@ func (e *initBenchmarkError) Error() string {
 }
 
 type initBenchmarkObserver struct {
-	steps []InitBenchmarkStep
 	visit map[InitSection]InitVisitBenchmark
+	steps []InitBenchmarkStep
 }
 
 func (o *initBenchmarkObserver) OnInitPhaseStart(_ InitPhase) {}
