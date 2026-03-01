@@ -379,6 +379,8 @@ func printBenchmark(out io.Writer, benchmarkShell string) error {
 	type benchmarkStep struct {
 		name     string
 		duration time.Duration
+		count    int
+		hasCount bool
 	}
 
 	steps := make([]benchmarkStep, 0, 4)
@@ -436,7 +438,7 @@ func printBenchmark(out io.Writer, benchmarkShell string) error {
 			cfg.SetInitProgressWriter(io.Discard)
 			defer cfg.SetInitProgressWriter(os.Stderr)
 
-			initSteps, err := cfg.BenchmarkInit(config, benchmarkShell)
+			initSteps, initVisits, err := cfg.BenchmarkInit(config, benchmarkShell)
 			if err != nil {
 				return fmt.Errorf("init benchmark failed for shell %s: %w", benchmarkShell, err)
 			}
@@ -445,6 +447,18 @@ func printBenchmark(out io.Writer, benchmarkShell string) error {
 				steps = append(steps, benchmarkStep{
 					name:     step.Name,
 					duration: step.Duration,
+				})
+			}
+			for _, visit := range initVisits {
+				section := string(visit.Section)
+				steps = append(steps, benchmarkStep{
+					name:     "init.visit." + section + ".duration",
+					duration: visit.Duration,
+				})
+				steps = append(steps, benchmarkStep{
+					name:     "init.visit." + section + ".count",
+					count:    visit.Count,
+					hasCount: true,
 				})
 			}
 
@@ -466,6 +480,10 @@ func printBenchmark(out io.Writer, benchmarkShell string) error {
 		fmt.Fprintln(out, "benchmark.validate_config=skipped")
 	}
 	for _, step := range steps {
+		if step.hasCount {
+			fmt.Fprintf(out, "benchmark.%s=%d\n", step.name, step.count)
+			continue
+		}
 		fmt.Fprintf(out, "benchmark.%s=%s\n", step.name, step.duration)
 	}
 	fmt.Fprintf(out, "benchmark.total=%s\n", total)
