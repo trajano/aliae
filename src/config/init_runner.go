@@ -59,6 +59,8 @@ func runInitWithObserver(configPath, sh string, observer InitObserver, options i
 		}
 	}
 
+	emitInitVisits(aliae, observer)
+
 	if err := runInitPhase(observer, InitPhaseAutoProgressOn, func() error {
 		shell.StartAutoProgress(aliae.autoProgressConfig())
 		return nil
@@ -134,4 +136,54 @@ func runInitWithObserver(configPath, sh string, observer InitObserver, options i
 	}
 
 	return result, nil
+}
+
+func emitInitVisits(aliae *Aliae, observer InitObserver) {
+	if observer == nil || aliae == nil {
+		return
+	}
+
+	WalkConfig(aliae, ConfigVisitorFuncs{
+		OnExtend: func(item *Extend) {
+			key := strings.TrimSpace(item.Path)
+			if key == "" {
+				key = strings.TrimSpace(item.Dir)
+			}
+			runInitVisit(observer, InitSectionExtend, key)
+		},
+		OnVar: func(item *Var) {
+			runInitVisit(observer, InitSectionVar, item.Name)
+		},
+		OnEnv: func(item *shell.Env) {
+			runInitVisit(observer, InitSectionEnv, item.Name)
+		},
+		OnPath: func(item *shell.Path) {
+			runInitVisit(observer, InitSectionPath, firstLine(string(item.Value)))
+		},
+		OnCDPath: func(item *shell.CDPath) {
+			runInitVisit(observer, InitSectionCDPath, firstLine(string(item.Value)))
+		},
+		OnAlias: func(item *shell.Alias) {
+			runInitVisit(observer, InitSectionAlias, item.Name)
+		},
+		OnLink: func(item *shell.Link) {
+			runInitVisit(observer, InitSectionLink, firstLine(string(item.Name)))
+		},
+		OnScript: func(item *shell.Script) {
+			runInitVisit(observer, InitSectionScript, firstLine(string(item.Value)))
+		},
+	})
+}
+
+func firstLine(value string) string {
+	trimmed := strings.TrimSpace(value)
+	if trimmed == "" {
+		return ""
+	}
+
+	if idx := strings.Index(trimmed, "\n"); idx >= 0 {
+		return strings.TrimSpace(trimmed[:idx])
+	}
+
+	return trimmed
 }

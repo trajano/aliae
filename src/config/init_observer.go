@@ -23,7 +23,22 @@ const (
 type InitObserver interface {
 	OnInitPhaseStart(phase InitPhase)
 	OnInitPhaseEnd(phase InitPhase, duration time.Duration, err error)
+	OnInitVisitStart(section InitSection, key string)
+	OnInitVisitEnd(section InitSection, key string, duration time.Duration)
 }
+
+type InitSection string
+
+const (
+	InitSectionExtend InitSection = "extends"
+	InitSectionVar    InitSection = "var"
+	InitSectionEnv    InitSection = "env"
+	InitSectionPath   InitSection = "path"
+	InitSectionCDPath InitSection = "cdpath"
+	InitSectionAlias  InitSection = "alias"
+	InitSectionLink   InitSection = "link"
+	InitSectionScript InitSection = "script"
+)
 
 func runInitPhase(observer InitObserver, phase InitPhase, run func() error) error {
 	if observer != nil {
@@ -38,4 +53,14 @@ func runInitPhase(observer InitObserver, phase InitPhase, run func() error) erro
 	}
 
 	return err
+}
+
+func runInitVisit(observer InitObserver, section InitSection, key string) {
+	if observer == nil {
+		return
+	}
+
+	observer.OnInitVisitStart(section, key)
+	start := time.Now()
+	observer.OnInitVisitEnd(section, key, time.Since(start))
 }

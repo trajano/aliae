@@ -50,3 +50,7 @@ func (o *initBenchmarkObserver) OnInitPhaseEnd(phase InitPhase, duration time.Du
 		Duration: duration,
 	})
 }
+
+func (o *initBenchmarkObserver) OnInitVisitStart(_ InitSection, _ string) {}
+
+func (o *initBenchmarkObserver) OnInitVisitEnd(_ InitSection, _ string, _ time.Duration) {}
