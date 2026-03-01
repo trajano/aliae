@@ -185,6 +185,21 @@ func (v progressValidationVisitor) Visit(aliae *Aliae, collector *validationColl
 	}
 }
 
+type extendsIfValidationVisitor struct{}
+
+func (v extendsIfValidationVisitor) Visit(aliae *Aliae, collector *validationCollector) {
+	if aliae == nil {
+		return
+	}
+
+	for i := range aliae.Extends {
+		item := aliae.Extends[i]
+		if err := item.If.Validate(); err != nil {
+			collector.add(fmt.Sprintf("extends.%d.if", i), fmt.Sprintf("extends[%d].if: %s", i, err))
+		}
+	}
+}
+
 type validationIndex struct {
 	aliasIndex  map[*shell.Alias]int
 	varIndex    map[*Var]int

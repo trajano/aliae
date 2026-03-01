@@ -213,20 +213,9 @@ func validateIfExpressions(aliae *Aliae, lineResolver *yamlLineResolver) error {
 }
 
 func validateExtendsIfExpressions(extends []Extend, lineResolver *yamlLineResolver) error {
-	validationErrors := make([]string, 0)
-	for i, item := range extends {
-		if err := item.If.Validate(); err != nil {
-			path := fmt.Sprintf("extends.%d.if", i)
-			validationErrors = append(validationErrors, lineResolver.annotate(path, fmt.Sprintf("extends[%d].if: %s", i, err)))
-		}
-	}
-
-	if len(validationErrors) == 0 {
-		return nil
-	}
-
-	slices.Sort(validationErrors)
-	return fmt.Errorf("config if expression validation failed:\n- %s", strings.Join(validationErrors, "\n- "))
+	collector := newValidationCollector(lineResolver)
+	extendsIfValidationVisitor{}.Visit(&Aliae{Extends: extends}, collector)
+	return collector.err("config if expression validation failed")
 }
 
 func renderResolvedYAML(aliae *Aliae) ([]byte, error) {
