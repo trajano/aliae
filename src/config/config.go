@@ -334,7 +334,7 @@ func validateScriptStateInYAML(data []byte) error {
 		return nil
 	}
 
-	seenStateFiles := make(map[string]int)
+	entries := make([]scriptStateEntry, 0, len(scriptNode.Content))
 	for i, item := range scriptNode.Content {
 		if item == nil || item.Kind != yamlv3.MappingNode {
 			continue
@@ -348,33 +348,23 @@ func validateScriptStateInYAML(data []byte) error {
 		fileNode := findMappingValue(stateNode, "file")
 		stateFile := ""
 		if fileNode != nil {
-			stateFile = strings.TrimSpace(fileNode.Value)
+			stateFile = fileNode.Value
 		}
-
-		if !aliaeState.IsValidFileName(stateFile) {
-			return fmt.Errorf("invalid script[%d].state.file: %q", i, stateFile)
-		}
-
-		if previousIndex, exists := seenStateFiles[stateFile]; exists {
-			return fmt.Errorf("invalid script[%d].state.file: duplicates script[%d].state.file", i, previousIndex)
-		}
-		seenStateFiles[stateFile] = i
 
 		runEveryNode := findMappingValue(stateNode, "runEvery")
-		if runEveryNode == nil || len(strings.TrimSpace(runEveryNode.Value)) == 0 {
-			continue
+		runEveryValue := ""
+		if runEveryNode != nil {
+			runEveryValue = runEveryNode.Value
 		}
 
-		runEvery, err := time.ParseDuration(strings.TrimSpace(runEveryNode.Value))
-		if err != nil {
-			return fmt.Errorf("invalid script[%d].state.runEvery: %q", i, runEveryNode.Value)
-		}
-		if runEvery <= 0 {
-			return fmt.Errorf("invalid script[%d].state.runEvery: must be greater than 0", i)
-		}
+		entries = append(entries, scriptStateEntry{
+			Index:    i,
+			File:     stateFile,
+			RunEvery: runEveryValue,
+		})
 	}
 
-	return nil
+	return validateScriptStateEntries(entries)
 }
 
 func findMappingValue(node *yamlv3.Node, key string) *yamlv3.Node {
@@ -397,45 +387,55 @@ func validateScriptStateRuntime(aliae *Aliae) error {
 	}
 
 	index := buildValidationIndex(aliae)
-	seenStateFiles := make(map[string]int)
-
-	var validationErr error
+	entries := make([]scriptStateEntry, 0, len(aliae.Scripts))
 	WalkConfig(aliae, ConfigVisitorFuncs{
 		OnScript: func(script *shell.Script) {
-			if validationErr != nil || len(script.State.File) == 0 {
+			if len(script.State.File) == 0 {
 				return
 			}
 
 			i := index.scriptIndex[script]
-			stateFile := strings.TrimSpace(string(script.State.File))
-			if !aliaeState.IsValidFileName(stateFile) {
-				validationErr = fmt.Errorf("invalid script[%d].state.file: %q", i, stateFile)
-				return
-			}
-
-			if previousIndex, exists := seenStateFiles[stateFile]; exists {
-				validationErr = fmt.Errorf("invalid script[%d].state.file: duplicates script[%d].state.file", i, previousIndex)
-				return
-			}
-			seenStateFiles[stateFile] = i
-
-			if len(strings.TrimSpace(script.State.RunEvery)) == 0 {
-				return
-			}
-
-			runEvery, err := time.ParseDuration(strings.TrimSpace(script.State.RunEvery))
-			if err != nil {
-				validationErr = fmt.Errorf("invalid script[%d].state.runEvery: %q", i, script.State.RunEvery)
-				return
-			}
-			if runEvery <= 0 {
-				validationErr = fmt.Errorf("invalid script[%d].state.runEvery: must be greater than 0", i)
-			}
+			entries = append(entries, scriptStateEntry{
+				Index:    i,
+				File:     string(script.State.File),
+				RunEvery: script.State.RunEvery,
+			})
 		},
 	})
 
-	if validationErr != nil {
-		return validationErr
+	return validateScriptStateEntries(entries)
+}
+
+type scriptStateEntry struct {
+	File     string
+	RunEvery string
+	Index    int
+}
+
+func validateScriptStateEntries(entries []scriptStateEntry) error {
+	seenStateFiles := make(map[string]int)
+	for _, entry := range entries {
+		stateFile := strings.TrimSpace(entry.File)
+		if !aliaeState.IsValidFileName(stateFile) {
+			return fmt.Errorf("invalid script[%d].state.file: %q", entry.Index, stateFile)
+		}
+
+		if previousIndex, exists := seenStateFiles[stateFile]; exists {
+			return fmt.Errorf("invalid script[%d].state.file: duplicates script[%d].state.file", entry.Index, previousIndex)
+		}
+		seenStateFiles[stateFile] = entry.Index
+
+		if len(strings.TrimSpace(entry.RunEvery)) == 0 {
+			continue
+		}
+
+		runEvery, err := time.ParseDuration(strings.TrimSpace(entry.RunEvery))
+		if err != nil {
+			return fmt.Errorf("invalid script[%d].state.runEvery: %q", entry.Index, entry.RunEvery)
+		}
+		if runEvery <= 0 {
+			return fmt.Errorf("invalid script[%d].state.runEvery: must be greater than 0", entry.Index)
+		}
 	}
 
 	return nil
