@@ -372,6 +372,23 @@ func isSupportedBenchmarkShell(shellName string) bool {
 	}
 }
 
+const (
+	benchmarkKeyPrefix              = "benchmark."
+	benchmarkKeyShell               = benchmarkKeyPrefix + "shell"
+	benchmarkKeyCacheUsed           = benchmarkKeyPrefix + "cache_used"
+	benchmarkKeyCygpath             = benchmarkKeyPrefix + "cygpath"
+	benchmarkKeyValidateConfig      = benchmarkKeyPrefix + "validate_config"
+	benchmarkKeyTotal               = benchmarkKeyPrefix + "total"
+	benchmarkStepLoadConfig         = "load_config"
+	benchmarkStepEvaluateVars       = "evaluate_vars"
+	benchmarkStepRenderConfig       = "render_config"
+	benchmarkStepValidateConfig     = "validate_config"
+	benchmarkStepGenerateInitPrefix = "generate_init_"
+	benchmarkStepInitVisitPrefix    = "init.visit."
+	benchmarkStepInitVisitDuration  = ".duration"
+	benchmarkStepInitVisitCount     = ".count"
+)
+
 func printBenchmark(out io.Writer, benchmarkShell string) error {
 	cfg.SetCacheBypass(benchmarkNoCache)
 	defer cfg.SetCacheBypass(false)
@@ -399,7 +416,7 @@ func printBenchmark(out io.Writer, benchmarkShell string) error {
 	cacheUsed := false
 	cygpathMode := context.CygpathInternal
 
-	if err := record("load_config", func() error {
+	if err := record(benchmarkStepLoadConfig, func() error {
 		var err error
 		aliae, err = cfg.LoadConfigWithoutVars(config)
 		cacheUsed = cfg.LastLoadUsedCache()
@@ -409,13 +426,13 @@ func printBenchmark(out io.Writer, benchmarkShell string) error {
 		return err
 	}
 
-	if err := record("evaluate_vars", func() error {
+	if err := record(benchmarkStepEvaluateVars, func() error {
 		return aliae.ComputeVars()
 	}); err != nil {
 		return err
 	}
 
-	if err := record("render_config", func() error {
+	if err := record(benchmarkStepRenderConfig, func() error {
 		_, err := renderResolvedConfigYAML(config)
 		return err
 	}); err != nil {
@@ -425,7 +442,7 @@ func printBenchmark(out io.Writer, benchmarkShell string) error {
 	validateSkipped := true
 	if benchmarkNoCache {
 		validateSkipped = false
-		if err := record("validate_config", func() error {
+		if err := record(benchmarkStepValidateConfig, func() error {
 			return cfg.ValidateConfig(config)
 		}); err != nil {
 			return err
@@ -433,7 +450,7 @@ func printBenchmark(out io.Writer, benchmarkShell string) error {
 	}
 
 	if len(benchmarkShell) > 0 {
-		stepName := "generate_init_" + benchmarkShell
+		stepName := benchmarkStepGenerateInitPrefix + benchmarkShell
 		if err := record(stepName, func() error {
 			cfg.SetInitProgressWriter(io.Discard)
 			defer cfg.SetInitProgressWriter(os.Stderr)
@@ -452,11 +469,11 @@ func printBenchmark(out io.Writer, benchmarkShell string) error {
 			for _, visit := range initVisits {
 				section := string(visit.Section)
 				steps = append(steps, benchmarkStep{
-					name:     "init.visit." + section + ".duration",
+					name:     benchmarkStepInitVisitPrefix + section + benchmarkStepInitVisitDuration,
 					duration: visit.Duration,
 				})
 				steps = append(steps, benchmarkStep{
-					name:     "init.visit." + section + ".count",
+					name:     benchmarkStepInitVisitPrefix + section + benchmarkStepInitVisitCount,
 					count:    visit.Count,
 					hasCount: true,
 				})
@@ -472,21 +489,21 @@ func printBenchmark(out io.Writer, benchmarkShell string) error {
 
 	fmt.Fprintln(out, "aliae get benchmark")
 	if len(benchmarkShell) > 0 {
-		fmt.Fprintf(out, "benchmark.shell=%s\n", benchmarkShell)
+		fmt.Fprintf(out, "%s=%s\n", benchmarkKeyShell, benchmarkShell)
 	}
-	fmt.Fprintf(out, "benchmark.cache_used=%t\n", cacheUsed)
-	fmt.Fprintf(out, "benchmark.cygpath=%s\n", cygpathMode)
+	fmt.Fprintf(out, "%s=%t\n", benchmarkKeyCacheUsed, cacheUsed)
+	fmt.Fprintf(out, "%s=%s\n", benchmarkKeyCygpath, cygpathMode)
 	if validateSkipped {
-		fmt.Fprintln(out, "benchmark.validate_config=skipped")
+		fmt.Fprintf(out, "%s=skipped\n", benchmarkKeyValidateConfig)
 	}
 	for _, step := range steps {
 		if step.hasCount {
-			fmt.Fprintf(out, "benchmark.%s=%d\n", step.name, step.count)
+			fmt.Fprintf(out, "%s%s=%d\n", benchmarkKeyPrefix, step.name, step.count)
 			continue
 		}
-		fmt.Fprintf(out, "benchmark.%s=%s\n", step.name, step.duration)
+		fmt.Fprintf(out, "%s%s=%s\n", benchmarkKeyPrefix, step.name, step.duration)
 	}
-	fmt.Fprintf(out, "benchmark.total=%s\n", total)
+	fmt.Fprintf(out, "%s=%s\n", benchmarkKeyTotal, total)
 
 	return nil
 }
