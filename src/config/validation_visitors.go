@@ -35,10 +35,6 @@ func (c *validationCollector) err(prefix string) error {
 	return fmt.Errorf("%s:\n- %s", prefix, strings.Join(c.errors, "\n- "))
 }
 
-type configValidationVisitor interface {
-	Visit(*Aliae, *validationCollector)
-}
-
 type ifExpressionValidationVisitor struct{}
 
 func (v ifExpressionValidationVisitor) Visit(aliae *Aliae, collector *validationCollector) {
