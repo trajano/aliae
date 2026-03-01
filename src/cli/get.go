@@ -383,6 +383,7 @@ func printBenchmark(out io.Writer, benchmarkShell string) error {
 
 	steps := make([]benchmarkStep, 0, 4)
 	record := func(name string, run func() error) error {
+		shell.ResetTemplateCaches()
 		start := time.Now()
 		if err := run(); err != nil {
 			return err
