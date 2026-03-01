@@ -17,7 +17,7 @@ import (
 
 const maxExtendsDepth = 10
 
-type extendsItem struct {
+type Extend struct {
 	FailOnMissing *bool    `yaml:"failOnMissing"`
 	Path          string   `yaml:"path"`
 	Dir           string   `yaml:"dir"`
@@ -25,24 +25,24 @@ type extendsItem struct {
 	Recursive     bool     `yaml:"recursive"`
 }
 
-func (e *extendsItem) UnmarshalYAML(data []byte) error {
+func (e *Extend) UnmarshalYAML(data []byte) error {
 	var path string
 	if err := yaml.Unmarshal(data, &path); err == nil {
 		e.Path = path
 		return nil
 	}
 
-	type rawExtendsItem extendsItem
-	var raw rawExtendsItem
+	type rawExtend Extend
+	var raw rawExtend
 	if err := yaml.Unmarshal(data, &raw); err != nil {
 		return err
 	}
 
-	*e = extendsItem(raw)
+	*e = Extend(raw)
 	return nil
 }
 
-func (e extendsItem) shouldFailOnMissing() bool {
+func (e Extend) shouldFailOnMissing() bool {
 	return e.FailOnMissing == nil || *e.FailOnMissing
 }
 
@@ -170,9 +170,9 @@ func decodeAliae(data []byte) (*Aliae, error) {
 	return &aliae, nil
 }
 
-func parseExtends(data []byte) ([]extendsItem, error) {
+func parseExtends(data []byte) ([]Extend, error) {
 	var doc struct {
-		Extends []extendsItem `yaml:"extends"`
+		Extends []Extend `yaml:"extends"`
 	}
 
 	if err := yaml.Unmarshal(data, &doc); err != nil {
@@ -182,7 +182,7 @@ func parseExtends(data []byte) ([]extendsItem, error) {
 	return doc.Extends, nil
 }
 
-func resolveExtendsPaths(item extendsItem, configPath string) ([]string, error) {
+func resolveExtendsPaths(item Extend, configPath string) ([]string, error) {
 	hasPath := len(strings.TrimSpace(item.Path)) > 0
 	hasDir := len(strings.TrimSpace(item.Dir)) > 0
 
@@ -289,6 +289,7 @@ func (a *Aliae) merge(other *Aliae) {
 	}
 
 	a.Aliae = append(a.Aliae, other.Aliae...)
+	a.Extends = append(a.Extends, other.Extends...)
 	a.Vars = append(a.Vars, other.Vars...)
 	a.Envs = append(a.Envs, other.Envs...)
 	a.Paths = append(a.Paths, other.Paths...)
@@ -318,54 +319,29 @@ func applyExtendsCondition(aliae *Aliae, condition shell.If) *Aliae {
 		return aliae
 	}
 
-	for _, alias := range aliae.Aliae {
-		if alias == nil {
-			continue
-		}
-		alias.If = andIf(alias.If, condition)
-	}
-
-	for _, variable := range aliae.Vars {
-		if variable == nil {
-			continue
-		}
-		variable.If = andIf(variable.If, condition)
-	}
-
-	for _, env := range aliae.Envs {
-		if env == nil {
-			continue
-		}
-		env.If = andIf(env.If, condition)
-	}
-
-	for _, path := range aliae.Paths {
-		if path == nil {
-			continue
-		}
-		path.If = andIf(path.If, condition)
-	}
-
-	for _, cdpath := range aliae.CDPaths {
-		if cdpath == nil {
-			continue
-		}
-		cdpath.If = andIf(cdpath.If, condition)
-	}
-
-	for _, script := range aliae.Scripts {
-		if script == nil {
-			continue
-		}
-		script.If = andIf(script.If, condition)
-	}
-
-	for _, link := range aliae.Links {
-		if link == nil {
-			continue
-		}
-		link.If = andIf(link.If, condition)
-	}
+	WalkConfig(aliae, ConfigVisitorFuncs{
+		OnAlias: func(alias *shell.Alias) {
+			alias.If = andIf(alias.If, condition)
+		},
+		OnVar: func(variable *Var) {
+			variable.If = andIf(variable.If, condition)
+		},
+		OnEnv: func(env *shell.Env) {
+			env.If = andIf(env.If, condition)
+		},
+		OnPath: func(path *shell.Path) {
+			path.If = andIf(path.If, condition)
+		},
+		OnCDPath: func(cdpath *shell.CDPath) {
+			cdpath.If = andIf(cdpath.If, condition)
+		},
+		OnScript: func(script *shell.Script) {
+			script.If = andIf(script.If, condition)
+		},
+		OnLink: func(link *shell.Link) {
+			link.If = andIf(link.If, condition)
+		},
+	})
 
 	return aliae
 }

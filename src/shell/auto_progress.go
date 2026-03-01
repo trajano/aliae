@@ -38,6 +38,10 @@ func StartAutoProgress(cfg AutoProgressConfig) {
 	writeAutoProgress(int(math.Floor(cfg.StartPercentage)))
 }
 
+func AdvanceAutoProgress(weight float64) {
+	advanceAutoProgress(weight)
+}
+
 func advanceAutoProgress(weight float64) {
 	if autoProgress == nil {
 		return

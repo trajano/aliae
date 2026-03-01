@@ -1,11 +1,7 @@
 package config
 
 import (
-	"strings"
 	"time"
-
-	"github.com/jandedobbeleer/aliae/src/context"
-	"github.com/jandedobbeleer/aliae/src/shell"
 )
 
 type InitBenchmarkStep struct {
@@ -13,119 +9,26 @@ type InitBenchmarkStep struct {
 	Duration time.Duration
 }
 
-func BenchmarkInit(configPath, sh string) ([]InitBenchmarkStep, error) {
-	steps := make([]InitBenchmarkStep, 0, 12)
-	record := func(name string, run func() error) error {
-		start := time.Now()
-		if err := run(); err != nil {
-			return err
-		}
-		steps = append(steps, InitBenchmarkStep{
-			Name:     name,
-			Duration: time.Since(start),
-		})
-		return nil
+type InitVisitBenchmark struct {
+	Section  InitSection
+	Count    int
+	Duration time.Duration
+}
+
+func BenchmarkInit(configPath, sh string) ([]InitBenchmarkStep, []InitVisitBenchmark, error) {
+	observer := &initBenchmarkObserver{
+		steps: make([]InitBenchmarkStep, 0, 12),
+		visit: map[InitSection]InitVisitBenchmark{},
 	}
 
-	shell.DotFile.Reset()
-	defer shell.DotFile.Reset()
-
-	var aliae *Aliae
-	if err := record("init.context_init", func() error {
-		context.Init(sh)
-		return nil
+	if _, err := runInitWithObserver(configPath, sh, observer, initRunOptions{
+		computeVars: false,
+		primeState:  false,
 	}); err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
-	if err := record("init.load_config", func() error {
-		var err error
-		aliae, err = LoadConfigWithoutVars(configPath)
-		return err
-	}); err != nil {
-		return nil, err
-	}
-
-	if err := record("init.evaluate_vars", func() error {
-		return aliae.ComputeVars()
-	}); err != nil {
-		return nil, err
-	}
-
-	if err := record("init.state_prime", func() error {
-		_ = aliae.Scripts.PrimeState(time.Now())
-		return nil
-	}); err != nil {
-		return nil, err
-	}
-
-	if err := record("init.autoprogress_start", func() error {
-		shell.StartAutoProgress(aliae.autoProgressConfig())
-		return nil
-	}); err != nil {
-		return nil, err
-	}
-
-	if err := record("init.render_env", func() error {
-		aliae.Envs.Render()
-		return nil
-	}); err != nil {
-		return nil, err
-	}
-
-	if err := record("init.render_path", func() error {
-		aliae.Paths.Render()
-		return nil
-	}); err != nil {
-		return nil, err
-	}
-
-	if err := record("init.render_cdpath", func() error {
-		aliae.CDPaths.Render()
-		return nil
-	}); err != nil {
-		return nil, err
-	}
-
-	if err := record("init.render_alias", func() error {
-		aliae.Aliae.Render()
-		return nil
-	}); err != nil {
-		return nil, err
-	}
-
-	if err := record("init.render_link", func() error {
-		aliae.Links.Render()
-		return nil
-	}); err != nil {
-		return nil, err
-	}
-
-	if err := record("init.render_script", func() error {
-		aliae.Scripts.Render()
-		return nil
-	}); err != nil {
-		return nil, err
-	}
-
-	if err := record("init.autoprogress_end", func() error {
-		shell.EndAutoProgress()
-		return nil
-	}); err != nil {
-		return nil, err
-	}
-
-	if err := record("init.output_form", func() error {
-		result := shell.DotFile.String()
-		if strings.Contains(strings.ToLower(result), "aliae error:") {
-			return errInitFailed
-		}
-		return nil
-	}); err != nil {
-		return nil, err
-	}
-
-	return steps, nil
+	return observer.steps, observer.visitSummaries(), nil
 }
 
 var errInitFailed = &initBenchmarkError{message: "init benchmark failed"}
@@ -136,4 +39,46 @@ type initBenchmarkError struct {
 
 func (e *initBenchmarkError) Error() string {
 	return e.message
+}
+
+type initBenchmarkObserver struct {
+	visit map[InitSection]InitVisitBenchmark
+	steps []InitBenchmarkStep
+}
+
+func (o *initBenchmarkObserver) OnInitPhaseStart(_ InitPhase) {}
+
+func (o *initBenchmarkObserver) OnInitPhaseEnd(phase InitPhase, duration time.Duration, err error) {
+	if err != nil {
+		return
+	}
+
+	o.steps = append(o.steps, InitBenchmarkStep{
+		Name:     string(phase),
+		Duration: duration,
+	})
+}
+
+func (o *initBenchmarkObserver) OnInitVisitStart(_ InitSection, _ string) {}
+
+func (o *initBenchmarkObserver) OnInitVisitEnd(section InitSection, _ string, duration time.Duration) {
+	current := o.visit[section]
+	current.Section = section
+	current.Count++
+	current.Duration += duration
+	o.visit[section] = current
+}
+
+func (o *initBenchmarkObserver) visitSummaries() []InitVisitBenchmark {
+	sections := OrderedInitSections()
+	summaries := make([]InitVisitBenchmark, 0, len(sections))
+	for _, section := range sections {
+		item, ok := o.visit[section]
+		if !ok || item.Count == 0 {
+			continue
+		}
+		summaries = append(summaries, item)
+	}
+
+	return summaries
 }

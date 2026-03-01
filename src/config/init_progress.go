@@ -27,38 +27,50 @@ func (a *Aliae) progressTotalWeight() float64 {
 	}
 
 	total := 0.0
-
-	for _, alias := range a.Aliae {
-		if alias == nil || alias.If.Ignore() {
-			continue
-		}
-
-		total += 1
-	}
-
-	for _, env := range a.Envs {
-		if env == nil || env.If.Ignore() {
-			continue
-		}
-
-		total += 1
-	}
-
-	for _, path := range a.Paths {
-		if path == nil || path.If.Ignore() {
-			continue
-		}
-
-		total += 1
-	}
-
-	for _, script := range a.Scripts {
-		if script == nil || script.If.Ignore() {
-			continue
-		}
-
-		total += scriptWeight(script)
-	}
+	WalkConfig(a, ConfigVisitorFuncs{
+		OnVar: func(variable *Var) {
+			if variable.If.Ignore() {
+				return
+			}
+			total += 1
+		},
+		OnAlias: func(alias *shell.Alias) {
+			if alias.If.Ignore() {
+				return
+			}
+			total += 1
+		},
+		OnEnv: func(env *shell.Env) {
+			if env.If.Ignore() {
+				return
+			}
+			total += 1
+		},
+		OnPath: func(path *shell.Path) {
+			if path.If.Ignore() {
+				return
+			}
+			total += 1
+		},
+		OnCDPath: func(cdpath *shell.CDPath) {
+			if cdpath.If.Ignore() {
+				return
+			}
+			total += 1
+		},
+		OnLink: func(link *shell.Link) {
+			if link.If.Ignore() {
+				return
+			}
+			total += 1
+		},
+		OnScript: func(script *shell.Script) {
+			if script.If.Ignore() {
+				return
+			}
+			total += scriptWeight(script)
+		},
+	})
 
 	return total
 }
@@ -69,4 +81,20 @@ func scriptWeight(script *shell.Script) float64 {
 	}
 
 	return script.Weight
+}
+
+func (a *Aliae) progressVarWeight() float64 {
+	if a == nil {
+		return 0
+	}
+
+	total := 0.0
+	for _, variable := range a.Vars {
+		if variable == nil || variable.If.Ignore() {
+			continue
+		}
+		total += 1
+	}
+
+	return total
 }

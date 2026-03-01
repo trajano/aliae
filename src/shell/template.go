@@ -240,6 +240,12 @@ func clearHasCommandCache() {
 	hasCommandCache = map[string]bool{}
 }
 
+// ResetTemplateCaches clears in-memory caches used by template helper functions.
+func ResetTemplateCaches() {
+	clearHasCommandCache()
+	clearPathExistsCache()
+}
+
 func executableExtension() string {
 	if runtime.GOOS == context.WINDOWS {
 		return ".cmd"

@@ -113,6 +113,7 @@ func (p CDPaths) Render() {
 
 		script := entry.string()
 		if len(script) == 0 {
+			advanceAutoProgress(1)
 			continue
 		}
 
@@ -128,6 +129,7 @@ func (p CDPaths) Render() {
 
 		first = false
 		rendered = true
+		advanceAutoProgress(1)
 	}
 
 	// Some shells stop treating the current directory as an implicit fallback

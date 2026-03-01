@@ -8,10 +8,8 @@ import (
 	"slices"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/goccy/go-yaml"
-	aliaeState "github.com/jandedobbeleer/aliae/src/state"
 	"github.com/xeipuuv/gojsonschema"
 	yamlv3 "gopkg.in/yaml.v3"
 )
@@ -41,7 +39,7 @@ func ValidateConfig(configPath string) error {
 
 	result, err := gojsonschema.Validate(
 		gojsonschema.NewBytesLoader(configSchema),
-		gojsonschema.NewGoLoader(schemaDocument(aliae)),
+		gojsonschema.NewGoLoader(buildSchemaDocument(aliae)),
 	)
 	if err != nil {
 		return err
@@ -209,104 +207,15 @@ func validateSchemaBytes(data []byte, source string) error {
 }
 
 func validateIfExpressions(aliae *Aliae, lineResolver *yamlLineResolver) error {
-	if aliae == nil {
-		return nil
-	}
-
-	validationErrors := make([]string, 0)
-	for i, alias := range aliae.Aliae {
-		if alias == nil {
-			continue
-		}
-		if err := alias.If.Validate(); err != nil {
-			path := fmt.Sprintf("alias.%d.if", i)
-			validationErrors = append(validationErrors, lineResolver.annotate(path, fmt.Sprintf("alias[%d].if: %s", i, err)))
-		}
-	}
-
-	for i, variable := range aliae.Vars {
-		if variable == nil {
-			continue
-		}
-		if err := variable.If.Validate(); err != nil {
-			path := fmt.Sprintf("var.%d.if", i)
-			validationErrors = append(validationErrors, lineResolver.annotate(path, fmt.Sprintf("var[%d].if: %s", i, err)))
-		}
-	}
-
-	for i, env := range aliae.Envs {
-		if env == nil {
-			continue
-		}
-		if err := env.If.Validate(); err != nil {
-			path := fmt.Sprintf("env.%d.if", i)
-			validationErrors = append(validationErrors, lineResolver.annotate(path, fmt.Sprintf("env[%d].if: %s", i, err)))
-		}
-	}
-
-	for i, path := range aliae.Paths {
-		if path == nil {
-			continue
-		}
-		if err := path.If.Validate(); err != nil {
-			pathField := fmt.Sprintf("path.%d.if", i)
-			validationErrors = append(validationErrors, lineResolver.annotate(pathField, fmt.Sprintf("path[%d].if: %s", i, err)))
-		}
-	}
-
-	for i, path := range aliae.CDPaths {
-		if path == nil {
-			continue
-		}
-		if err := path.If.Validate(); err != nil {
-			pathField := fmt.Sprintf("cdpath.%d.if", i)
-			validationErrors = append(validationErrors, lineResolver.annotate(pathField, fmt.Sprintf("cdpath[%d].if: %s", i, err)))
-		}
-	}
-
-	for i, script := range aliae.Scripts {
-		if script == nil {
-			continue
-		}
-		if err := script.If.Validate(); err != nil {
-			path := fmt.Sprintf("script.%d.if", i)
-			validationErrors = append(validationErrors, lineResolver.annotate(path, fmt.Sprintf("script[%d].if: %s", i, err)))
-		}
-	}
-
-	for i, link := range aliae.Links {
-		if link == nil {
-			continue
-		}
-		if err := link.If.Validate(); err != nil {
-			path := fmt.Sprintf("link.%d.if", i)
-			validationErrors = append(validationErrors, lineResolver.annotate(path, fmt.Sprintf("link[%d].if: %s", i, err)))
-		}
-	}
-
-	if len(validationErrors) == 0 {
-		return nil
-	}
-
-	slices.Sort(validationErrors)
-	return fmt.Errorf("config if expression validation failed:\n- %s", strings.Join(validationErrors, "\n- "))
+	collector := newValidationCollector(lineResolver)
+	ifExpressionValidationVisitor{}.Visit(aliae, collector)
+	return collector.err("config if expression validation failed")
 }
 
-func validateExtendsIfExpressions(extends []extendsItem, lineResolver *yamlLineResolver) error {
-	validationErrors := make([]string, 0)
-	for i, item := range extends {
-		if err := item.If.Validate(); err != nil {
-			path := fmt.Sprintf("extends.%d.if", i)
-			validationErrors = append(validationErrors, lineResolver.annotate(path, fmt.Sprintf("extends[%d].if: %s", i, err)))
-		}
-	}
-
-	if len(validationErrors) == 0 {
-		return nil
-	}
-
-	slices.Sort(validationErrors)
-	return fmt.Errorf("config if expression validation failed:\n- %s", strings.Join(validationErrors, "\n- "))
+func validateExtendsIfExpressions(extends []Extend, lineResolver *yamlLineResolver) error {
+	collector := newValidationCollector(lineResolver)
+	extendsIfValidationVisitor{}.Visit(&Aliae{Extends: extends}, collector)
+	return collector.err("config if expression validation failed")
 }
 
 func renderResolvedYAML(aliae *Aliae) ([]byte, error) {
@@ -411,221 +320,6 @@ func findYAMLNode(root *yamlv3.Node, path string) *yamlv3.Node {
 	return current
 }
 
-func schemaDocument(aliae *Aliae) map[string]any {
-	document := make(map[string]any)
-	if aliae == nil {
-		return document
-	}
-
-	if aliases := aliasSchemaItems(aliae); len(aliases) > 0 {
-		document["alias"] = aliases
-	}
-
-	if vars := varSchemaItems(aliae); len(vars) > 0 {
-		document["var"] = vars
-	}
-
-	if envs := envSchemaItems(aliae); len(envs) > 0 {
-		document["env"] = envs
-	}
-
-	if paths := pathSchemaItems(aliae); len(paths) > 0 {
-		document["path"] = paths
-	}
-
-	if paths := cdpathSchemaItems(aliae); len(paths) > 0 {
-		document["cdpath"] = paths
-	}
-
-	if scripts := scriptSchemaItems(aliae); len(scripts) > 0 {
-		document["script"] = scripts
-	}
-
-	if links := linkSchemaItems(aliae); len(links) > 0 {
-		document["link"] = links
-	}
-
-	if progress, ok := progressSchemaItem(aliae); ok {
-		document["progress"] = progress
-	}
-
-	if aliae.StatTimeout > 0 {
-		document["stat_timeout"] = aliae.StatTimeout.String()
-	}
-
-	if len(strings.TrimSpace(aliae.Cygpath)) > 0 {
-		document["cygpath"] = aliae.Cygpath
-	}
-
-	if aliae.Cache {
-		document["cache"] = true
-	}
-
-	return document
-}
-
-func varSchemaItems(aliae *Aliae) []map[string]any {
-	vars := make([]map[string]any, 0, len(aliae.Vars))
-	for _, variable := range aliae.Vars {
-		if variable == nil {
-			continue
-		}
-
-		item := map[string]any{
-			"name":  variable.Name,
-			"value": string(variable.Value),
-		}
-		if len(variable.If) > 0 {
-			item["if"] = string(variable.If)
-		}
-		vars = append(vars, item)
-	}
-	return vars
-}
-
-func aliasSchemaItems(aliae *Aliae) []map[string]any {
-	aliases := make([]map[string]any, 0, len(aliae.Aliae))
-	for _, alias := range aliae.Aliae {
-		if alias == nil {
-			continue
-		}
-
-		item := map[string]any{
-			"name":  alias.Name,
-			"value": string(alias.Value),
-		}
-		if len(alias.Type) > 0 {
-			item["type"] = string(alias.Type)
-		}
-		if len(alias.If) > 0 {
-			item["if"] = string(alias.If)
-		}
-		aliases = append(aliases, item)
-	}
-	return aliases
-}
-
-func envSchemaItems(aliae *Aliae) []map[string]any {
-	envs := make([]map[string]any, 0, len(aliae.Envs))
-	for _, env := range aliae.Envs {
-		if env == nil {
-			continue
-		}
-
-		item := map[string]any{
-			"name":  env.Name,
-			"value": env.Value,
-		}
-		if len(env.Delimiter) > 0 {
-			item["delimiter"] = string(env.Delimiter)
-		}
-		if len(env.If) > 0 {
-			item["if"] = string(env.If)
-		}
-		if len(env.Type) > 0 {
-			item["type"] = string(env.Type)
-		}
-		if env.IsPath {
-			item["isPath"] = true
-		}
-		if env.IfExists {
-			item["ifExists"] = true
-		}
-		if env.Persist {
-			item["persist"] = true
-		}
-		envs = append(envs, item)
-	}
-	return envs
-}
-
-func pathSchemaItems(aliae *Aliae) []map[string]any {
-	paths := make([]map[string]any, 0, len(aliae.Paths))
-	for _, path := range aliae.Paths {
-		if path == nil {
-			continue
-		}
-
-		item := map[string]any{
-			"value": string(path.Value),
-		}
-		if len(path.If) > 0 {
-			item["if"] = string(path.If)
-		}
-		if path.Persist {
-			item["persist"] = true
-		}
-		if path.Force {
-			item["force"] = true
-		}
-		if path.IfExists {
-			item["ifExists"] = true
-		}
-		paths = append(paths, item)
-	}
-	return paths
-}
-
-func cdpathSchemaItems(aliae *Aliae) []map[string]any {
-	paths := make([]map[string]any, 0, len(aliae.CDPaths))
-	for _, path := range aliae.CDPaths {
-		if path == nil {
-			continue
-		}
-
-		item := map[string]any{
-			"value": string(path.Value),
-		}
-		if len(path.If) > 0 {
-			item["if"] = string(path.If)
-		}
-		if path.Force {
-			item["force"] = true
-		}
-		if path.IfExists {
-			item["ifExists"] = true
-		}
-		paths = append(paths, item)
-	}
-	return paths
-}
-
-func scriptSchemaItems(aliae *Aliae) []map[string]any {
-	scripts := make([]map[string]any, 0, len(aliae.Scripts))
-	for _, script := range aliae.Scripts {
-		if script == nil {
-			continue
-		}
-
-		item := map[string]any{
-			"value": string(script.Value),
-		}
-		if len(script.Type) > 0 {
-			item["type"] = string(script.Type)
-		}
-		if len(script.If) > 0 {
-			item["if"] = string(script.If)
-		}
-		if script.Weight > 0 {
-			item["weight"] = script.Weight
-		}
-		if len(script.State.File) > 0 {
-			state := map[string]any{
-				"file": string(script.State.File),
-			}
-			if len(script.State.RunEvery) > 0 {
-				state["runEvery"] = script.State.RunEvery
-			}
-			if len(script.State.Format) > 0 {
-				state["format"] = string(script.State.Format)
-			}
-			item["state"] = state
-		}
-		scripts = append(scripts, item)
-	}
-	return scripts
-}
-
 func progressSchemaItem(aliae *Aliae) (map[string]any, bool) {
 	if aliae == nil || !aliae.Progress.Enabled {
 		return nil, false
@@ -644,161 +338,19 @@ func progressSchemaItem(aliae *Aliae) (map[string]any, bool) {
 }
 
 func validateProgress(aliae *Aliae, lineResolver *yamlLineResolver) error {
-	if aliae == nil || !aliae.Progress.Enabled {
-		return nil
-	}
-
-	start := aliae.Progress.StartPercentage
-	internal := aliae.Progress.Internal
-	effectiveStart := start + internal
-	end := aliae.Progress.EndPercentage.Value
-
-	validationErrors := make([]string, 0, 5)
-	if start < 0 || start > 100 {
-		validationErrors = append(
-			validationErrors,
-			lineResolver.annotate("progress.start_percentage", "progress.start_percentage must be between 0 and 100"),
-		)
-	}
-
-	if internal < 0 || internal > 100 {
-		validationErrors = append(
-			validationErrors,
-			lineResolver.annotate("progress.internal", "progress.internal must be between 0 and 100"),
-		)
-	}
-
-	if effectiveStart > 100 {
-		validationErrors = append(
-			validationErrors,
-			lineResolver.annotate("progress.internal", "progress.start_percentage + progress.internal must be less than or equal to 100"),
-		)
-	}
-
-	if end < 0 || end > 100 {
-		validationErrors = append(
-			validationErrors,
-			lineResolver.annotate("progress.end_percentage", "progress.end_percentage must be between 0 and 100"),
-		)
-	}
-
-	if !aliae.Progress.EndPercentage.Reset && end <= effectiveStart {
-		validationErrors = append(
-			validationErrors,
-			lineResolver.annotate("progress.end_percentage", "progress.end_percentage must be greater than progress.start_percentage + progress.internal"),
-		)
-	}
-
-	if len(validationErrors) == 0 {
-		return nil
-	}
-
-	slices.Sort(validationErrors)
-	return fmt.Errorf("config progress validation failed:\n- %s", strings.Join(validationErrors, "\n- "))
+	collector := newValidationCollector(lineResolver)
+	progressValidationVisitor{}.Visit(aliae, collector)
+	return collector.err("config progress validation failed")
 }
 
 func validateScriptWeights(aliae *Aliae, lineResolver *yamlLineResolver) error {
-	if aliae == nil {
-		return nil
-	}
-
-	validationErrors := make([]string, 0)
-	for i, script := range aliae.Scripts {
-		if script == nil || script.Weight == 0 {
-			continue
-		}
-
-		if script.Weight < 0 {
-			path := fmt.Sprintf("script.%d.weight", i)
-			validationErrors = append(
-				validationErrors,
-				lineResolver.annotate(path, fmt.Sprintf("script[%d].weight must be greater than 0", i)),
-			)
-		}
-	}
-
-	if len(validationErrors) == 0 {
-		return nil
-	}
-
-	slices.Sort(validationErrors)
-	return fmt.Errorf("config script validation failed:\n- %s", strings.Join(validationErrors, "\n- "))
+	collector := newValidationCollector(lineResolver)
+	scriptWeightValidationVisitor{}.Visit(aliae, collector)
+	return collector.err("config script validation failed")
 }
 
 func validateScriptStates(aliae *Aliae, lineResolver *yamlLineResolver) error {
-	if aliae == nil {
-		return nil
-	}
-
-	validationErrors := make([]string, 0)
-	seenStateFiles := make(map[string]int)
-
-	for i, script := range aliae.Scripts {
-		if script == nil || len(script.State.File) == 0 {
-			continue
-		}
-
-		stateFile := strings.TrimSpace(string(script.State.File))
-		filePath := fmt.Sprintf("script.%d.state.file", i)
-		if !aliaeState.IsValidFileName(stateFile) {
-			validationErrors = append(
-				validationErrors,
-				lineResolver.annotate(filePath, fmt.Sprintf("script[%d].state.file must be a file name only (no path separators)", i)),
-			)
-		}
-
-		if previousIndex, exists := seenStateFiles[stateFile]; exists {
-			validationErrors = append(
-				validationErrors,
-				lineResolver.annotate(filePath, fmt.Sprintf("script[%d].state.file duplicates script[%d].state.file", i, previousIndex)),
-			)
-		} else {
-			seenStateFiles[stateFile] = i
-		}
-
-		if len(script.State.RunEvery) > 0 {
-			runEveryPath := fmt.Sprintf("script.%d.state.runEvery", i)
-			runEvery, err := time.ParseDuration(strings.TrimSpace(script.State.RunEvery))
-			if err != nil {
-				validationErrors = append(
-					validationErrors,
-					lineResolver.annotate(runEveryPath, fmt.Sprintf("script[%d].state.runEvery must be a valid duration", i)),
-				)
-			} else if runEvery <= 0 {
-				validationErrors = append(
-					validationErrors,
-					lineResolver.annotate(runEveryPath, fmt.Sprintf("script[%d].state.runEvery must be greater than 0", i)),
-				)
-			}
-		}
-	}
-
-	if len(validationErrors) == 0 {
-		return nil
-	}
-
-	slices.Sort(validationErrors)
-	return fmt.Errorf("config script state validation failed:\n- %s", strings.Join(validationErrors, "\n- "))
-}
-
-func linkSchemaItems(aliae *Aliae) []map[string]any {
-	links := make([]map[string]any, 0, len(aliae.Links))
-	for _, link := range aliae.Links {
-		if link == nil {
-			continue
-		}
-
-		item := map[string]any{
-			"name":   string(link.Name),
-			"target": string(link.Target),
-		}
-		if len(link.If) > 0 {
-			item["if"] = string(link.If)
-		}
-		if link.MkDir {
-			item["mkdir"] = true
-		}
-		links = append(links, item)
-	}
-	return links
+	collector := newValidationCollector(lineResolver)
+	scriptStateValidationVisitor{}.Visit(aliae, collector)
+	return collector.err("config script state validation failed")
 }
