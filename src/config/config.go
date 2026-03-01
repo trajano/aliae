@@ -396,33 +396,46 @@ func validateScriptStateRuntime(aliae *Aliae) error {
 		return nil
 	}
 
+	index := buildValidationIndex(aliae)
 	seenStateFiles := make(map[string]int)
-	for i, script := range aliae.Scripts {
-		if script == nil || len(script.State.File) == 0 {
-			continue
-		}
 
-		stateFile := strings.TrimSpace(string(script.State.File))
-		if !aliaeState.IsValidFileName(stateFile) {
-			return fmt.Errorf("invalid script[%d].state.file: %q", i, stateFile)
-		}
+	var validationErr error
+	WalkConfig(aliae, ConfigVisitorFuncs{
+		OnScript: func(script *shell.Script) {
+			if validationErr != nil || len(script.State.File) == 0 {
+				return
+			}
 
-		if previousIndex, exists := seenStateFiles[stateFile]; exists {
-			return fmt.Errorf("invalid script[%d].state.file: duplicates script[%d].state.file", i, previousIndex)
-		}
-		seenStateFiles[stateFile] = i
+			i := index.scriptIndex[script]
+			stateFile := strings.TrimSpace(string(script.State.File))
+			if !aliaeState.IsValidFileName(stateFile) {
+				validationErr = fmt.Errorf("invalid script[%d].state.file: %q", i, stateFile)
+				return
+			}
 
-		if len(strings.TrimSpace(script.State.RunEvery)) == 0 {
-			continue
-		}
+			if previousIndex, exists := seenStateFiles[stateFile]; exists {
+				validationErr = fmt.Errorf("invalid script[%d].state.file: duplicates script[%d].state.file", i, previousIndex)
+				return
+			}
+			seenStateFiles[stateFile] = i
 
-		runEvery, err := time.ParseDuration(strings.TrimSpace(script.State.RunEvery))
-		if err != nil {
-			return fmt.Errorf("invalid script[%d].state.runEvery: %q", i, script.State.RunEvery)
-		}
-		if runEvery <= 0 {
-			return fmt.Errorf("invalid script[%d].state.runEvery: must be greater than 0", i)
-		}
+			if len(strings.TrimSpace(script.State.RunEvery)) == 0 {
+				return
+			}
+
+			runEvery, err := time.ParseDuration(strings.TrimSpace(script.State.RunEvery))
+			if err != nil {
+				validationErr = fmt.Errorf("invalid script[%d].state.runEvery: %q", i, script.State.RunEvery)
+				return
+			}
+			if runEvery <= 0 {
+				validationErr = fmt.Errorf("invalid script[%d].state.runEvery: must be greater than 0", i)
+			}
+		},
+	})
+
+	if validationErr != nil {
+		return validationErr
 	}
 
 	return nil
