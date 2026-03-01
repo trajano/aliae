@@ -69,45 +69,7 @@ func runInitWithObserver(configPath, sh string, observer InitObserver, options i
 	}
 	shell.AdvanceAutoProgress(aliae.progressVarWeight())
 
-	if err := runInitPhase(observer, InitPhaseRenderEnv, func() error {
-		aliae.Envs.Render()
-		return nil
-	}); err != nil {
-		return "", err
-	}
-
-	if err := runInitPhase(observer, InitPhaseRenderPath, func() error {
-		aliae.Paths.Render()
-		return nil
-	}); err != nil {
-		return "", err
-	}
-
-	if err := runInitPhase(observer, InitPhaseRenderCDPath, func() error {
-		aliae.CDPaths.Render()
-		return nil
-	}); err != nil {
-		return "", err
-	}
-
-	if err := runInitPhase(observer, InitPhaseRenderAlias, func() error {
-		aliae.Aliae.Render()
-		return nil
-	}); err != nil {
-		return "", err
-	}
-
-	if err := runInitPhase(observer, InitPhaseRenderLink, func() error {
-		aliae.Links.Render()
-		return nil
-	}); err != nil {
-		return "", err
-	}
-
-	if err := runInitPhase(observer, InitPhaseRenderScript, func() error {
-		aliae.Scripts.Render()
-		return nil
-	}); err != nil {
+	if err := runInitRenderPhases(aliae, observer); err != nil {
 		return "", err
 	}
 
@@ -137,6 +99,32 @@ func runInitWithObserver(configPath, sh string, observer InitObserver, options i
 	}
 
 	return result, nil
+}
+
+func runInitRenderPhases(aliae *Aliae, observer InitObserver) error {
+	renderPhases := []struct {
+		run   func()
+		phase InitPhase
+	}{
+		{run: func() { aliae.Envs.Render() }, phase: InitPhaseRenderEnv},
+		{run: func() { aliae.Paths.Render() }, phase: InitPhaseRenderPath},
+		{run: func() { aliae.CDPaths.Render() }, phase: InitPhaseRenderCDPath},
+		{run: func() { aliae.Aliae.Render() }, phase: InitPhaseRenderAlias},
+		{run: func() { aliae.Links.Render() }, phase: InitPhaseRenderLink},
+		{run: func() { aliae.Scripts.Render() }, phase: InitPhaseRenderScript},
+	}
+
+	for _, phase := range renderPhases {
+		step := phase
+		if err := runInitPhase(observer, step.phase, func() error {
+			step.run()
+			return nil
+		}); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func emitInitVisits(aliae *Aliae, observer InitObserver) {
