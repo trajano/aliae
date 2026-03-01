@@ -71,6 +71,9 @@ module.exports = {
   tagline: 'Cross platform shell management.',
   url: process.env.DOCS_URL || 'https://aliae.dev',
   baseUrl: process.env.DOCS_BASE_URL || '/',
+  markdown: {
+    mermaid: true,
+  },
   favicon: 'img/favicon.ico',
   organizationName: repositoryOwner,
   projectName: repositoryName,
@@ -85,6 +88,7 @@ module.exports = {
     path.resolve(__dirname, 'plugins', 'appinsights'),
     'docusaurus-node-polyfills'
   ],
+  themes: ['@docusaurus/theme-mermaid'],
   stylesheets: [
     "https://rsms.me/inter/inter.css",
     "https://fonts.googleapis.com/css2?family=Fira+Code&display=swap"

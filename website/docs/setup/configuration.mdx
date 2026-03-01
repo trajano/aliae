@@ -42,6 +42,28 @@ processes the init script from `stdout`.
 `cache` is read only from the root configuration file and is ignored in included or extended files.
 Set `cache: false` if you want to disable cache reuse.
 
+## Init sequence
+
+```mermaid
+sequenceDiagram
+  participant Shell as User Shell
+  participant CLI as aliae init
+  participant Ctx as Context
+  participant Loader as Config Loader
+  participant Eval as Var Evaluator
+  participant Render as Renderers
+
+  Shell->>CLI: aliae init <shell>
+  CLI->>Ctx: initialize runtime context
+  CLI->>Loader: load config (supports extends/include/cache)
+  Loader-->>CLI: merged config
+  CLI->>Eval: compute var values and if conditions
+  CLI->>Render: render env/path/cdpath/alias/link/script
+  Render-->>CLI: shell init content
+  CLI-->>Shell: write init script to stdout
+  Shell->>Shell: eval/source generated script
+```
+
 ## Example
 
 ```yaml
