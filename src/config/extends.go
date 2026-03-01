@@ -319,54 +319,29 @@ func applyExtendsCondition(aliae *Aliae, condition shell.If) *Aliae {
 		return aliae
 	}
 
-	for _, alias := range aliae.Aliae {
-		if alias == nil {
-			continue
-		}
-		alias.If = andIf(alias.If, condition)
-	}
-
-	for _, variable := range aliae.Vars {
-		if variable == nil {
-			continue
-		}
-		variable.If = andIf(variable.If, condition)
-	}
-
-	for _, env := range aliae.Envs {
-		if env == nil {
-			continue
-		}
-		env.If = andIf(env.If, condition)
-	}
-
-	for _, path := range aliae.Paths {
-		if path == nil {
-			continue
-		}
-		path.If = andIf(path.If, condition)
-	}
-
-	for _, cdpath := range aliae.CDPaths {
-		if cdpath == nil {
-			continue
-		}
-		cdpath.If = andIf(cdpath.If, condition)
-	}
-
-	for _, script := range aliae.Scripts {
-		if script == nil {
-			continue
-		}
-		script.If = andIf(script.If, condition)
-	}
-
-	for _, link := range aliae.Links {
-		if link == nil {
-			continue
-		}
-		link.If = andIf(link.If, condition)
-	}
+	WalkConfig(aliae, ConfigVisitorFuncs{
+		OnAlias: func(alias *shell.Alias) {
+			alias.If = andIf(alias.If, condition)
+		},
+		OnVar: func(variable *Var) {
+			variable.If = andIf(variable.If, condition)
+		},
+		OnEnv: func(env *shell.Env) {
+			env.If = andIf(env.If, condition)
+		},
+		OnPath: func(path *shell.Path) {
+			path.If = andIf(path.If, condition)
+		},
+		OnCDPath: func(cdpath *shell.CDPath) {
+			cdpath.If = andIf(cdpath.If, condition)
+		},
+		OnScript: func(script *shell.Script) {
+			script.If = andIf(script.If, condition)
+		},
+		OnLink: func(link *shell.Link) {
+			link.If = andIf(link.If, condition)
+		},
+	})
 
 	return aliae
 }
