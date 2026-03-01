@@ -121,10 +121,6 @@ func loadLocalConfigRecursive(configPath string, stack []string, depth int) (*Al
 	copy(nextStack, stack)
 	nextStack[len(stack)] = absPath
 	for _, item := range extends {
-		if item.If.Ignore() {
-			continue
-		}
-
 		paths, pathErr := resolveExtendsPaths(item, absPath)
 		if pathErr != nil {
 			return nil, nil, pathErr
@@ -135,6 +131,7 @@ func loadLocalConfigRecursive(configPath string, stack []string, depth int) (*Al
 			if loadErr != nil {
 				return nil, nil, loadErr
 			}
+			parent = applyExtendsCondition(parent, item.If)
 
 			merged.merge(parent)
 			inputs = append(inputs, parentInputs...)
@@ -310,4 +307,77 @@ func (a *Aliae) merge(other *Aliae) {
 	if other.Progress.Enabled || other.Progress.EndPercentage.Reset || other.Progress.EndPercentage.Value > 0 || other.Progress.StartPercentage > 0 {
 		a.Progress = other.Progress
 	}
+}
+
+func applyExtendsCondition(aliae *Aliae, condition shell.If) *Aliae {
+	if aliae == nil {
+		return nil
+	}
+
+	if strings.TrimSpace(string(condition)) == "" {
+		return aliae
+	}
+
+	for _, alias := range aliae.Aliae {
+		if alias == nil {
+			continue
+		}
+		alias.If = andIf(alias.If, condition)
+	}
+
+	for _, variable := range aliae.Vars {
+		if variable == nil {
+			continue
+		}
+		variable.If = andIf(variable.If, condition)
+	}
+
+	for _, env := range aliae.Envs {
+		if env == nil {
+			continue
+		}
+		env.If = andIf(env.If, condition)
+	}
+
+	for _, path := range aliae.Paths {
+		if path == nil {
+			continue
+		}
+		path.If = andIf(path.If, condition)
+	}
+
+	for _, cdpath := range aliae.CDPaths {
+		if cdpath == nil {
+			continue
+		}
+		cdpath.If = andIf(cdpath.If, condition)
+	}
+
+	for _, script := range aliae.Scripts {
+		if script == nil {
+			continue
+		}
+		script.If = andIf(script.If, condition)
+	}
+
+	for _, link := range aliae.Links {
+		if link == nil {
+			continue
+		}
+		link.If = andIf(link.If, condition)
+	}
+
+	return aliae
+}
+
+func andIf(existing, condition shell.If) shell.If {
+	if strings.TrimSpace(string(existing)) == "" {
+		return condition
+	}
+
+	if strings.TrimSpace(string(condition)) == "" {
+		return existing
+	}
+
+	return shell.If(fmt.Sprintf("and (%s) (%s)", condition, existing))
 }

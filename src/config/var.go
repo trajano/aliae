@@ -3,6 +3,7 @@ package config
 import (
 	"fmt"
 	"slices"
+	"strconv"
 	"strings"
 
 	"github.com/jandedobbeleer/aliae/src/context"
@@ -29,14 +30,14 @@ func (a *Aliae) computeVars(lineResolver *yamlLineResolver) error {
 	ctx := ensureTemplateRuntime()
 
 	if ctx.Var == nil {
-		ctx.Var = map[string]string{}
+		ctx.Var = map[string]any{}
 	}
 
 	if err := validateVarDefinitions(a.Vars, lineResolver); err != nil {
 		return err
 	}
 
-	computed := make(map[string]string, len(a.Vars))
+	computed := make(map[string]any, len(a.Vars))
 	ctx.Var = computed
 
 	for _, variable := range a.Vars {
@@ -52,14 +53,14 @@ func (a *Aliae) computeVars(lineResolver *yamlLineResolver) error {
 	return nil
 }
 
-func evaluateVarValue(value shell.Template) string {
+func evaluateVarValue(value shell.Template) any {
 	text := strings.TrimSpace(string(value))
 	if len(text) == 0 {
 		return ""
 	}
 
 	if strings.Contains(text, "{{") && strings.Contains(text, "}}") {
-		return value.String()
+		return normalizeVarValue(value.String())
 	}
 
 	// Allow `var.value` to behave like `if`, where bare expressions are valid.
@@ -68,7 +69,17 @@ func evaluateVarValue(value shell.Template) string {
 		return text
 	}
 
-	return parsed
+	return normalizeVarValue(parsed)
+}
+
+func normalizeVarValue(value string) any {
+	trimmed := strings.TrimSpace(value)
+	parsedBool, err := strconv.ParseBool(trimmed)
+	if err == nil {
+		return parsedBool
+	}
+
+	return value
 }
 
 func ensureTemplateRuntime() *context.Runtime {
@@ -81,7 +92,7 @@ func ensureTemplateRuntime() *context.Runtime {
 		OS:    context.LINUX,
 		Home:  context.Home(),
 		Env:   map[string]string{},
-		Var:   map[string]string{},
+		Var:   map[string]any{},
 	}
 
 	return context.Current

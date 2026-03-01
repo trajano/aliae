@@ -90,6 +90,11 @@ func loadConfig(configPath string, computeVars bool) (*Aliae, error) {
 		cached, ok, cacheErr := loadConfigCache(configPathCache, computeVars)
 		if cacheErr == nil && ok {
 			aliae = cached
+			if computeVars {
+				if err := aliae.computeVars(nil); err != nil {
+					return nil, err
+				}
+			}
 			setLastLoadUsedCache(true)
 		}
 	}
