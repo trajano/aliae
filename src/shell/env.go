@@ -44,12 +44,7 @@ func toString(value any) string {
 }
 
 func (e *Env) string() string {
-	configured := newShellFactory().configureEnv(e)
-	if configured == nil {
-		return ""
-	}
-
-	return configured.render()
+	return newShellFactory().strategy().renderEnv(e)
 }
 
 func (e *Env) join() {

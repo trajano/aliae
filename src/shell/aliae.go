@@ -47,12 +47,7 @@ func (a *Alias) string() string {
 
 	a.Value = a.Value.Parse()
 
-	configured := newShellFactory().configureAlias(a)
-	if configured == nil {
-		return ""
-	}
-
-	return configured.render()
+	return newShellFactory().strategy().renderAlias(a)
 }
 
 func (a *Alias) render() string {

@@ -17,12 +17,7 @@ type CDPath struct {
 }
 
 func (p *CDPath) string() string {
-	configured := newShellFactory().configureCDPath(p)
-	if configured == nil {
-		return ""
-	}
-
-	return configured.render()
+	return newShellFactory().strategy().renderCDPath(p)
 }
 
 func (p *CDPath) render() string {
@@ -75,20 +70,7 @@ func (p *CDPath) render() string {
 }
 
 func cdpathCurrentDirScript() string {
-	switch context.Current.Shell {
-	case BASH:
-		return `if [ -n "$CDPATH" ]; then export CDPATH=":$CDPATH"; else export CDPATH=":"; fi`
-	case ZSH:
-		return `cdpath=( . $cdpath )`
-	case FISH:
-		return `set -g cdpath . $cdpath`
-	case TCSH:
-		return `set cdpath = ( . $cdpath );`
-	case XONSH:
-		return `$CDPATH = ["."] + $CDPATH`
-	default:
-		return ""
-	}
+	return newShellFactory().strategy().renderCDPathCurrentDirScript()
 }
 
 func (p CDPaths) Render() {

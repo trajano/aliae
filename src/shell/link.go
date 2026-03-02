@@ -30,12 +30,7 @@ func (l *Link) string() string {
 		l.buildPath()
 	}
 
-	configured := newShellFactory().configureLink(l)
-	if configured == nil {
-		return ""
-	}
-
-	return configured.render()
+	return newShellFactory().strategy().renderLink(l)
 }
 
 func (l *Link) exists(path string) bool {

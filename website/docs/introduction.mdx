@@ -70,27 +70,20 @@ with emphasis on Git Bash compatibility and fork-owned release/documentation flo
   - Scoop/Homebrew bucket and tap population moved to dedicated external repositories.
 - Workflow updates to align with fork publishing boundaries.
 
-## Shell factory design pattern
+## Shell factory and strategy design patterns
 
-The shell rendering layer now uses a Factory pattern to centralize shell-specific behavior selection.
+The shell rendering layer combines Factory and Strategy:
+
+- Factory selects which shell strategy to use.
+- Strategy encapsulates shell-specific rendering behavior.
+
+### Factory class diagram
 
 ```mermaid
 classDiagram
-    class Alias
-    class Env
-    class Path
-    class CDPath
-    class Link
-    class Echo
-
     class shellFactory {
       <<interface>>
-      +configureAlias(*Alias) *Alias
-      +configureEnv(*Env) *Env
-      +configurePath(*Path) *Path
-      +configureCDPath(*CDPath) *CDPath
-      +configureLink(*Link) *Link
-      +configureEcho(*Echo) *Echo
+      +strategy() shellRenderStrategy
     }
 
     class zshShellFactory
@@ -113,12 +106,65 @@ classDiagram
     shellFactory <|.. cmdShellFactory
     shellFactory <|.. noopShellFactory
 
-    Alias ..> shellFactory : configured by
-    Env ..> shellFactory : configured by
-    Path ..> shellFactory : configured by
-    CDPath ..> shellFactory : configured by
-    Link ..> shellFactory : configured by
-    Echo ..> shellFactory : configured by
+    zshShellFactory ..> shellRenderStrategy : creates
+    bashShellFactory ..> shellRenderStrategy : creates
+    pwshShellFactory ..> shellRenderStrategy : creates
+    nuShellFactory ..> shellRenderStrategy : creates
+    fishShellFactory ..> shellRenderStrategy : creates
+    tcshShellFactory ..> shellRenderStrategy : creates
+    xonshShellFactory ..> shellRenderStrategy : creates
+    cmdShellFactory ..> shellRenderStrategy : creates
+    noopShellFactory ..> shellRenderStrategy : creates
+```
+
+### Strategy class diagram
+
+```mermaid
+classDiagram
+    class shellRenderStrategy {
+      <<interface>>
+      +renderAlias(*Alias) string
+      +renderEnv(*Env) string
+      +renderPath(*Path) string
+      +renderCDPath(*CDPath) string
+      +renderLink(*Link) string
+      +renderEcho(*Echo) string
+      +renderCDPathCurrentDirScript() string
+    }
+
+    class zshRenderStrategy
+    class bashRenderStrategy
+    class pwshRenderStrategy
+    class nuRenderStrategy
+    class fishRenderStrategy
+    class tcshRenderStrategy
+    class xonshRenderStrategy
+    class cmdRenderStrategy
+    class noopRenderStrategy
+
+    class Alias
+    class Env
+    class Path
+    class CDPath
+    class Link
+    class Echo
+
+    shellRenderStrategy <|.. zshRenderStrategy
+    shellRenderStrategy <|.. bashRenderStrategy
+    shellRenderStrategy <|.. pwshRenderStrategy
+    shellRenderStrategy <|.. nuRenderStrategy
+    shellRenderStrategy <|.. fishRenderStrategy
+    shellRenderStrategy <|.. tcshRenderStrategy
+    shellRenderStrategy <|.. xonshRenderStrategy
+    shellRenderStrategy <|.. cmdRenderStrategy
+    shellRenderStrategy <|.. noopRenderStrategy
+
+    Alias ..> shellRenderStrategy : delegates render
+    Env ..> shellRenderStrategy : delegates render
+    Path ..> shellRenderStrategy : delegates render
+    CDPath ..> shellRenderStrategy : delegates render
+    Link ..> shellRenderStrategy : delegates render
+    Echo ..> shellRenderStrategy : delegates render
 ```
 
 ## I want in

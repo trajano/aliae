@@ -22,12 +22,7 @@ type Path struct {
 }
 
 func (p *Path) string() string {
-	configured := newShellFactory().configurePath(p)
-	if configured == nil {
-		return ""
-	}
-
-	return configured.render()
+	return newShellFactory().strategy().renderPath(p)
 }
 
 func (p *Path) render() string {

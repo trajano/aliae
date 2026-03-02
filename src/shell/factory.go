@@ -3,12 +3,17 @@ package shell
 import "github.com/jandedobbeleer/aliae/src/context"
 
 type shellFactory interface {
-	configureAlias(*Alias) *Alias
-	configureEnv(*Env) *Env
-	configurePath(*Path) *Path
-	configureCDPath(*CDPath) *CDPath
-	configureLink(*Link) *Link
-	configureEcho(*Echo) *Echo
+	strategy() shellRenderStrategy
+}
+
+type shellRenderStrategy interface {
+	renderAlias(*Alias) string
+	renderEnv(*Env) string
+	renderPath(*Path) string
+	renderCDPath(*CDPath) string
+	renderLink(*Link) string
+	renderEcho(*Echo) string
+	renderCDPathCurrentDirScript() string
 }
 
 func newShellFactory() shellFactory {
@@ -40,81 +45,128 @@ func newShellFactory() shellFactory {
 
 type noopShellFactory struct{}
 
-func (noopShellFactory) configureAlias(*Alias) *Alias    { return nil }
-func (noopShellFactory) configureEnv(*Env) *Env          { return nil }
-func (noopShellFactory) configurePath(*Path) *Path       { return nil }
-func (noopShellFactory) configureCDPath(*CDPath) *CDPath { return nil }
-func (noopShellFactory) configureLink(*Link) *Link       { return nil }
-func (noopShellFactory) configureEcho(*Echo) *Echo       { return nil }
+func (noopShellFactory) strategy() shellRenderStrategy { return noopRenderStrategy{} }
 
 type zshShellFactory struct{}
 
-func (zshShellFactory) configureAlias(a *Alias) *Alias    { return a.zsh() }
-func (zshShellFactory) configureEnv(e *Env) *Env          { return e.zsh() }
-func (zshShellFactory) configurePath(p *Path) *Path       { return p.zsh() }
-func (zshShellFactory) configureCDPath(p *CDPath) *CDPath { return p.zsh() }
-func (zshShellFactory) configureLink(l *Link) *Link       { return l.zsh() }
-func (zshShellFactory) configureEcho(e *Echo) *Echo       { return e.zsh() }
+func (zshShellFactory) strategy() shellRenderStrategy { return zshRenderStrategy{} }
 
 type bashShellFactory struct{}
 
-func (bashShellFactory) configureAlias(a *Alias) *Alias    { return a.bash() }
-func (bashShellFactory) configureEnv(e *Env) *Env          { return e.bash() }
-func (bashShellFactory) configurePath(p *Path) *Path       { return p.bash() }
-func (bashShellFactory) configureCDPath(p *CDPath) *CDPath { return p.bash() }
-func (bashShellFactory) configureLink(l *Link) *Link       { return l.bash() }
-func (bashShellFactory) configureEcho(e *Echo) *Echo       { return e.bash() }
+func (bashShellFactory) strategy() shellRenderStrategy { return bashRenderStrategy{} }
 
 type pwshShellFactory struct{}
 
-func (pwshShellFactory) configureAlias(a *Alias) *Alias  { return a.pwsh() }
-func (pwshShellFactory) configureEnv(e *Env) *Env        { return e.pwsh() }
-func (pwshShellFactory) configurePath(p *Path) *Path     { return p.pwsh() }
-func (pwshShellFactory) configureCDPath(*CDPath) *CDPath { return nil }
-func (pwshShellFactory) configureLink(l *Link) *Link     { return l.pwsh() }
-func (pwshShellFactory) configureEcho(e *Echo) *Echo     { return e.pwsh() }
+func (pwshShellFactory) strategy() shellRenderStrategy { return pwshRenderStrategy{} }
 
 type nuShellFactory struct{}
 
-func (nuShellFactory) configureAlias(a *Alias) *Alias  { return a.nu() }
-func (nuShellFactory) configureEnv(e *Env) *Env        { return e.nu() }
-func (nuShellFactory) configurePath(p *Path) *Path     { return p.nu() }
-func (nuShellFactory) configureCDPath(*CDPath) *CDPath { return nil }
-func (nuShellFactory) configureLink(l *Link) *Link     { return l.nu() }
-func (nuShellFactory) configureEcho(e *Echo) *Echo     { return e.nu() }
+func (nuShellFactory) strategy() shellRenderStrategy { return nuRenderStrategy{} }
 
 type fishShellFactory struct{}
 
-func (fishShellFactory) configureAlias(a *Alias) *Alias    { return a.fish() }
-func (fishShellFactory) configureEnv(e *Env) *Env          { return e.fish() }
-func (fishShellFactory) configurePath(p *Path) *Path       { return p.fish() }
-func (fishShellFactory) configureCDPath(p *CDPath) *CDPath { return p.fish() }
-func (fishShellFactory) configureLink(l *Link) *Link       { return l.zsh() }
-func (fishShellFactory) configureEcho(e *Echo) *Echo       { return e.zsh() }
+func (fishShellFactory) strategy() shellRenderStrategy { return fishRenderStrategy{} }
 
 type tcshShellFactory struct{}
 
-func (tcshShellFactory) configureAlias(a *Alias) *Alias    { return a.tcsh() }
-func (tcshShellFactory) configureEnv(e *Env) *Env          { return e.tcsh() }
-func (tcshShellFactory) configurePath(p *Path) *Path       { return p.tcsh() }
-func (tcshShellFactory) configureCDPath(p *CDPath) *CDPath { return p.tcsh() }
-func (tcshShellFactory) configureLink(l *Link) *Link       { return l.tcsh() }
-func (tcshShellFactory) configureEcho(e *Echo) *Echo       { return e.zsh() }
+func (tcshShellFactory) strategy() shellRenderStrategy { return tcshRenderStrategy{} }
 
 type xonshShellFactory struct{}
 
-func (xonshShellFactory) configureAlias(a *Alias) *Alias    { return a.xonsh() }
-func (xonshShellFactory) configureEnv(e *Env) *Env          { return e.xonsh() }
-func (xonshShellFactory) configurePath(p *Path) *Path       { return p.xonsh() }
-func (xonshShellFactory) configureCDPath(p *CDPath) *CDPath { return p.xonsh() }
-func (xonshShellFactory) configureLink(l *Link) *Link       { return l.zsh() }
-func (xonshShellFactory) configureEcho(e *Echo) *Echo       { return e.xonsh() }
+func (xonshShellFactory) strategy() shellRenderStrategy { return xonshRenderStrategy{} }
 
 type cmdShellFactory struct{}
 
-func (cmdShellFactory) configureAlias(a *Alias) *Alias  { return a.cmd() }
-func (cmdShellFactory) configureEnv(e *Env) *Env        { return e.cmd() }
-func (cmdShellFactory) configurePath(p *Path) *Path     { return p.cmd() }
-func (cmdShellFactory) configureCDPath(*CDPath) *CDPath { return nil }
-func (cmdShellFactory) configureLink(l *Link) *Link     { return l.cmd() }
-func (cmdShellFactory) configureEcho(e *Echo) *Echo     { return e.cmd() }
+func (cmdShellFactory) strategy() shellRenderStrategy { return cmdRenderStrategy{} }
+
+type noopRenderStrategy struct{}
+
+func (noopRenderStrategy) renderAlias(*Alias) string            { return "" }
+func (noopRenderStrategy) renderEnv(*Env) string                { return "" }
+func (noopRenderStrategy) renderPath(*Path) string              { return "" }
+func (noopRenderStrategy) renderCDPath(*CDPath) string          { return "" }
+func (noopRenderStrategy) renderLink(*Link) string              { return "" }
+func (noopRenderStrategy) renderEcho(*Echo) string              { return "" }
+func (noopRenderStrategy) renderCDPathCurrentDirScript() string { return "" }
+
+type zshRenderStrategy struct{}
+
+func (zshRenderStrategy) renderAlias(a *Alias) string          { return a.zsh().render() }
+func (zshRenderStrategy) renderEnv(e *Env) string              { return e.zsh().render() }
+func (zshRenderStrategy) renderPath(p *Path) string            { return p.zsh().render() }
+func (zshRenderStrategy) renderCDPath(p *CDPath) string        { return p.zsh().render() }
+func (zshRenderStrategy) renderLink(l *Link) string            { return l.zsh().render() }
+func (zshRenderStrategy) renderEcho(e *Echo) string            { return e.zsh().render() }
+func (zshRenderStrategy) renderCDPathCurrentDirScript() string { return `cdpath=( . $cdpath )` }
+
+type bashRenderStrategy struct{}
+
+func (bashRenderStrategy) renderAlias(a *Alias) string   { return a.bash().render() }
+func (bashRenderStrategy) renderEnv(e *Env) string       { return e.bash().render() }
+func (bashRenderStrategy) renderPath(p *Path) string     { return p.bash().render() }
+func (bashRenderStrategy) renderCDPath(p *CDPath) string { return p.bash().render() }
+func (bashRenderStrategy) renderLink(l *Link) string     { return l.bash().render() }
+func (bashRenderStrategy) renderEcho(e *Echo) string     { return e.bash().render() }
+func (bashRenderStrategy) renderCDPathCurrentDirScript() string {
+	return `if [ -n "$CDPATH" ]; then export CDPATH=":$CDPATH"; else export CDPATH=":"; fi`
+}
+
+type pwshRenderStrategy struct{}
+
+func (pwshRenderStrategy) renderAlias(a *Alias) string          { return a.pwsh().render() }
+func (pwshRenderStrategy) renderEnv(e *Env) string              { return e.pwsh().render() }
+func (pwshRenderStrategy) renderPath(p *Path) string            { return p.pwsh().render() }
+func (pwshRenderStrategy) renderCDPath(*CDPath) string          { return "" }
+func (pwshRenderStrategy) renderLink(l *Link) string            { return l.pwsh().render() }
+func (pwshRenderStrategy) renderEcho(e *Echo) string            { return e.pwsh().render() }
+func (pwshRenderStrategy) renderCDPathCurrentDirScript() string { return "" }
+
+type nuRenderStrategy struct{}
+
+func (nuRenderStrategy) renderAlias(a *Alias) string          { return a.nu().render() }
+func (nuRenderStrategy) renderEnv(e *Env) string              { return e.nu().render() }
+func (nuRenderStrategy) renderPath(p *Path) string            { return p.nu().render() }
+func (nuRenderStrategy) renderCDPath(*CDPath) string          { return "" }
+func (nuRenderStrategy) renderLink(l *Link) string            { return l.nu().render() }
+func (nuRenderStrategy) renderEcho(e *Echo) string            { return e.nu().render() }
+func (nuRenderStrategy) renderCDPathCurrentDirScript() string { return "" }
+
+type fishRenderStrategy struct{}
+
+func (fishRenderStrategy) renderAlias(a *Alias) string          { return a.fish().render() }
+func (fishRenderStrategy) renderEnv(e *Env) string              { return e.fish().render() }
+func (fishRenderStrategy) renderPath(p *Path) string            { return p.fish().render() }
+func (fishRenderStrategy) renderCDPath(p *CDPath) string        { return p.fish().render() }
+func (fishRenderStrategy) renderLink(l *Link) string            { return l.zsh().render() }
+func (fishRenderStrategy) renderEcho(e *Echo) string            { return e.zsh().render() }
+func (fishRenderStrategy) renderCDPathCurrentDirScript() string { return `set -g cdpath . $cdpath` }
+
+type tcshRenderStrategy struct{}
+
+func (tcshRenderStrategy) renderAlias(a *Alias) string          { return a.tcsh().render() }
+func (tcshRenderStrategy) renderEnv(e *Env) string              { return e.tcsh().render() }
+func (tcshRenderStrategy) renderPath(p *Path) string            { return p.tcsh().render() }
+func (tcshRenderStrategy) renderCDPath(p *CDPath) string        { return p.tcsh().render() }
+func (tcshRenderStrategy) renderLink(l *Link) string            { return l.tcsh().render() }
+func (tcshRenderStrategy) renderEcho(e *Echo) string            { return e.zsh().render() }
+func (tcshRenderStrategy) renderCDPathCurrentDirScript() string { return `set cdpath = ( . $cdpath );` }
+
+type xonshRenderStrategy struct{}
+
+func (xonshRenderStrategy) renderAlias(a *Alias) string          { return a.xonsh().render() }
+func (xonshRenderStrategy) renderEnv(e *Env) string              { return e.xonsh().render() }
+func (xonshRenderStrategy) renderPath(p *Path) string            { return p.xonsh().render() }
+func (xonshRenderStrategy) renderCDPath(p *CDPath) string        { return p.xonsh().render() }
+func (xonshRenderStrategy) renderLink(l *Link) string            { return l.zsh().render() }
+func (xonshRenderStrategy) renderEcho(e *Echo) string            { return e.xonsh().render() }
+func (xonshRenderStrategy) renderCDPathCurrentDirScript() string { return `$CDPATH = ["."] + $CDPATH` }
+
+type cmdRenderStrategy struct{}
+
+func (cmdRenderStrategy) renderAlias(a *Alias) string          { return a.cmd().render() }
+func (cmdRenderStrategy) renderEnv(e *Env) string              { return e.cmd().render() }
+func (cmdRenderStrategy) renderPath(p *Path) string            { return p.cmd().render() }
+func (cmdRenderStrategy) renderCDPath(*CDPath) string          { return "" }
+func (cmdRenderStrategy) renderLink(l *Link) string            { return l.cmd().render() }
+func (cmdRenderStrategy) renderEcho(e *Echo) string            { return e.cmd().render() }
+func (cmdRenderStrategy) renderCDPathCurrentDirScript() string { return "" }

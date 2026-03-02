@@ -18,12 +18,7 @@ func (e *Echo) Error() *Echo {
 }
 
 func (e *Echo) String() string {
-	configured := newShellFactory().configureEcho(e)
-	if configured == nil {
-		return ""
-	}
-
-	return configured.render()
+	return newShellFactory().strategy().renderEcho(e)
 }
 
 func (e *Echo) render() string {
