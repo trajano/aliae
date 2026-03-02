@@ -109,3 +109,36 @@ env:
 	assert.Contains(t, second, `export CACHE_VAR_TEST="ok"`)
 	assert.True(t, LastLoadUsedCache())
 }
+
+func TestLoadConfigCacheSeparatesConditionalExtendsByShell(t *testing.T) {
+	t.Setenv("HOME", t.TempDir())
+
+	root := t.TempDir()
+	bashConfig := filepath.Join(root, "bash.yml")
+	pwshConfig := filepath.Join(root, "pwsh.yml")
+	configFile := filepath.Join(root, "aliae.yaml")
+
+	require.NoError(t, os.WriteFile(bashConfig, []byte(`script:
+  - value: echo bash-only
+`), 0o600))
+	require.NoError(t, os.WriteFile(pwshConfig, []byte(`script:
+  - value: Write-Host pwsh-only
+`), 0o600))
+	require.NoError(t, os.WriteFile(configFile, []byte(`cache: true
+extends:
+  - path: ./bash.yml
+    if: eq .Shell "bash"
+  - path: ./pwsh.yml
+    if: eq .Shell "pwsh"
+`), 0o600))
+
+	bashInit := Init(configFile, shell.BASH, true)
+	assert.Contains(t, bashInit, "echo bash-only")
+	assert.NotContains(t, bashInit, "Write-Host pwsh-only")
+	assert.False(t, LastLoadUsedCache())
+
+	pwshInit := Init(configFile, shell.PWSH, true)
+	assert.Contains(t, pwshInit, "Write-Host pwsh-only")
+	assert.NotContains(t, pwshInit, "echo bash-only")
+	assert.False(t, LastLoadUsedCache())
+}

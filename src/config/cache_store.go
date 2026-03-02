@@ -12,6 +12,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/jandedobbeleer/aliae/src/context"
 	aliaeState "github.com/jandedobbeleer/aliae/src/state"
 )
 
@@ -94,9 +95,18 @@ func storeConfigCache(configPath string, computeVars bool, inputs []string, alia
 }
 
 func configCachePath(configPath string) string {
-	sum := sha256.Sum256([]byte(filepath.Clean(configPath)))
+	key := filepath.Clean(configPath) + "|" + cacheContextKey()
+	sum := sha256.Sum256([]byte(key))
 	fileName := fmt.Sprintf("config-cache-%s.gob", hex.EncodeToString(sum[:8]))
 	return aliaeState.Path(fileName)
+}
+
+func cacheContextKey() string {
+	if context.Current == nil {
+		return "shell=;os=;wsl=false"
+	}
+
+	return fmt.Sprintf("shell=%s;os=%s;wsl=%t", context.Current.Shell, context.Current.OS, context.Current.WSL)
 }
 
 func configSchemaHash() string {
