@@ -47,26 +47,7 @@ func (a *Alias) string() string {
 
 	a.Value = a.Value.Parse()
 
-	switch context.Current.Shell {
-	case ZSH:
-		return a.zsh().render()
-	case BASH:
-		return a.bash().render()
-	case PWSH, POWERSHELL:
-		return a.pwsh().render()
-	case NU:
-		return a.nu().render()
-	case FISH:
-		return a.fish().render()
-	case TCSH:
-		return a.tcsh().render()
-	case XONSH:
-		return a.xonsh().render()
-	case CMD:
-		return a.cmd().render()
-	default:
-		return ""
-	}
+	return newShellFactory().strategy().renderAlias(a)
 }
 
 func (a *Alias) render() string {

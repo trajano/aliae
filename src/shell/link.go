@@ -3,8 +3,6 @@ package shell
 import (
 	"os"
 	"path/filepath"
-
-	"github.com/jandedobbeleer/aliae/src/context"
 )
 
 type Links []*Link
@@ -32,22 +30,7 @@ func (l *Link) string() string {
 		l.buildPath()
 	}
 
-	switch context.Current.Shell {
-	case ZSH, FISH, XONSH:
-		return l.zsh().render()
-	case BASH:
-		return l.bash().render()
-	case PWSH, POWERSHELL:
-		return l.pwsh().render()
-	case NU:
-		return l.nu().render()
-	case TCSH:
-		return l.tcsh().render()
-	case CMD:
-		return l.cmd().render()
-	default:
-		return ""
-	}
+	return newShellFactory().strategy().renderLink(l)
 }
 
 func (l *Link) exists(path string) bool {

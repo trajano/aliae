@@ -68,7 +68,143 @@ with emphasis on Git Bash compatibility and fork-owned release/documentation flo
 - Fork distribution and automation:
   - Fork-oriented installer/docs references for release artifacts.
   - Scoop/Homebrew bucket and tap population moved to dedicated external repositories.
-  - Workflow updates to align with fork publishing boundaries.
+- Workflow updates to align with fork publishing boundaries.
+
+## Shell factory and strategy design patterns
+
+The shell rendering layer combines Factory and Strategy:
+
+- Factory selects which shell strategy to use.
+- Strategy encapsulates shell-specific rendering behavior.
+- Composite executes section renderers in a stable pipeline order.
+
+### Factory class diagram
+
+```mermaid
+classDiagram
+    class shellFactory {
+      <<interface>>
+      +strategy() shellRenderStrategy
+    }
+
+    class zshShellFactory
+    class bashShellFactory
+    class pwshShellFactory
+    class nuShellFactory
+    class fishShellFactory
+    class tcshShellFactory
+    class xonshShellFactory
+    class cmdShellFactory
+    class noopShellFactory
+
+    shellFactory <|.. zshShellFactory
+    shellFactory <|.. bashShellFactory
+    shellFactory <|.. pwshShellFactory
+    shellFactory <|.. nuShellFactory
+    shellFactory <|.. fishShellFactory
+    shellFactory <|.. tcshShellFactory
+    shellFactory <|.. xonshShellFactory
+    shellFactory <|.. cmdShellFactory
+    shellFactory <|.. noopShellFactory
+
+    zshShellFactory ..> shellRenderStrategy : creates
+    bashShellFactory ..> shellRenderStrategy : creates
+    pwshShellFactory ..> shellRenderStrategy : creates
+    nuShellFactory ..> shellRenderStrategy : creates
+    fishShellFactory ..> shellRenderStrategy : creates
+    tcshShellFactory ..> shellRenderStrategy : creates
+    xonshShellFactory ..> shellRenderStrategy : creates
+    cmdShellFactory ..> shellRenderStrategy : creates
+    noopShellFactory ..> shellRenderStrategy : creates
+```
+
+### Strategy class diagram
+
+```mermaid
+classDiagram
+    class shellRenderStrategy {
+      <<interface>>
+      +renderAlias(*Alias) string
+      +renderEnv(*Env) string
+      +renderPath(*Path) string
+      +renderCDPath(*CDPath) string
+      +renderLink(*Link) string
+      +renderEcho(*Echo) string
+      +renderCDPathCurrentDirScript() string
+    }
+
+    class zshRenderStrategy
+    class bashRenderStrategy
+    class pwshRenderStrategy
+    class nuRenderStrategy
+    class fishRenderStrategy
+    class tcshRenderStrategy
+    class xonshRenderStrategy
+    class cmdRenderStrategy
+    class noopRenderStrategy
+
+    class Alias
+    class Env
+    class Path
+    class CDPath
+    class Link
+    class Echo
+
+    shellRenderStrategy <|.. zshRenderStrategy
+    shellRenderStrategy <|.. bashRenderStrategy
+    shellRenderStrategy <|.. pwshRenderStrategy
+    shellRenderStrategy <|.. nuRenderStrategy
+    shellRenderStrategy <|.. fishRenderStrategy
+    shellRenderStrategy <|.. tcshRenderStrategy
+    shellRenderStrategy <|.. xonshRenderStrategy
+    shellRenderStrategy <|.. cmdRenderStrategy
+    shellRenderStrategy <|.. noopRenderStrategy
+
+    Alias ..> shellRenderStrategy : delegates render
+    Env ..> shellRenderStrategy : delegates render
+    Path ..> shellRenderStrategy : delegates render
+    CDPath ..> shellRenderStrategy : delegates render
+    Link ..> shellRenderStrategy : delegates render
+    Echo ..> shellRenderStrategy : delegates render
+```
+
+### Composite class diagram
+
+```mermaid
+classDiagram
+    class Renderer {
+      <<interface>>
+      +Render()
+    }
+
+    class RenderComposite {
+      -renderers []Renderer
+      +Render()
+    }
+
+    class Aliae
+    class Envs
+    class Paths
+    class CDPaths
+    class Links
+    class Scripts
+
+    Renderer <|.. RenderComposite
+    Renderer <|.. Aliae
+    Renderer <|.. Envs
+    Renderer <|.. Paths
+    Renderer <|.. CDPaths
+    Renderer <|.. Links
+    Renderer <|.. Scripts
+
+    RenderComposite *-- Renderer : composes
+    RenderComposite ..> Aliae : executes
+    RenderComposite ..> Envs : executes
+    RenderComposite ..> Paths : executes
+    RenderComposite ..> CDPaths : executes
+    RenderComposite ..> Links : executes
+    RenderComposite ..> Scripts : executes
+```
 
 ## I want in
 

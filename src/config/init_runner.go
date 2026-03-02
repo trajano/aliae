@@ -102,22 +102,36 @@ func runInitWithObserver(configPath, sh string, observer InitObserver, options i
 }
 
 func runInitRenderPhases(aliae *Aliae, observer InitObserver) error {
-	renderPhases := []struct {
-		run   func()
-		phase InitPhase
-	}{
-		{run: func() { aliae.Envs.Render() }, phase: InitPhaseRenderEnv},
-		{run: func() { aliae.Paths.Render() }, phase: InitPhaseRenderPath},
-		{run: func() { aliae.CDPaths.Render() }, phase: InitPhaseRenderCDPath},
-		{run: func() { aliae.Aliae.Render() }, phase: InitPhaseRenderAlias},
-		{run: func() { aliae.Links.Render() }, phase: InitPhaseRenderLink},
-		{run: func() { aliae.Scripts.Render() }, phase: InitPhaseRenderScript},
+	if aliae == nil {
+		return nil
 	}
 
-	for _, phase := range renderPhases {
-		step := phase
-		if err := runInitPhase(observer, step.phase, func() error {
-			step.run()
+	renderPhases := []struct {
+		renderer shell.Renderer
+		phase    InitPhase
+	}{
+		{renderer: aliae.Envs, phase: InitPhaseRenderEnv},
+		{renderer: aliae.Paths, phase: InitPhaseRenderPath},
+		{renderer: aliae.CDPaths, phase: InitPhaseRenderCDPath},
+		{renderer: aliae.Aliae, phase: InitPhaseRenderAlias},
+		{renderer: aliae.Links, phase: InitPhaseRenderLink},
+		{renderer: aliae.Scripts, phase: InitPhaseRenderScript},
+	}
+
+	if observer == nil {
+		renderers := make([]shell.Renderer, 0, len(renderPhases))
+		for _, step := range renderPhases {
+			renderers = append(renderers, step.renderer)
+		}
+
+		shell.NewRenderComposite(renderers...).Render()
+		return nil
+	}
+
+	for _, step := range renderPhases {
+		current := step
+		if err := runInitPhase(observer, current.phase, func() error {
+			current.renderer.Render()
 			return nil
 		}); err != nil {
 			return err

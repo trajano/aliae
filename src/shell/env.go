@@ -44,26 +44,7 @@ func toString(value any) string {
 }
 
 func (e *Env) string() string {
-	switch context.Current.Shell {
-	case ZSH:
-		return e.zsh().render()
-	case BASH:
-		return e.bash().render()
-	case PWSH, POWERSHELL:
-		return e.pwsh().render()
-	case NU:
-		return e.nu().render()
-	case FISH:
-		return e.fish().render()
-	case TCSH:
-		return e.tcsh().render()
-	case XONSH:
-		return e.xonsh().render()
-	case CMD:
-		return e.cmd().render()
-	default:
-		return ""
-	}
+	return newShellFactory().strategy().renderEnv(e)
 }
 
 func (e *Env) join() {
