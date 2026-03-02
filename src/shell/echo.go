@@ -2,8 +2,6 @@ package shell
 
 import (
 	"fmt"
-
-	"github.com/jandedobbeleer/aliae/src/context"
 )
 
 type Echo struct {
@@ -20,22 +18,12 @@ func (e *Echo) Error() *Echo {
 }
 
 func (e *Echo) String() string {
-	switch context.Current.Shell {
-	case ZSH, FISH, TCSH:
-		return e.zsh().render()
-	case BASH:
-		return e.bash().render()
-	case NU:
-		return e.nu().render()
-	case PWSH, POWERSHELL:
-		return e.pwsh().render()
-	case CMD:
-		return e.cmd().render()
-	case XONSH:
-		return e.xonsh().render()
-	default:
+	configured := newShellFactory().configureEcho(e)
+	if configured == nil {
 		return ""
 	}
+
+	return configured.render()
 }
 
 func (e *Echo) render() string {

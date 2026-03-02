@@ -17,20 +17,12 @@ type CDPath struct {
 }
 
 func (p *CDPath) string() string {
-	switch context.Current.Shell {
-	case ZSH:
-		return p.zsh().render()
-	case BASH:
-		return p.bash().render()
-	case FISH:
-		return p.fish().render()
-	case TCSH:
-		return p.tcsh().render()
-	case XONSH:
-		return p.xonsh().render()
-	default:
+	configured := newShellFactory().configureCDPath(p)
+	if configured == nil {
 		return ""
 	}
+
+	return configured.render()
 }
 
 func (p *CDPath) render() string {

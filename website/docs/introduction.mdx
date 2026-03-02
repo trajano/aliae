@@ -68,7 +68,58 @@ with emphasis on Git Bash compatibility and fork-owned release/documentation flo
 - Fork distribution and automation:
   - Fork-oriented installer/docs references for release artifacts.
   - Scoop/Homebrew bucket and tap population moved to dedicated external repositories.
-  - Workflow updates to align with fork publishing boundaries.
+- Workflow updates to align with fork publishing boundaries.
+
+## Shell factory design pattern
+
+The shell rendering layer now uses a Factory pattern to centralize shell-specific behavior selection.
+
+```mermaid
+classDiagram
+    class Alias
+    class Env
+    class Path
+    class CDPath
+    class Link
+    class Echo
+
+    class shellFactory {
+      <<interface>>
+      +configureAlias(*Alias) *Alias
+      +configureEnv(*Env) *Env
+      +configurePath(*Path) *Path
+      +configureCDPath(*CDPath) *CDPath
+      +configureLink(*Link) *Link
+      +configureEcho(*Echo) *Echo
+    }
+
+    class zshShellFactory
+    class bashShellFactory
+    class pwshShellFactory
+    class nuShellFactory
+    class fishShellFactory
+    class tcshShellFactory
+    class xonshShellFactory
+    class cmdShellFactory
+    class noopShellFactory
+
+    shellFactory <|.. zshShellFactory
+    shellFactory <|.. bashShellFactory
+    shellFactory <|.. pwshShellFactory
+    shellFactory <|.. nuShellFactory
+    shellFactory <|.. fishShellFactory
+    shellFactory <|.. tcshShellFactory
+    shellFactory <|.. xonshShellFactory
+    shellFactory <|.. cmdShellFactory
+    shellFactory <|.. noopShellFactory
+
+    Alias ..> shellFactory : configured by
+    Env ..> shellFactory : configured by
+    Path ..> shellFactory : configured by
+    CDPath ..> shellFactory : configured by
+    Link ..> shellFactory : configured by
+    Echo ..> shellFactory : configured by
+```
 
 ## I want in
 
