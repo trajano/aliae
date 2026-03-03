@@ -56,6 +56,10 @@ When a new feature is added, the agent must also update the website documentatio
 For features added in this fork since `https://github.com/JanDeDobbeleer/aliae`
 `main`, update both `README.md` and `website/docs/introduction.mdx` as part of PR definition of done.
 
+## Testing
+
+- When testing `init` from the agent, `--tty-only=false` must be set the TTY checks will fail when running inside the agent.
+
 ## Template variable change checklist
 
 When adding or changing template variables, update all of the following in the same change:

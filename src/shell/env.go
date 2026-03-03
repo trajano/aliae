@@ -18,6 +18,7 @@ type Env struct {
 	If        If       `yaml:"if"`
 	Type      EnvType  `yaml:"type"`
 	template  string
+	pathCheck string
 	IsPath    bool `yaml:"isPath"`
 	IfExists  bool `yaml:"ifExists"`
 	Persist   bool `yaml:"persist"`
@@ -82,6 +83,11 @@ func (e *Env) parse() {
 
 	template := Template(toString(e.Value))
 	e.Value = template.Parse().String()
+	if e.IsPath {
+		if value, ok := e.Value.(string); ok {
+			e.pathCheck = value
+		}
+	}
 	e.normalizePath()
 	e.join()
 }
@@ -214,6 +220,18 @@ func (e *Env) shouldExportPathValue() bool {
 		}
 		candidates = append(candidates, trimmed)
 	}
+	checkCandidates := candidates
+	if len(e.pathCheck) > 0 {
+		rawLines := strings.Split(e.pathCheck, "\n")
+		checkCandidates = make([]string, 0, len(rawLines))
+		for _, line := range rawLines {
+			trimmed := strings.TrimSpace(line)
+			if len(trimmed) == 0 {
+				continue
+			}
+			checkCandidates = append(checkCandidates, trimmed)
+		}
+	}
 
 	if len(candidates) == 0 {
 		return false
@@ -224,9 +242,13 @@ func (e *Env) shouldExportPathValue() bool {
 		return true
 	}
 
-	for _, candidate := range candidates {
+	for i, candidate := range checkCandidates {
 		if dirExists(candidate) {
-			e.Value = candidate
+			if i < len(candidates) {
+				e.Value = candidates[i]
+			} else {
+				e.Value = candidate
+			}
 			return true
 		}
 	}
