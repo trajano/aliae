@@ -334,6 +334,31 @@ func TestEnvironmentVariableIfExists(t *testing.T) {
 	assert.Equal(t, "", os.Getenv("ALIAE_MISSING"))
 }
 
+func TestEnvironmentVariableIfExistsOnWindowsGitBashUsesOriginalPathForExistence(t *testing.T) {
+	t.Setenv("MSYSTEM", "MINGW64")
+
+	existing := t.TempDir()
+	_ = os.Unsetenv("ALIAE_EXISTING")
+
+	DotFile.Reset()
+	context.Current = &context.Runtime{Shell: BASH, OS: context.WINDOWS, Home: `C:\Users\trajano`}
+	envs := Envs{
+		&Env{Name: "ALIAE_EXISTING", Value: existing, IsPath: true, IfExists: true},
+	}
+	envs.Render()
+
+	assert.Contains(t, DotFile.String(), `export ALIAE_EXISTING="`)
+	assert.Equal(t, windowsToMSYSPathOrOriginal(existing), os.Getenv("ALIAE_EXISTING"))
+}
+
+func windowsToMSYSPathOrOriginal(path string) string {
+	if msysPath, isWindowsPath := windowsToMSYSPath(path); isWindowsPath {
+		return msysPath
+	}
+
+	return path
+}
+
 func TestEnvironmentVariableIsPathMultilineUsesFirstExisting(t *testing.T) {
 	firstMissing := filepath.Join(t.TempDir(), "missing-first")
 	secondExisting := t.TempDir()
