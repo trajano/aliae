@@ -4,6 +4,16 @@ const (
 	CMD = "cmd"
 )
 
+type cmdRenderStrategy struct{}
+
+func (cmdRenderStrategy) RenderAlias(a *Alias) string          { return a.cmd().render() }
+func (cmdRenderStrategy) RenderEnv(e *Env) string              { return e.cmd().render() }
+func (cmdRenderStrategy) RenderPath(p *Path) string            { return p.cmd().render() }
+func (cmdRenderStrategy) RenderCDPath(*CDPath) string          { return "" }
+func (cmdRenderStrategy) RenderLink(l *Link) string            { return l.cmd().render() }
+func (cmdRenderStrategy) RenderEcho(e *Echo) string            { return e.cmd().render() }
+func (cmdRenderStrategy) RenderCDPathCurrentDirScript() string { return "" }
+
 func (a *Alias) cmd() *Alias {
 	switch a.Type { //nolint:exhaustive
 	case Command:

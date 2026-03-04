@@ -54,6 +54,6 @@ func TestCDPathCurrentDirScriptByStrategy(t *testing.T) {
 
 	for _, tc := range cases {
 		context.Current = &context.Runtime{Shell: tc.shell}
-		assert.Equal(t, tc.expected, renderStrategy().renderCDPathCurrentDirScript(), tc.shell)
+		assert.Equal(t, tc.expected, renderStrategy().RenderCDPathCurrentDirScript(), tc.shell)
 	}
 }

@@ -30,7 +30,7 @@ func (l *Link) string() string {
 		l.buildPath()
 	}
 
-	return renderStrategy().renderLink(l)
+	return renderStrategy().RenderLink(l)
 }
 
 func (l *Link) exists(path string) bool {

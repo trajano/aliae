@@ -4,6 +4,16 @@ const (
 	FISH = "fish"
 )
 
+type fishRenderStrategy struct{}
+
+func (fishRenderStrategy) RenderAlias(a *Alias) string          { return a.fish().render() }
+func (fishRenderStrategy) RenderEnv(e *Env) string              { return e.fish().render() }
+func (fishRenderStrategy) RenderPath(p *Path) string            { return p.fish().render() }
+func (fishRenderStrategy) RenderCDPath(p *CDPath) string        { return p.fish().render() }
+func (fishRenderStrategy) RenderLink(l *Link) string            { return l.zsh().render() }
+func (fishRenderStrategy) RenderEcho(e *Echo) string            { return e.zsh().render() }
+func (fishRenderStrategy) RenderCDPathCurrentDirScript() string { return `set -g cdpath . $cdpath` }
+
 func (a *Alias) fish() *Alias {
 	switch a.Type { //nolint:exhaustive
 	case Command:

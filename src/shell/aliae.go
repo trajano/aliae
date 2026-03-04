@@ -47,7 +47,7 @@ func (a *Alias) string() string {
 
 	a.Value = a.Value.Parse()
 
-	return renderStrategy().renderAlias(a)
+	return renderStrategy().RenderAlias(a)
 }
 
 func (a *Alias) render() string {

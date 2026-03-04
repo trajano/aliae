@@ -14,6 +14,16 @@ const (
 	NuEnvBlockEnd   = "\n}"
 )
 
+type nuRenderStrategy struct{}
+
+func (nuRenderStrategy) RenderAlias(a *Alias) string          { return a.nu().render() }
+func (nuRenderStrategy) RenderEnv(e *Env) string              { return e.nu().render() }
+func (nuRenderStrategy) RenderPath(p *Path) string            { return p.nu().render() }
+func (nuRenderStrategy) RenderCDPath(*CDPath) string          { return "" }
+func (nuRenderStrategy) RenderLink(l *Link) string            { return l.nu().render() }
+func (nuRenderStrategy) RenderEcho(e *Echo) string            { return e.nu().render() }
+func (nuRenderStrategy) RenderCDPathCurrentDirScript() string { return "" }
+
 func (a *Alias) nu() *Alias {
 	switch a.Type { //nolint:exhaustive
 	case Command:

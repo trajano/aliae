@@ -10,6 +10,18 @@ const (
 	BASH = "bash"
 )
 
+type bashRenderStrategy struct{}
+
+func (bashRenderStrategy) RenderAlias(a *Alias) string   { return a.bash().render() }
+func (bashRenderStrategy) RenderEnv(e *Env) string       { return e.bash().render() }
+func (bashRenderStrategy) RenderPath(p *Path) string     { return p.bash().render() }
+func (bashRenderStrategy) RenderCDPath(p *CDPath) string { return p.bash().render() }
+func (bashRenderStrategy) RenderLink(l *Link) string     { return l.bash().render() }
+func (bashRenderStrategy) RenderEcho(e *Echo) string     { return e.bash().render() }
+func (bashRenderStrategy) RenderCDPathCurrentDirScript() string {
+	return `if [ -n "$CDPATH" ]; then export CDPATH=":$CDPATH"; else export CDPATH=":"; fi`
+}
+
 func (a *Alias) bash() *Alias {
 	switch a.Type { //nolint:exhaustive
 	case Command:

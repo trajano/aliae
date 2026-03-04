@@ -45,7 +45,7 @@ func toString(value any) string {
 }
 
 func (e *Env) string() string {
-	return renderStrategy().renderEnv(e)
+	return renderStrategy().RenderEnv(e)
 }
 
 func (e *Env) join() {
