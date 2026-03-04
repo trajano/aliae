@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestShellFactoryStrategySelection(t *testing.T) {
+func TestRenderStrategySelection(t *testing.T) {
 	cases := []struct {
 		shell        string
 		expectedType string
@@ -27,11 +27,11 @@ func TestShellFactoryStrategySelection(t *testing.T) {
 
 	for _, tc := range cases {
 		context.Current = &context.Runtime{Shell: tc.shell}
-		assert.Equal(t, tc.expectedType, reflect.TypeOf(newShellFactory().strategy()).String(), tc.shell)
+		assert.Equal(t, tc.expectedType, reflect.TypeOf(renderStrategy()).String(), tc.shell)
 	}
 
 	context.Current = nil
-	assert.Equal(t, "shell.noopRenderStrategy", reflect.TypeOf(newShellFactory().strategy()).String())
+	assert.Equal(t, "shell.noopRenderStrategy", reflect.TypeOf(renderStrategy()).String())
 }
 
 func TestCDPathCurrentDirScriptByStrategy(t *testing.T) {
@@ -54,6 +54,6 @@ func TestCDPathCurrentDirScriptByStrategy(t *testing.T) {
 
 	for _, tc := range cases {
 		context.Current = &context.Runtime{Shell: tc.shell}
-		assert.Equal(t, tc.expected, newShellFactory().strategy().renderCDPathCurrentDirScript(), tc.shell)
+		assert.Equal(t, tc.expected, renderStrategy().RenderCDPathCurrentDirScript(), tc.shell)
 	}
 }

@@ -22,7 +22,7 @@ type Path struct {
 }
 
 func (p *Path) string() string {
-	return newShellFactory().strategy().renderPath(p)
+	return renderStrategy().RenderPath(p)
 }
 
 func (p *Path) render() string {

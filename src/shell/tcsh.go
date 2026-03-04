@@ -4,6 +4,16 @@ const (
 	TCSH = "tcsh"
 )
 
+type tcshRenderStrategy struct{}
+
+func (tcshRenderStrategy) RenderAlias(a *Alias) string          { return a.tcsh().render() }
+func (tcshRenderStrategy) RenderEnv(e *Env) string              { return e.tcsh().render() }
+func (tcshRenderStrategy) RenderPath(p *Path) string            { return p.tcsh().render() }
+func (tcshRenderStrategy) RenderCDPath(p *CDPath) string        { return p.tcsh().render() }
+func (tcshRenderStrategy) RenderLink(l *Link) string            { return l.tcsh().render() }
+func (tcshRenderStrategy) RenderEcho(e *Echo) string            { return e.zsh().render() }
+func (tcshRenderStrategy) RenderCDPathCurrentDirScript() string { return `set cdpath = ( . $cdpath );` }
+
 func (a *Alias) tcsh() *Alias {
 	switch a.Type { //nolint:exhaustive
 	case Command:

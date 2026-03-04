@@ -9,6 +9,16 @@ const (
 	XONSH = "xonsh"
 )
 
+type xonshRenderStrategy struct{}
+
+func (xonshRenderStrategy) RenderAlias(a *Alias) string          { return a.xonsh().render() }
+func (xonshRenderStrategy) RenderEnv(e *Env) string              { return e.xonsh().render() }
+func (xonshRenderStrategy) RenderPath(p *Path) string            { return p.xonsh().render() }
+func (xonshRenderStrategy) RenderCDPath(p *CDPath) string        { return p.xonsh().render() }
+func (xonshRenderStrategy) RenderLink(l *Link) string            { return l.zsh().render() }
+func (xonshRenderStrategy) RenderEcho(e *Echo) string            { return e.xonsh().render() }
+func (xonshRenderStrategy) RenderCDPathCurrentDirScript() string { return `$CDPATH = ["."] + $CDPATH` }
+
 func (a *Alias) xonsh() *Alias {
 	switch a.Type { //nolint:exhaustive
 	case Command:

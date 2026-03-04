@@ -10,6 +10,16 @@ const (
 	ZSH = "zsh"
 )
 
+type zshRenderStrategy struct{}
+
+func (zshRenderStrategy) RenderAlias(a *Alias) string          { return a.zsh().render() }
+func (zshRenderStrategy) RenderEnv(e *Env) string              { return e.zsh().render() }
+func (zshRenderStrategy) RenderPath(p *Path) string            { return p.zsh().render() }
+func (zshRenderStrategy) RenderCDPath(p *CDPath) string        { return p.zsh().render() }
+func (zshRenderStrategy) RenderLink(l *Link) string            { return l.zsh().render() }
+func (zshRenderStrategy) RenderEcho(e *Echo) string            { return e.zsh().render() }
+func (zshRenderStrategy) RenderCDPathCurrentDirScript() string { return `cdpath=( . $cdpath )` }
+
 func (a *Alias) zsh() *Alias {
 	switch a.Type { //nolint:exhaustive
 	case Command:

@@ -29,6 +29,16 @@ func IsPowerShell(shell string) bool {
 	return shell == PWSH || shell == POWERSHELL
 }
 
+type pwshRenderStrategy struct{}
+
+func (pwshRenderStrategy) RenderAlias(a *Alias) string          { return a.pwsh().render() }
+func (pwshRenderStrategy) RenderEnv(e *Env) string              { return e.pwsh().render() }
+func (pwshRenderStrategy) RenderPath(p *Path) string            { return p.pwsh().render() }
+func (pwshRenderStrategy) RenderCDPath(*CDPath) string          { return "" }
+func (pwshRenderStrategy) RenderLink(l *Link) string            { return l.pwsh().render() }
+func (pwshRenderStrategy) RenderEcho(e *Echo) string            { return e.pwsh().render() }
+func (pwshRenderStrategy) RenderCDPathCurrentDirScript() string { return "" }
+
 func (a *Alias) pwsh() *Alias {
 	// PowerShell can't handle aliases with switches
 	// unlike unix shells do so we wrap those in a function
