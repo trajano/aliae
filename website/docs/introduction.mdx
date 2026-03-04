@@ -76,7 +76,7 @@ The shell rendering layer combines Factory and Strategy:
 
 - Factory selects which shell strategy to use.
 - Strategy encapsulates shell-specific rendering behavior.
-- Composite executes section renderers in a stable pipeline order.
+- Composite composes section renderers, each implementing `Render()`, in a stable pipeline order.
 
 ### Factory class diagram
 
@@ -198,12 +198,6 @@ classDiagram
     Renderer <|.. Scripts
 
     RenderComposite *-- Renderer : composes
-    RenderComposite ..> Aliae : executes
-    RenderComposite ..> Envs : executes
-    RenderComposite ..> Paths : executes
-    RenderComposite ..> CDPaths : executes
-    RenderComposite ..> Links : executes
-    RenderComposite ..> Scripts : executes
 ```
 
 ## I want in
