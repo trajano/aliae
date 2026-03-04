@@ -47,7 +47,7 @@ func (a *Alias) string() string {
 
 	a.Value = a.Value.Parse()
 
-	return newShellFactory().strategy().renderAlias(a)
+	return renderStrategy().renderAlias(a)
 }
 
 func (a *Alias) render() string {

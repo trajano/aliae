@@ -18,7 +18,7 @@ func (e *Echo) Error() *Echo {
 }
 
 func (e *Echo) String() string {
-	return newShellFactory().strategy().renderEcho(e)
+	return renderStrategy().renderEcho(e)
 }
 
 func (e *Echo) render() string {

@@ -17,7 +17,7 @@ type CDPath struct {
 }
 
 func (p *CDPath) string() string {
-	return newShellFactory().strategy().renderCDPath(p)
+	return renderStrategy().renderCDPath(p)
 }
 
 func (p *CDPath) render() string {
@@ -70,7 +70,7 @@ func (p *CDPath) render() string {
 }
 
 func cdpathCurrentDirScript() string {
-	return newShellFactory().strategy().renderCDPathCurrentDirScript()
+	return renderStrategy().renderCDPathCurrentDirScript()
 }
 
 func (p CDPaths) Render() {

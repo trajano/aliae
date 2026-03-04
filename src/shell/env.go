@@ -45,7 +45,7 @@ func toString(value any) string {
 }
 
 func (e *Env) string() string {
-	return newShellFactory().strategy().renderEnv(e)
+	return renderStrategy().renderEnv(e)
 }
 
 func (e *Env) join() {

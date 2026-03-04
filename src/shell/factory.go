@@ -2,10 +2,6 @@ package shell
 
 import "github.com/jandedobbeleer/aliae/src/context"
 
-type shellFactory interface {
-	strategy() shellRenderStrategy
-}
-
 type shellRenderStrategy interface {
 	renderAlias(*Alias) string
 	renderEnv(*Env) string
@@ -16,68 +12,32 @@ type shellRenderStrategy interface {
 	renderCDPathCurrentDirScript() string
 }
 
-func newShellFactory() shellFactory {
+func renderStrategy() shellRenderStrategy {
 	if context.Current == nil {
-		return noopShellFactory{}
+		return noopRenderStrategy{}
 	}
 
 	switch context.Current.Shell {
 	case ZSH:
-		return zshShellFactory{}
+		return zshRenderStrategy{}
 	case BASH:
-		return bashShellFactory{}
+		return bashRenderStrategy{}
 	case PWSH, POWERSHELL:
-		return pwshShellFactory{}
+		return pwshRenderStrategy{}
 	case NU:
-		return nuShellFactory{}
+		return nuRenderStrategy{}
 	case FISH:
-		return fishShellFactory{}
+		return fishRenderStrategy{}
 	case TCSH:
-		return tcshShellFactory{}
+		return tcshRenderStrategy{}
 	case XONSH:
-		return xonshShellFactory{}
+		return xonshRenderStrategy{}
 	case CMD:
-		return cmdShellFactory{}
+		return cmdRenderStrategy{}
 	default:
-		return noopShellFactory{}
+		return noopRenderStrategy{}
 	}
 }
-
-type noopShellFactory struct{}
-
-func (noopShellFactory) strategy() shellRenderStrategy { return noopRenderStrategy{} }
-
-type zshShellFactory struct{}
-
-func (zshShellFactory) strategy() shellRenderStrategy { return zshRenderStrategy{} }
-
-type bashShellFactory struct{}
-
-func (bashShellFactory) strategy() shellRenderStrategy { return bashRenderStrategy{} }
-
-type pwshShellFactory struct{}
-
-func (pwshShellFactory) strategy() shellRenderStrategy { return pwshRenderStrategy{} }
-
-type nuShellFactory struct{}
-
-func (nuShellFactory) strategy() shellRenderStrategy { return nuRenderStrategy{} }
-
-type fishShellFactory struct{}
-
-func (fishShellFactory) strategy() shellRenderStrategy { return fishRenderStrategy{} }
-
-type tcshShellFactory struct{}
-
-func (tcshShellFactory) strategy() shellRenderStrategy { return tcshRenderStrategy{} }
-
-type xonshShellFactory struct{}
-
-func (xonshShellFactory) strategy() shellRenderStrategy { return xonshRenderStrategy{} }
-
-type cmdShellFactory struct{}
-
-func (cmdShellFactory) strategy() shellRenderStrategy { return cmdRenderStrategy{} }
 
 type noopRenderStrategy struct{}
 

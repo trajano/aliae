@@ -70,58 +70,22 @@ with emphasis on Git Bash compatibility and fork-owned release/documentation flo
   - Scoop/Homebrew bucket and tap population moved to dedicated external repositories.
 - Workflow updates to align with fork publishing boundaries.
 
-## Shell factory and strategy design patterns
+## Shell strategy selection design pattern
 
-The shell rendering layer combines Factory and Strategy:
+The shell rendering layer uses a strategy selector:
 
-- Factory selects which shell strategy to use.
+- Selector chooses which shell strategy to use.
 - Strategy encapsulates shell-specific rendering behavior.
 - Composite composes section renderers, each implementing `Render()`, in a stable pipeline order.
 
-### Factory class diagram
+### Selector and strategy class diagram
 
 ```mermaid
 classDiagram
-    class shellFactory {
-      <<interface>>
-      +strategy() shellRenderStrategy
+    class renderStrategy {
+      +renderStrategy() shellRenderStrategy
     }
 
-    class zshShellFactory
-    class bashShellFactory
-    class pwshShellFactory
-    class nuShellFactory
-    class fishShellFactory
-    class tcshShellFactory
-    class xonshShellFactory
-    class cmdShellFactory
-    class noopShellFactory
-
-    shellFactory <|.. zshShellFactory
-    shellFactory <|.. bashShellFactory
-    shellFactory <|.. pwshShellFactory
-    shellFactory <|.. nuShellFactory
-    shellFactory <|.. fishShellFactory
-    shellFactory <|.. tcshShellFactory
-    shellFactory <|.. xonshShellFactory
-    shellFactory <|.. cmdShellFactory
-    shellFactory <|.. noopShellFactory
-
-    zshShellFactory ..> shellRenderStrategy : creates
-    bashShellFactory ..> shellRenderStrategy : creates
-    pwshShellFactory ..> shellRenderStrategy : creates
-    nuShellFactory ..> shellRenderStrategy : creates
-    fishShellFactory ..> shellRenderStrategy : creates
-    tcshShellFactory ..> shellRenderStrategy : creates
-    xonshShellFactory ..> shellRenderStrategy : creates
-    cmdShellFactory ..> shellRenderStrategy : creates
-    noopShellFactory ..> shellRenderStrategy : creates
-```
-
-### Strategy class diagram
-
-```mermaid
-classDiagram
     class shellRenderStrategy {
       <<interface>>
       +renderAlias(*Alias) string
@@ -150,6 +114,7 @@ classDiagram
     class Link
     class Echo
 
+    renderStrategy ..> shellRenderStrategy : selects
     shellRenderStrategy <|.. zshRenderStrategy
     shellRenderStrategy <|.. bashRenderStrategy
     shellRenderStrategy <|.. pwshRenderStrategy
