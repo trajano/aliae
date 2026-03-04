@@ -75,7 +75,7 @@ with emphasis on Git Bash compatibility and fork-owned release/documentation flo
 The shell rendering layer uses a strategy selector:
 
 - Selector chooses which shell strategy to use.
-- `ShellRenderStrategy` encapsulates shell-specific rendering behavior.
+- `ShellFormatStrategy` encapsulates shell-specific rendering behavior.
 - Composite composes section renderers, each implementing `Render()`, in a stable pipeline order.
 
 ### Selector and strategy class diagram
@@ -83,10 +83,10 @@ The shell rendering layer uses a strategy selector:
 ```mermaid
 classDiagram
     class renderStrategy {
-      +renderStrategy() ShellRenderStrategy
+      +renderStrategy() ShellFormatStrategy
     }
 
-    class ShellRenderStrategy {
+    class ShellFormatStrategy {
       <<interface>>
       +RenderAlias(*Alias) string
       +RenderEnv(*Env) string
@@ -114,23 +114,23 @@ classDiagram
     class Link
     class Echo
 
-    renderStrategy ..> ShellRenderStrategy : selects
-    ShellRenderStrategy <|.. zshRenderStrategy
-    ShellRenderStrategy <|.. bashRenderStrategy
-    ShellRenderStrategy <|.. pwshRenderStrategy
-    ShellRenderStrategy <|.. nuRenderStrategy
-    ShellRenderStrategy <|.. fishRenderStrategy
-    ShellRenderStrategy <|.. tcshRenderStrategy
-    ShellRenderStrategy <|.. xonshRenderStrategy
-    ShellRenderStrategy <|.. cmdRenderStrategy
-    ShellRenderStrategy <|.. noopRenderStrategy
+    renderStrategy ..> ShellFormatStrategy : selects
+    ShellFormatStrategy <|.. zshRenderStrategy
+    ShellFormatStrategy <|.. bashRenderStrategy
+    ShellFormatStrategy <|.. pwshRenderStrategy
+    ShellFormatStrategy <|.. nuRenderStrategy
+    ShellFormatStrategy <|.. fishRenderStrategy
+    ShellFormatStrategy <|.. tcshRenderStrategy
+    ShellFormatStrategy <|.. xonshRenderStrategy
+    ShellFormatStrategy <|.. cmdRenderStrategy
+    ShellFormatStrategy <|.. noopRenderStrategy
 
-    Alias ..> ShellRenderStrategy : delegates render
-    Env ..> ShellRenderStrategy : delegates render
-    Path ..> ShellRenderStrategy : delegates render
-    CDPath ..> ShellRenderStrategy : delegates render
-    Link ..> ShellRenderStrategy : delegates render
-    Echo ..> ShellRenderStrategy : delegates render
+    Alias ..> ShellFormatStrategy : delegates render
+    Env ..> ShellFormatStrategy : delegates render
+    Path ..> ShellFormatStrategy : delegates render
+    CDPath ..> ShellFormatStrategy : delegates render
+    Link ..> ShellFormatStrategy : delegates render
+    Echo ..> ShellFormatStrategy : delegates render
 ```
 
 ### Composite class diagram
