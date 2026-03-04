@@ -18,6 +18,7 @@ import (
 
 	"github.com/goccy/go-yaml"
 	"github.com/jandedobbeleer/aliae/src/context"
+	"github.com/jandedobbeleer/aliae/src/filesystem"
 	"github.com/jandedobbeleer/aliae/src/shell"
 	aliaeState "github.com/jandedobbeleer/aliae/src/state"
 	yamlv3 "gopkg.in/yaml.v3"
@@ -126,7 +127,7 @@ func loadConfig(configPath string, computeVars bool) (*Aliae, error) {
 	// progress.internal is root-only and must ignore included/extended sources.
 	aliae.Progress.Internal = rootProgress.Internal
 	aliae.Cache = rootCache
-	shell.SetStatTimeout(aliae.StatTimeout)
+	filesystem.SetStatTimeout(aliae.StatTimeout)
 
 	return aliae, nil
 }
@@ -253,7 +254,7 @@ func parseConfig(data []byte, computeVars bool) (*Aliae, error) {
 		return nil, fmt.Errorf("failed to parse config file: %s", err)
 	}
 
-	shell.SetStatTimeout(aliae.StatTimeout)
+	filesystem.SetStatTimeout(aliae.StatTimeout)
 	if computeVars {
 		if err := aliae.computeVars(nil); err != nil {
 			return nil, err

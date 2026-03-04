@@ -1,4 +1,4 @@
-package shell
+package filesystem
 
 import (
 	stdcontext "context"
@@ -10,7 +10,7 @@ const defaultStatTimeout = time.Second
 
 var statTimeout = defaultStatTimeout
 
-func statWithTimeout(path string, timeout time.Duration) (os.FileInfo, error) {
+func StatWithTimeout(path string, timeout time.Duration) (os.FileInfo, error) {
 	ctx, cancel := stdcontext.WithTimeout(stdcontext.Background(), timeout)
 	defer cancel()
 
@@ -47,4 +47,8 @@ func SetStatTimeout(timeout time.Duration) {
 	}
 
 	statTimeout = timeout
+}
+
+func StatTimeout() time.Duration {
+	return statTimeout
 }
