@@ -4,17 +4,9 @@ const (
 	TCSH = "tcsh"
 )
 
-type tcshRenderStrategy struct{}
+type tcshFormatStrategy struct{}
 
-func (tcshRenderStrategy) RenderAlias(a *Alias) string          { return a.tcsh().render() }
-func (tcshRenderStrategy) RenderEnv(e *Env) string              { return e.tcsh().render() }
-func (tcshRenderStrategy) RenderPath(p *Path) string            { return p.tcsh().render() }
-func (tcshRenderStrategy) RenderCDPath(p *CDPath) string        { return p.tcsh().render() }
-func (tcshRenderStrategy) RenderLink(l *Link) string            { return l.tcsh().render() }
-func (tcshRenderStrategy) RenderEcho(e *Echo) string            { return e.zsh().render() }
-func (tcshRenderStrategy) RenderCDPathCurrentDirScript() string { return `set cdpath = ( . $cdpath );` }
-
-func (a *Alias) tcsh() *Alias {
+func (tcshFormatStrategy) FormatAlias(a *Alias) string {
 	switch a.Type { //nolint:exhaustive
 	case Command:
 		a.template = `alias {{ .Name }} '{{ .Value }}';`
@@ -24,26 +16,32 @@ func (a *Alias) tcsh() *Alias {
 		a.template = `alias {{ .Name }} 'perl -e {{ formatString .Value }}';`
 	}
 
-	return a
+	return a.render()
 }
 
-func (e *Env) tcsh() *Env {
+func (tcshFormatStrategy) FormatEnv(e *Env) string {
 	e.template = `setenv {{ .Name }} {{ formatString .Value }};`
-	return e
+	return e.render()
 }
 
-func (l *Link) tcsh() *Link {
-	template := `ln -sf {{ .Target }} {{ .Name }};`
-	l.template = template
-	return l
-}
-
-func (p *Path) tcsh() *Path {
+func (tcshFormatStrategy) FormatPath(p *Path) string {
 	p.template = `set path = ( {{ .Value }} $path );`
-	return p
+	return p.render()
 }
 
-func (p *CDPath) tcsh() *CDPath {
+func (tcshFormatStrategy) FormatCDPath(p *CDPath) string {
 	p.template = `set cdpath = ( $cdpath {{ .Value }} );`
-	return p
+	return p.render()
 }
+
+func (tcshFormatStrategy) FormatLink(l *Link) string {
+	l.template = `ln -sf {{ .Target }} {{ .Name }};`
+	return l.render()
+}
+
+func (tcshFormatStrategy) FormatEcho(e *Echo) string {
+	e.template = defaultEchoTemplate
+	return e.render()
+}
+
+func (tcshFormatStrategy) FormatCDPathCurrentDirScript() string { return `set cdpath = ( . $cdpath );` }

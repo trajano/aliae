@@ -7,50 +7,50 @@ import "github.com/jandedobbeleer/aliae/src/context"
 // This interface is intentionally public so callers can depend on rendering capabilities
 // without coupling to a specific shell implementation.
 type ShellFormatStrategy interface {
-	RenderAlias(*Alias) string
-	RenderEnv(*Env) string
-	RenderPath(*Path) string
-	RenderCDPath(*CDPath) string
-	RenderLink(*Link) string
-	RenderEcho(*Echo) string
-	RenderCDPathCurrentDirScript() string
+	FormatAlias(*Alias) string
+	FormatEnv(*Env) string
+	FormatPath(*Path) string
+	FormatCDPath(*CDPath) string
+	FormatLink(*Link) string
+	FormatEcho(*Echo) string
+	FormatCDPathCurrentDirScript() string
 }
 
-// renderStrategy applies a Factory Method-style selection to return
+// formatStrategy applies a Factory Method-style selection to return
 // the concrete ShellFormatStrategy for the active shell runtime.
-func renderStrategy() ShellFormatStrategy {
+func formatStrategy() ShellFormatStrategy {
 	if context.Current == nil {
-		return noopRenderStrategy{}
+		return noopFormatStrategy{}
 	}
 
 	switch context.Current.Shell {
 	case ZSH:
-		return zshRenderStrategy{}
+		return zshFormatStrategy{}
 	case BASH:
-		return bashRenderStrategy{}
+		return bashFormatStrategy{}
 	case PWSH, POWERSHELL:
-		return pwshRenderStrategy{}
+		return pwshFormatStrategy{}
 	case NU:
-		return nuRenderStrategy{}
+		return nuFormatStrategy{}
 	case FISH:
-		return fishRenderStrategy{}
+		return fishFormatStrategy{}
 	case TCSH:
-		return tcshRenderStrategy{}
+		return tcshFormatStrategy{}
 	case XONSH:
-		return xonshRenderStrategy{}
+		return xonshFormatStrategy{}
 	case CMD:
-		return cmdRenderStrategy{}
+		return cmdFormatStrategy{}
 	default:
-		return noopRenderStrategy{}
+		return noopFormatStrategy{}
 	}
 }
 
-type noopRenderStrategy struct{}
+type noopFormatStrategy struct{}
 
-func (noopRenderStrategy) RenderAlias(*Alias) string            { return "" }
-func (noopRenderStrategy) RenderEnv(*Env) string                { return "" }
-func (noopRenderStrategy) RenderPath(*Path) string              { return "" }
-func (noopRenderStrategy) RenderCDPath(*CDPath) string          { return "" }
-func (noopRenderStrategy) RenderLink(*Link) string              { return "" }
-func (noopRenderStrategy) RenderEcho(*Echo) string              { return "" }
-func (noopRenderStrategy) RenderCDPathCurrentDirScript() string { return "" }
+func (noopFormatStrategy) FormatAlias(*Alias) string            { return "" }
+func (noopFormatStrategy) FormatEnv(*Env) string                { return "" }
+func (noopFormatStrategy) FormatPath(*Path) string              { return "" }
+func (noopFormatStrategy) FormatCDPath(*CDPath) string          { return "" }
+func (noopFormatStrategy) FormatLink(*Link) string              { return "" }
+func (noopFormatStrategy) FormatEcho(*Echo) string              { return "" }
+func (noopFormatStrategy) FormatCDPathCurrentDirScript() string { return "" }

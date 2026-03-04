@@ -10,19 +10,9 @@ const (
 	BASH = "bash"
 )
 
-type bashRenderStrategy struct{}
+type bashFormatStrategy struct{}
 
-func (bashRenderStrategy) RenderAlias(a *Alias) string   { return a.bash().render() }
-func (bashRenderStrategy) RenderEnv(e *Env) string       { return e.bash().render() }
-func (bashRenderStrategy) RenderPath(p *Path) string     { return p.bash().render() }
-func (bashRenderStrategy) RenderCDPath(p *CDPath) string { return p.bash().render() }
-func (bashRenderStrategy) RenderLink(l *Link) string     { return l.bash().render() }
-func (bashRenderStrategy) RenderEcho(e *Echo) string     { return e.bash().render() }
-func (bashRenderStrategy) RenderCDPathCurrentDirScript() string {
-	return `if [ -n "$CDPATH" ]; then export CDPATH=":$CDPATH"; else export CDPATH=":"; fi`
-}
-
-func (a *Alias) bash() *Alias {
+func (bashFormatStrategy) FormatAlias(a *Alias) string {
 	switch a.Type { //nolint:exhaustive
 	case Command:
 		a.template = `alias {{ .Name }}={{ formatString .Value }}`
@@ -40,15 +30,10 @@ func (a *Alias) bash() *Alias {
 }`
 	}
 
-	return a
+	return a.render()
 }
 
-func (e *Echo) bash() *Echo {
-	e.template = defaultEchoTemplate
-	return e
-}
-
-func (e *Env) bash() *Env {
+func (bashFormatStrategy) FormatEnv(e *Env) string {
 	switch e.Type {
 	case Array:
 		e.template = `export {{ .Name }}=({{ formatArray .Value }})`
@@ -58,22 +43,29 @@ func (e *Env) bash() *Env {
 		e.template = `export {{ .Name }}={{ formatString .Value }}`
 	}
 
-	return e
+	return e.render()
 }
 
-func (l *Link) bash() *Link {
-	template := `ln -sf {{ .Target }} {{ .Name }}`
-	l.template = template
-	return l
-}
-
-func (p *Path) bash() *Path {
+func (bashFormatStrategy) FormatPath(p *Path) string {
 	p.template = `export PATH="{{ .Value }}:$PATH"`
-	return p
+	return p.render()
 }
 
-func (p *CDPath) bash() *CDPath {
-	template := fmt.Sprintf(`export CDPATH="${CDPATH:+$CDPATH%s}{{ .Value }}"`, context.PathDelimiter())
-	p.template = template
-	return p
+func (bashFormatStrategy) FormatCDPath(p *CDPath) string {
+	p.template = fmt.Sprintf(`export CDPATH="${CDPATH:+$CDPATH%s}{{ .Value }}"`, context.PathDelimiter())
+	return p.render()
+}
+
+func (bashFormatStrategy) FormatLink(l *Link) string {
+	l.template = `ln -sf {{ .Target }} {{ .Name }}`
+	return l.render()
+}
+
+func (bashFormatStrategy) FormatEcho(e *Echo) string {
+	e.template = defaultEchoTemplate
+	return e.render()
+}
+
+func (bashFormatStrategy) FormatCDPathCurrentDirScript() string {
+	return `if [ -n "$CDPATH" ]; then export CDPATH=":$CDPATH"; else export CDPATH=":"; fi`
 }

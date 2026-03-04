@@ -14,17 +14,9 @@ const (
 	NuEnvBlockEnd   = "\n}"
 )
 
-type nuRenderStrategy struct{}
+type nuFormatStrategy struct{}
 
-func (nuRenderStrategy) RenderAlias(a *Alias) string          { return a.nu().render() }
-func (nuRenderStrategy) RenderEnv(e *Env) string              { return e.nu().render() }
-func (nuRenderStrategy) RenderPath(p *Path) string            { return p.nu().render() }
-func (nuRenderStrategy) RenderCDPath(*CDPath) string          { return "" }
-func (nuRenderStrategy) RenderLink(l *Link) string            { return l.nu().render() }
-func (nuRenderStrategy) RenderEcho(e *Echo) string            { return e.nu().render() }
-func (nuRenderStrategy) RenderCDPathCurrentDirScript() string { return "" }
-
-func (a *Alias) nu() *Alias {
+func (nuFormatStrategy) FormatAlias(a *Alias) string {
 	switch a.Type { //nolint:exhaustive
 	case Command:
 		a.template = `alias {{ .Name }} = {{ .Value }}`
@@ -45,15 +37,10 @@ func (a *Alias) nu() *Alias {
 }`
 	}
 
-	return a
+	return a.render()
 }
 
-func (e *Echo) nu() *Echo {
-	e.template = defaultEchoTemplate
-	return e
-}
-
-func (e *Env) nu() *Env {
+func (nuFormatStrategy) FormatEnv(e *Env) string {
 	switch e.Type {
 	case Array:
 		e.template = `    $env.{{ .Name }} = [{{ formatArray .Value }}]`
@@ -63,20 +50,10 @@ func (e *Env) nu() *Env {
 		e.template = `    $env.{{ .Name }} = {{ formatString .Value }}`
 	}
 
-	return e
+	return e.render()
 }
 
-func (l *Link) nu() *Link {
-	template := `ln -sf {{ .Target }} {{ .Name }} out+err>| ignore`
-	if context.Current.OS == context.WINDOWS {
-		template = `{{ $source := (escapeString .Name) }}mklink {{ if isDir $source }}/d{{ else }}/h{{ end }} {{ $source }} {{ escapeString .Target }} out+err>| ignore`
-	}
-
-	l.template = template
-	return l
-}
-
-func (p *Path) nu() *Path {
+func (nuFormatStrategy) FormatPath(p *Path) string {
 	template := `$env.%s = ($env.%s | prepend {{ formatString .Value }})`
 	pathName := "PATH"
 
@@ -85,8 +62,26 @@ func (p *Path) nu() *Path {
 	}
 
 	p.template = fmt.Sprintf(template, pathName, pathName)
-	return p
+	return p.render()
 }
+
+func (nuFormatStrategy) FormatCDPath(*CDPath) string { return "" }
+
+func (nuFormatStrategy) FormatLink(l *Link) string {
+	l.template = `ln -sf {{ .Target }} {{ .Name }} out+err>| ignore`
+	if context.Current.OS == context.WINDOWS {
+		l.template = `{{ $source := (escapeString .Name) }}mklink {{ if isDir $source }}/d{{ else }}/h{{ end }} {{ $source }} {{ escapeString .Target }} out+err>| ignore`
+	}
+
+	return l.render()
+}
+
+func (nuFormatStrategy) FormatEcho(e *Echo) string {
+	e.template = defaultEchoTemplate
+	return e.render()
+}
+
+func (nuFormatStrategy) FormatCDPathCurrentDirScript() string { return "" }
 
 func NuInit(script string) error {
 	initPath := filepath.Join(context.Home(), ".aliae.nu")

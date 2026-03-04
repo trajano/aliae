@@ -82,30 +82,30 @@ The shell rendering layer uses a strategy selector:
 
 ```mermaid
 classDiagram
-    class renderStrategy {
-      +renderStrategy() ShellFormatStrategy
+    class formatStrategy {
+      +formatStrategy() ShellFormatStrategy
     }
 
     class ShellFormatStrategy {
       <<interface>>
-      +RenderAlias(*Alias) string
-      +RenderEnv(*Env) string
-      +RenderPath(*Path) string
-      +RenderCDPath(*CDPath) string
-      +RenderLink(*Link) string
-      +RenderEcho(*Echo) string
-      +RenderCDPathCurrentDirScript() string
+      +FormatAlias(*Alias) string
+      +FormatEnv(*Env) string
+      +FormatPath(*Path) string
+      +FormatCDPath(*CDPath) string
+      +FormatLink(*Link) string
+      +FormatEcho(*Echo) string
+      +FormatCDPathCurrentDirScript() string
     }
 
-    class zshRenderStrategy
-    class bashRenderStrategy
-    class pwshRenderStrategy
-    class nuRenderStrategy
-    class fishRenderStrategy
-    class tcshRenderStrategy
-    class xonshRenderStrategy
-    class cmdRenderStrategy
-    class noopRenderStrategy
+    class zshFormatStrategy
+    class bashFormatStrategy
+    class pwshFormatStrategy
+    class nuFormatStrategy
+    class fishFormatStrategy
+    class tcshFormatStrategy
+    class xonshFormatStrategy
+    class cmdFormatStrategy
+    class noopFormatStrategy
 
     class Alias
     class Env
@@ -114,23 +114,23 @@ classDiagram
     class Link
     class Echo
 
-    renderStrategy ..> ShellFormatStrategy : selects
-    ShellFormatStrategy <|.. zshRenderStrategy
-    ShellFormatStrategy <|.. bashRenderStrategy
-    ShellFormatStrategy <|.. pwshRenderStrategy
-    ShellFormatStrategy <|.. nuRenderStrategy
-    ShellFormatStrategy <|.. fishRenderStrategy
-    ShellFormatStrategy <|.. tcshRenderStrategy
-    ShellFormatStrategy <|.. xonshRenderStrategy
-    ShellFormatStrategy <|.. cmdRenderStrategy
-    ShellFormatStrategy <|.. noopRenderStrategy
+    formatStrategy ..> ShellFormatStrategy : selects
+    ShellFormatStrategy <|.. zshFormatStrategy
+    ShellFormatStrategy <|.. bashFormatStrategy
+    ShellFormatStrategy <|.. pwshFormatStrategy
+    ShellFormatStrategy <|.. nuFormatStrategy
+    ShellFormatStrategy <|.. fishFormatStrategy
+    ShellFormatStrategy <|.. tcshFormatStrategy
+    ShellFormatStrategy <|.. xonshFormatStrategy
+    ShellFormatStrategy <|.. cmdFormatStrategy
+    ShellFormatStrategy <|.. noopFormatStrategy
 
-    Alias ..> ShellFormatStrategy : delegates render
-    Env ..> ShellFormatStrategy : delegates render
-    Path ..> ShellFormatStrategy : delegates render
-    CDPath ..> ShellFormatStrategy : delegates render
-    Link ..> ShellFormatStrategy : delegates render
-    Echo ..> ShellFormatStrategy : delegates render
+    Alias ..> ShellFormatStrategy : delegates formatting
+    Env ..> ShellFormatStrategy : delegates formatting
+    Path ..> ShellFormatStrategy : delegates formatting
+    CDPath ..> ShellFormatStrategy : delegates formatting
+    Link ..> ShellFormatStrategy : delegates formatting
+    Echo ..> ShellFormatStrategy : delegates formatting
 ```
 
 ### Composite class diagram

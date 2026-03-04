@@ -18,7 +18,7 @@ func (e *Echo) Error() *Echo {
 }
 
 func (e *Echo) String() string {
-	return renderStrategy().RenderEcho(e)
+	return formatStrategy().FormatEcho(e)
 }
 
 func (e *Echo) render() string {

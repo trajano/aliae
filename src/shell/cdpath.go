@@ -17,7 +17,7 @@ type CDPath struct {
 }
 
 func (p *CDPath) string() string {
-	return renderStrategy().RenderCDPath(p)
+	return formatStrategy().FormatCDPath(p)
 }
 
 func (p *CDPath) render() string {
@@ -70,7 +70,7 @@ func (p *CDPath) render() string {
 }
 
 func cdpathCurrentDirScript() string {
-	return renderStrategy().RenderCDPathCurrentDirScript()
+	return formatStrategy().FormatCDPathCurrentDirScript()
 }
 
 func (p CDPaths) Render() {
