@@ -231,6 +231,45 @@ func TestTemplateWSL(t *testing.T) {
 	assert.Equal(t, "true", got)
 }
 
+func TestTemplateShellLike(t *testing.T) {
+	text := `{{ .ShellLike }}`
+	context.Current = &context.Runtime{Shell: BASH, ShellLike: true}
+
+	got, err := parse(text, context.Current)
+	assert.NoError(t, err)
+	assert.Equal(t, "true", got)
+}
+
+func TestSetArg(t *testing.T) {
+	text := `{{ setArg "TARGET_HOST" .Index }}`
+	cases := []struct {
+		Case     string
+		Shell    string
+		Index    any
+		Expected string
+	}{
+		{Case: "bash", Shell: BASH, Index: 1, Expected: "TARGET_HOST=$1"},
+		{Case: "zsh", Shell: ZSH, Index: 1, Expected: "TARGET_HOST=$1"},
+		{Case: "fish", Shell: FISH, Index: 1, Expected: "set TARGET_HOST $argv[1]"},
+		{Case: "pwsh", Shell: PWSH, Index: 1, Expected: "$TARGET_HOST = $args[0]"},
+		{Case: "powershell", Shell: POWERSHELL, Index: 1, Expected: "$TARGET_HOST = $args[0]"},
+		{Case: "nu", Shell: NU, Index: 1, Expected: "$TARGET_HOST = $args.0"},
+		{Case: "xonsh", Shell: XONSH, Index: 1, Expected: "TARGET_HOST=$argv[1]"},
+		{Case: "tcsh", Shell: TCSH, Index: 1, Expected: "set TARGET_HOST=$1"},
+		{Case: "cmd", Shell: CMD, Index: 1, Expected: "set TARGET_HOST=%1"},
+		{Case: "string index", Shell: BASH, Index: "2", Expected: "TARGET_HOST=$2"},
+		{Case: "invalid index", Shell: BASH, Index: "nope", Expected: ""},
+		{Case: "unknown shell", Shell: "unknown", Index: 1, Expected: ""},
+	}
+
+	for _, tc := range cases {
+		context.Current = &context.Runtime{Shell: tc.Shell}
+		got, err := parse(text, tc)
+		assert.NoError(t, err)
+		assert.Equal(t, tc.Expected, got, tc.Case)
+	}
+}
+
 func TestTemplateEnv(t *testing.T) {
 	text := `{{ .Env.DOTFILES }}`
 	context.Current = &context.Runtime{

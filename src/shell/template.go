@@ -80,6 +80,7 @@ func funcMap() template.FuncMap {
 		"fileExists":        fileExists,
 		"dirExists":         dirExists,
 		"isDir":             isDir,
+		"setArg":            setArg,
 		"progress":          progress,
 	}
 	return funcMap
@@ -253,6 +254,79 @@ func executableExtension() string {
 	}
 
 	return ""
+}
+
+func setArg(name string, index any) string {
+	name = strings.TrimSpace(name)
+	if name == "" {
+		return ""
+	}
+
+	oneBasedIndex, ok := toPositiveInt(index)
+	if !ok {
+		return ""
+	}
+
+	switch context.Current.Shell {
+	case BASH, ZSH:
+		return fmt.Sprintf("%s=$%d", name, oneBasedIndex)
+	case FISH:
+		return fmt.Sprintf("set %s $argv[%d]", name, oneBasedIndex)
+	case PWSH, POWERSHELL:
+		return fmt.Sprintf("$%s = $args[%d]", name, oneBasedIndex-1)
+	case NU:
+		return fmt.Sprintf("$%s = $args.%d", name, oneBasedIndex-1)
+	case XONSH:
+		return fmt.Sprintf("%s=$argv[%d]", name, oneBasedIndex)
+	case TCSH:
+		return fmt.Sprintf("set %s=$%d", name, oneBasedIndex)
+	case CMD:
+		return fmt.Sprintf("set %s=%%%d", name, oneBasedIndex)
+	default:
+		return ""
+	}
+}
+
+func toPositiveInt(value any) (int, bool) {
+	switch v := value.(type) {
+	case int:
+		return v, v > 0
+	case int8:
+		i := int(v)
+		return i, i > 0
+	case int16:
+		i := int(v)
+		return i, i > 0
+	case int32:
+		i := int(v)
+		return i, i > 0
+	case int64:
+		i := int(v)
+		return i, i > 0
+	case uint:
+		i := int(v)
+		return i, i > 0
+	case uint8:
+		i := int(v)
+		return i, i > 0
+	case uint16:
+		i := int(v)
+		return i, i > 0
+	case uint32:
+		i := int(v)
+		return i, i > 0
+	case uint64:
+		i := int(v)
+		return i, i > 0
+	case string:
+		i, err := strconv.Atoi(strings.TrimSpace(v))
+		if err != nil {
+			return 0, false
+		}
+		return i, i > 0
+	default:
+		return 0, false
+	}
 }
 
 func isDir(path string) bool {
