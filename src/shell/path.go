@@ -22,7 +22,7 @@ type Path struct {
 }
 
 func (p *Path) string() string {
-	return renderStrategy().RenderPath(p)
+	return formatStrategy().FormatPath(p)
 }
 
 func (p *Path) render() string {

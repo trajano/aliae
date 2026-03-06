@@ -107,7 +107,7 @@ func runInitRenderPhases(aliae *Aliae, observer InitObserver) error {
 	}
 
 	renderPhases := []struct {
-		renderer shell.Renderer
+		renderer renderer
 		phase    InitPhase
 	}{
 		{renderer: aliae.Envs, phase: InitPhaseRenderEnv},
@@ -119,12 +119,12 @@ func runInitRenderPhases(aliae *Aliae, observer InitObserver) error {
 	}
 
 	if observer == nil {
-		renderers := make([]shell.Renderer, 0, len(renderPhases))
+		renderers := make([]renderer, 0, len(renderPhases))
 		for _, step := range renderPhases {
 			renderers = append(renderers, step.renderer)
 		}
 
-		shell.NewRenderComposite(renderers...).Render()
+		newRenderComposite(renderers...).Render()
 		return nil
 	}
 

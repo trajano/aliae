@@ -8,30 +8,30 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestRenderStrategySelection(t *testing.T) {
+func TestFormatStrategySelection(t *testing.T) {
 	cases := []struct {
 		shell        string
 		expectedType string
 	}{
-		{shell: ZSH, expectedType: "shell.zshRenderStrategy"},
-		{shell: BASH, expectedType: "shell.bashRenderStrategy"},
-		{shell: PWSH, expectedType: "shell.pwshRenderStrategy"},
-		{shell: POWERSHELL, expectedType: "shell.pwshRenderStrategy"},
-		{shell: NU, expectedType: "shell.nuRenderStrategy"},
-		{shell: FISH, expectedType: "shell.fishRenderStrategy"},
-		{shell: TCSH, expectedType: "shell.tcshRenderStrategy"},
-		{shell: XONSH, expectedType: "shell.xonshRenderStrategy"},
-		{shell: CMD, expectedType: "shell.cmdRenderStrategy"},
-		{shell: "unknown", expectedType: "shell.noopRenderStrategy"},
+		{shell: ZSH, expectedType: "shell.zshFormatStrategy"},
+		{shell: BASH, expectedType: "shell.bashFormatStrategy"},
+		{shell: PWSH, expectedType: "shell.pwshFormatStrategy"},
+		{shell: POWERSHELL, expectedType: "shell.pwshFormatStrategy"},
+		{shell: NU, expectedType: "shell.nuFormatStrategy"},
+		{shell: FISH, expectedType: "shell.fishFormatStrategy"},
+		{shell: TCSH, expectedType: "shell.tcshFormatStrategy"},
+		{shell: XONSH, expectedType: "shell.xonshFormatStrategy"},
+		{shell: CMD, expectedType: "shell.cmdFormatStrategy"},
+		{shell: "unknown", expectedType: "shell.noopFormatStrategy"},
 	}
 
 	for _, tc := range cases {
 		context.Current = &context.Runtime{Shell: tc.shell}
-		assert.Equal(t, tc.expectedType, reflect.TypeOf(renderStrategy()).String(), tc.shell)
+		assert.Equal(t, tc.expectedType, reflect.TypeOf(formatStrategy()).String(), tc.shell)
 	}
 
 	context.Current = nil
-	assert.Equal(t, "shell.noopRenderStrategy", reflect.TypeOf(renderStrategy()).String())
+	assert.Equal(t, "shell.noopFormatStrategy", reflect.TypeOf(formatStrategy()).String())
 }
 
 func TestCDPathCurrentDirScriptByStrategy(t *testing.T) {
@@ -54,6 +54,6 @@ func TestCDPathCurrentDirScriptByStrategy(t *testing.T) {
 
 	for _, tc := range cases {
 		context.Current = &context.Runtime{Shell: tc.shell}
-		assert.Equal(t, tc.expected, renderStrategy().RenderCDPathCurrentDirScript(), tc.shell)
+		assert.Equal(t, tc.expected, formatStrategy().FormatCDPathCurrentDirScript(), tc.shell)
 	}
 }

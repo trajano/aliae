@@ -10,17 +10,9 @@ const (
 	ZSH = "zsh"
 )
 
-type zshRenderStrategy struct{}
+type zshFormatStrategy struct{}
 
-func (zshRenderStrategy) RenderAlias(a *Alias) string          { return a.zsh().render() }
-func (zshRenderStrategy) RenderEnv(e *Env) string              { return e.zsh().render() }
-func (zshRenderStrategy) RenderPath(p *Path) string            { return p.zsh().render() }
-func (zshRenderStrategy) RenderCDPath(p *CDPath) string        { return p.zsh().render() }
-func (zshRenderStrategy) RenderLink(l *Link) string            { return l.zsh().render() }
-func (zshRenderStrategy) RenderEcho(e *Echo) string            { return e.zsh().render() }
-func (zshRenderStrategy) RenderCDPathCurrentDirScript() string { return `cdpath=( . $cdpath )` }
-
-func (a *Alias) zsh() *Alias {
+func (zshFormatStrategy) FormatAlias(a *Alias) string {
 	switch a.Type { //nolint:exhaustive
 	case Command:
 		a.template = `alias {{ .Name }}={{ formatString .Value }}`
@@ -38,15 +30,10 @@ func (a *Alias) zsh() *Alias {
 }`
 	}
 
-	return a
+	return a.render()
 }
 
-func (e *Echo) zsh() *Echo {
-	e.template = defaultEchoTemplate
-	return e
-}
-
-func (e *Env) zsh() *Env {
+func (zshFormatStrategy) FormatEnv(e *Env) string {
 	switch e.Type {
 	case Array:
 		e.template = `export {{ .Name }}=({{ formatArray .Value }})`
@@ -56,22 +43,27 @@ func (e *Env) zsh() *Env {
 		e.template = `export {{ .Name }}={{ formatString .Value }}`
 	}
 
-	return e
+	return e.render()
 }
 
-func (l *Link) zsh() *Link {
-	template := `ln -sf {{ .Target }} {{ .Name }}`
-	l.template = template
-	return l
+func (zshFormatStrategy) FormatPath(p *Path) string {
+	p.template = fmt.Sprintf(`export PATH="{{ .Value }}%s$PATH"`, context.PathDelimiter())
+	return p.render()
 }
 
-func (p *Path) zsh() *Path {
-	template := fmt.Sprintf(`export PATH="{{ .Value }}%s$PATH"`, context.PathDelimiter())
-	p.template = template
-	return p
-}
-
-func (p *CDPath) zsh() *CDPath {
+func (zshFormatStrategy) FormatCDPath(p *CDPath) string {
 	p.template = `cdpath=( $cdpath {{ .Value }} )`
-	return p
+	return p.render()
 }
+
+func (zshFormatStrategy) FormatLink(l *Link) string {
+	l.template = defaultLinkTemplate
+	return l.render()
+}
+
+func (zshFormatStrategy) FormatEcho(e *Echo) string {
+	e.template = defaultEchoTemplate
+	return e.render()
+}
+
+func (zshFormatStrategy) FormatCDPathCurrentDirScript() string { return `cdpath=( . $cdpath )` }

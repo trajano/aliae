@@ -4,6 +4,9 @@ title: Path
 sidebar_label: 🛣️ Path
 ---
 
+import Tabs from "@theme/Tabs";
+import TabItem from "@theme/TabItem";
+
 Specify the same `PATH` entries cross shell.
 
 ## Syntax
@@ -55,6 +58,87 @@ Runtime output in Git Bash:
 export PATH="/p/tools/bin:$PATH"
 export PATH="/p/scripts:$PATH"
 ```
+
+## Expected output by shell
+
+The examples below use:
+
+```yaml
+path:
+  - value: /usr/local/bin
+```
+
+<Tabs
+  defaultValue="bash"
+  groupId="path-output-shell"
+  values={[
+    { label: 'bash', value: 'bash' },
+    { label: 'zsh', value: 'zsh' },
+    { label: 'fish', value: 'fish' },
+    { label: 'pwsh', value: 'pwsh' },
+    { label: 'nu', value: 'nu' },
+    { label: 'tcsh', value: 'tcsh' },
+    { label: 'xonsh', value: 'xonsh' },
+    { label: 'cmd', value: 'cmd' },
+  ]
+}>
+<TabItem value="bash">
+
+```bash
+export PATH="/usr/local/bin:$PATH"
+```
+
+</TabItem>
+<TabItem value="zsh">
+
+```zsh
+export PATH="/usr/local/bin:$PATH"
+```
+
+</TabItem>
+<TabItem value="fish">
+
+```fish
+fish_add_path /usr/local/bin
+```
+
+</TabItem>
+<TabItem value="pwsh">
+
+```powershell
+$env:PATH = "/usr/local/bin" + ':' + $env:PATH
+```
+
+</TabItem>
+<TabItem value="nu">
+
+```nu
+$env.PATH = ($env.PATH | prepend "/usr/local/bin")
+```
+
+</TabItem>
+<TabItem value="tcsh">
+
+```tcsh
+set path = ( /usr/local/bin $path );
+```
+
+</TabItem>
+<TabItem value="xonsh">
+
+```python
+$PATH.add('/usr/local/bin', True, False)
+```
+
+</TabItem>
+<TabItem value="cmd">
+
+```lua
+os.setenv("PATH", "/usr/local/bin;" .. os.getenv("PATH"))
+```
+
+</TabItem>
+</Tabs>
 
 [templates]: templates.mdx
 [go-text-template]: https://golang.org/pkg/text/template/

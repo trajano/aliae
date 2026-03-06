@@ -29,24 +29,16 @@ func IsPowerShell(shell string) bool {
 	return shell == PWSH || shell == POWERSHELL
 }
 
-type pwshRenderStrategy struct{}
+type pwshFormatStrategy struct{}
 
-func (pwshRenderStrategy) RenderAlias(a *Alias) string          { return a.pwsh().render() }
-func (pwshRenderStrategy) RenderEnv(e *Env) string              { return e.pwsh().render() }
-func (pwshRenderStrategy) RenderPath(p *Path) string            { return p.pwsh().render() }
-func (pwshRenderStrategy) RenderCDPath(*CDPath) string          { return "" }
-func (pwshRenderStrategy) RenderLink(l *Link) string            { return l.pwsh().render() }
-func (pwshRenderStrategy) RenderEcho(e *Echo) string            { return e.pwsh().render() }
-func (pwshRenderStrategy) RenderCDPathCurrentDirScript() string { return "" }
-
-func (a *Alias) pwsh() *Alias {
+func (pwshFormatStrategy) FormatAlias(a *Alias) string {
 	// PowerShell can't handle aliases with switches
 	// unlike unix shells do so we wrap those in a function
 	if a.Type == Command && strings.Contains(string(a.Value), " ") {
 		a.template = `function {{ .Name }}() {
 	{{ .Value }} $args
 }`
-		return a
+		return a.render()
 	}
 
 	switch a.Type { //nolint:exhaustive
@@ -66,18 +58,10 @@ func (a *Alias) pwsh() *Alias {
 }`
 	}
 
-	return a
+	return a.render()
 }
 
-func (e *Echo) pwsh() *Echo {
-	e.template = `$message = @"
-{{ .Message }}
-"@
-Write-Host $message`
-	return e
-}
-
-func (e *Env) pwsh() *Env {
+func (pwshFormatStrategy) FormatEnv(e *Env) string {
 	switch e.Type {
 	case Array:
 		e.template = `$env:{{ .Name }} = @({{ formatArray .Value "," }})`
@@ -87,20 +71,30 @@ func (e *Env) pwsh() *Env {
 		e.template = `$env:{{ .Name }} = {{ formatString .Value }}`
 	}
 
-	return e
+	return e.render()
 }
 
-func (l *Link) pwsh() *Link {
-	template := `New-Item -Path {{ formatString .Name }} -ItemType SymbolicLink -Value {{ formatString .Target }} -Force | Out-Null`
-	l.template = template
-	return l
+func (pwshFormatStrategy) FormatPath(p *Path) string {
+	p.template = fmt.Sprintf(`$env:PATH = {{ formatString .Value }} + '%s' + $env:PATH`, context.PathDelimiter())
+	return p.render()
 }
 
-func (p *Path) pwsh() *Path {
-	template := fmt.Sprintf(`$env:PATH = {{ formatString .Value }} + '%s' + $env:PATH`, context.PathDelimiter())
-	p.template = template
-	return p
+func (pwshFormatStrategy) FormatCDPath(*CDPath) string { return "" }
+
+func (pwshFormatStrategy) FormatLink(l *Link) string {
+	l.template = `New-Item -Path {{ formatString .Name }} -ItemType SymbolicLink -Value {{ formatString .Target }} -Force | Out-Null`
+	return l.render()
 }
+
+func (pwshFormatStrategy) FormatEcho(e *Echo) string {
+	e.template = `$message = @"
+{{ .Message }}
+"@
+Write-Host $message`
+	return e.render()
+}
+
+func (pwshFormatStrategy) FormatCDPathCurrentDirScript() string { return "" }
 
 func isPwshOption(option Option) bool {
 	switch option { //nolint:exhaustive

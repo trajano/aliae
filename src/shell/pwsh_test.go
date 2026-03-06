@@ -95,6 +95,6 @@ func TestPowerShellCommandAlias(t *testing.T) {
 	for _, tc := range cases {
 		context.Current = &context.Runtime{Shell: PWSH}
 		tc.Alias.Type = Command
-		assert.Equal(t, tc.Expected, tc.Alias.pwsh().render(), tc.Case)
+		assert.Equal(t, tc.Expected, pwshFormatStrategy{}.FormatAlias(tc.Alias), tc.Case)
 	}
 }

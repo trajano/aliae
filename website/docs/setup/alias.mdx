@@ -62,6 +62,177 @@ import TabItem from "@theme/TabItem";
 </TabItem>
 </Tabs>
 
+### Expected output by shell and alias type
+
+The examples below use:
+
+```yaml
+alias:
+  - name: foo
+    value: bar
+    type: command
+  - name: fn
+    value: bar
+    type: function
+  - name: pyfoo
+    value: print(123)
+    type: python
+  - name: plfoo
+    value: print qq(123)
+    type: perl
+  - name: h
+    value: log --oneline --graph --decorate --all
+    type: git
+```
+
+`git` aliases are written with `git config --global`, not as shell alias syntax. Most shells emit:
+
+```sh
+git config --global alias.h 'log --oneline --graph --decorate --all'
+```
+
+Nushell uses a raw string variant:
+
+```nu
+git config --global alias.h r#'log --oneline --graph --decorate --all'#
+```
+
+<Tabs
+  defaultValue="bash"
+  groupId="alias-output-shell"
+  values={[
+    { label: 'bash', value: 'bash' },
+    { label: 'zsh', value: 'zsh' },
+    { label: 'fish', value: 'fish' },
+    { label: 'pwsh', value: 'pwsh' },
+    { label: 'nu', value: 'nu' },
+    { label: 'tcsh', value: 'tcsh' },
+    { label: 'xonsh', value: 'xonsh' },
+    { label: 'cmd', value: 'cmd' },
+  ]
+}>
+<TabItem value="bash">
+
+```bash
+alias foo="bar"
+fn() {
+    bar
+}
+pyfoo() {
+    python -c "print(123)" "$@"
+}
+plfoo() {
+    perl -e "print qq(123)" "$@"
+}
+```
+
+</TabItem>
+<TabItem value="zsh">
+
+```zsh
+alias foo="bar"
+fn() {
+    bar
+}
+pyfoo() {
+    python -c "print(123)" "$@"
+}
+plfoo() {
+    perl -e "print qq(123)" "$@"
+}
+```
+
+</TabItem>
+<TabItem value="fish">
+
+```fish
+alias foo "bar"
+function fn
+    bar
+end
+function pyfoo
+    python -c "print(123)" $argv
+end
+function plfoo
+    perl -e "print qq(123)" $argv
+end
+```
+
+</TabItem>
+<TabItem value="pwsh">
+
+```powershell
+Set-Alias -Name foo -Value "bar"
+function fn() {
+    bar
+}
+function pyfoo() {
+    python -c "print(123)" $args
+}
+function plfoo() {
+    perl -e "print qq(123)" $args
+}
+```
+
+</TabItem>
+<TabItem value="nu">
+
+```nu
+alias foo = bar
+def fn [] {
+    bar
+}
+def pyfoo [...args] {
+    python -c "print(123)" ...$args
+}
+def plfoo [...args] {
+    perl -e "print qq(123)" ...$args
+}
+```
+
+</TabItem>
+<TabItem value="tcsh">
+
+```tcsh
+alias foo 'bar';
+alias pyfoo 'python -c "print(123)"';
+alias plfoo 'perl -e "print qq(123)"';
+```
+
+`function` aliases are not supported in `tcsh`.
+
+</TabItem>
+<TabItem value="xonsh">
+
+```python
+aliases['foo'] = 'bar'
+@aliases.register("fn")
+def __fn():
+    bar
+@aliases.register("pyfoo")
+def __pyfoo(args):
+    import subprocess
+    subprocess.run(["python", "-c", "print(123)", *args], check=False)
+@aliases.register("plfoo")
+def __plfoo(args):
+    import subprocess
+    subprocess.run(["perl", "-e", "print qq(123)", *args], check=False)
+```
+
+</TabItem>
+<TabItem value="cmd">
+
+```lua
+macrofile:write("foo=bar", "\n")
+macrofile:write("pyfoo=python -c \"print(123)\" $*", "\n")
+macrofile:write("plfoo=perl -e \"print qq(123)\" $*", "\n")
+```
+
+`function` aliases are not supported in `cmd`.
+
+</TabItem>
+</Tabs>
+
 [go-text-template]: https://golang.org/pkg/text/template/
 [if]: if.mdx
 [set-alias-option]: https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.utility/set-alias?view=powershell-7.3#-option

@@ -14,6 +14,7 @@ import (
 	"text/template"
 
 	"github.com/jandedobbeleer/aliae/src/context"
+	"github.com/jandedobbeleer/aliae/src/filesystem"
 )
 
 type Template string
@@ -207,7 +208,7 @@ func pathExists(path string) pathInfo {
 		return cached
 	}
 
-	info, err := statWithTimeout(path, statTimeout)
+	info, err := filesystem.StatWithTimeout(path, filesystem.StatTimeout())
 	result := pathInfo{
 		exists: err == nil,
 		isDir:  err == nil && info.IsDir(),
@@ -255,7 +256,7 @@ func executableExtension() string {
 }
 
 func isDir(path string) bool {
-	info, err := statWithTimeout(path, statTimeout)
+	info, err := filesystem.StatWithTimeout(path, filesystem.StatTimeout())
 	if err != nil {
 		return false
 	}

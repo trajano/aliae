@@ -5,6 +5,8 @@ import (
 	"path/filepath"
 )
 
+const defaultLinkTemplate = `ln -sf {{ .Target }} {{ .Name }}`
+
 type Links []*Link
 
 type Link struct {
@@ -30,7 +32,7 @@ func (l *Link) string() string {
 		l.buildPath()
 	}
 
-	return renderStrategy().RenderLink(l)
+	return formatStrategy().FormatLink(l)
 }
 
 func (l *Link) exists(path string) bool {
