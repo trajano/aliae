@@ -57,7 +57,7 @@ func (bashFormatStrategy) FormatCDPath(p *CDPath) string {
 }
 
 func (bashFormatStrategy) FormatLink(l *Link) string {
-	l.template = `ln -sf {{ .Target }} {{ .Name }}`
+	l.template = defaultLinkTemplate
 	return l.render()
 }
 

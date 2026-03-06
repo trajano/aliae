@@ -57,7 +57,7 @@ func (zshFormatStrategy) FormatCDPath(p *CDPath) string {
 }
 
 func (zshFormatStrategy) FormatLink(l *Link) string {
-	l.template = `ln -sf {{ .Target }} {{ .Name }}`
+	l.template = defaultLinkTemplate
 	return l.render()
 }
 

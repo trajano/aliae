@@ -5,6 +5,8 @@ import (
 	"path/filepath"
 )
 
+const defaultLinkTemplate = `ln -sf {{ .Target }} {{ .Name }}`
+
 type Links []*Link
 
 type Link struct {

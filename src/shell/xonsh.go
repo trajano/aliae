@@ -62,7 +62,7 @@ func (xonshFormatStrategy) FormatCDPath(p *CDPath) string {
 }
 
 func (xonshFormatStrategy) FormatLink(l *Link) string {
-	l.template = `ln -sf {{ .Target }} {{ .Name }}`
+	l.template = defaultLinkTemplate
 	return l.render()
 }
 

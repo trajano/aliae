@@ -7,8 +7,8 @@ import (
 )
 
 type stubRenderer struct {
-	id    string
 	calls *[]string
+	id    string
 }
 
 func (s stubRenderer) Render() {

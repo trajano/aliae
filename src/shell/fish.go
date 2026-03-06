@@ -43,7 +43,7 @@ func (fishFormatStrategy) FormatCDPath(p *CDPath) string {
 }
 
 func (fishFormatStrategy) FormatLink(l *Link) string {
-	l.template = `ln -sf {{ .Target }} {{ .Name }}`
+	l.template = defaultLinkTemplate
 	return l.render()
 }
 
