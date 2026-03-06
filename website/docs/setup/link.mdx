@@ -4,6 +4,9 @@ title: Symbolic Link
 sidebar_label: 🔗 Symbolic Link
 ---
 
+import Tabs from "@theme/Tabs";
+import TabItem from "@theme/TabItem";
+
 Create symlinks to files and directories. Will validate the targets exist before creating the link.
 
 ### Syntax
@@ -27,6 +30,90 @@ link:
 | `target` | `string`  | the name of the file or directory to link to, supports [templating][templates] |
 | `if`     | `string`  | golang [template][go-text-template] conditional statement, see [if][if]        |
 | `mkdir`  | `boolean` | create `name`'s parent folder when it does not exist                           |
+
+### Expected output by shell
+
+The examples below use:
+
+```yaml
+link:
+  - name: foo
+    target: bar
+```
+
+<Tabs
+  defaultValue="bash"
+  groupId="link-output-shell"
+  values={[
+    { label: 'bash', value: 'bash' },
+    { label: 'zsh', value: 'zsh' },
+    { label: 'fish', value: 'fish' },
+    { label: 'pwsh', value: 'pwsh' },
+    { label: 'nu', value: 'nu' },
+    { label: 'tcsh', value: 'tcsh' },
+    { label: 'xonsh', value: 'xonsh' },
+    { label: 'cmd', value: 'cmd' },
+  ]
+}>
+<TabItem value="bash">
+
+```bash
+ln -sf bar foo
+```
+
+</TabItem>
+<TabItem value="zsh">
+
+```zsh
+ln -sf bar foo
+```
+
+</TabItem>
+<TabItem value="fish">
+
+```fish
+ln -sf bar foo
+```
+
+</TabItem>
+<TabItem value="pwsh">
+
+```powershell
+New-Item -Path "foo" -ItemType SymbolicLink -Value "bar" -Force | Out-Null
+```
+
+</TabItem>
+<TabItem value="nu">
+
+```nu
+ln -sf bar foo out+err>| ignore
+```
+
+On Windows, Nushell emits a `mklink` variant.
+
+</TabItem>
+<TabItem value="tcsh">
+
+```tcsh
+ln -sf bar foo;
+```
+
+</TabItem>
+<TabItem value="xonsh">
+
+```python
+ln -sf bar foo
+```
+
+</TabItem>
+<TabItem value="cmd">
+
+```lua
+os.execute("mklink /h foo bar > nul 2>&1")
+```
+
+</TabItem>
+</Tabs>
 
 [go-text-template]: https://golang.org/pkg/text/template/
 [if]: if.mdx

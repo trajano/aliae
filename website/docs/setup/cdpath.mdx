@@ -4,6 +4,9 @@ title: CDPath
 sidebar_label: 🧭 CDPath
 ---
 
+import Tabs from "@theme/Tabs";
+import TabItem from "@theme/TabItem";
+
 Specify the same `cd` search paths cross shell.
 
 ## Syntax
@@ -50,6 +53,65 @@ High-level behavior:
 - `ifExists` and `force` work the same way as they do for `path`.
 
 `cdpath` entries follow the same duplicate suppression and path normalization behavior as `path`.
+
+## Expected output by shell
+
+The examples below use:
+
+```yaml
+cdpath:
+  - value: /usr/local/share
+```
+
+<Tabs
+  defaultValue="bash"
+  groupId="cdpath-output-shell"
+  values={[
+    { label: 'bash', value: 'bash' },
+    { label: 'zsh', value: 'zsh' },
+    { label: 'fish', value: 'fish' },
+    { label: 'tcsh', value: 'tcsh' },
+    { label: 'xonsh', value: 'xonsh' },
+  ]
+}>
+<TabItem value="bash">
+
+```bash
+export CDPATH="${CDPATH:+$CDPATH:}/usr/local/share"
+```
+
+</TabItem>
+<TabItem value="zsh">
+
+```zsh
+cdpath=( $cdpath /usr/local/share )
+```
+
+</TabItem>
+<TabItem value="fish">
+
+```fish
+set -g cdpath $cdpath /usr/local/share
+```
+
+</TabItem>
+<TabItem value="tcsh">
+
+```tcsh
+set cdpath = ( $cdpath /usr/local/share );
+```
+
+</TabItem>
+<TabItem value="xonsh">
+
+```python
+$CDPATH = $CDPATH + ["/usr/local/share"]
+```
+
+</TabItem>
+</Tabs>
+
+`cdpath` output is not emitted for `cmd`, `pwsh`, `powershell`, or `nu`.
 
 [templates]: templates.mdx
 [go-text-template]: https://golang.org/pkg/text/template/
