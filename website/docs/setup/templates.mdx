@@ -25,6 +25,7 @@ Out of the box you get the following functionality:
 | Name          | Type     | Description                           | Example                                                                      |
 | ------------- | -------- | ------------------------------------- | ---------------------------------------------------------------------------- |
 | `.Shell`      | `string` | the current shell name                | `{{ .Shell }}`                                                               |
+| `.ShellLike`  | `bool`   | whether shell is bash/zsh/fish/tcsh/pwsh/powershell | `{{ .ShellLike }}`                                         |
 | `.Hostname`   | `string` | the system hostname                   | `{{ .Hostname }}`                                                            |
 | `.WSL`        | `bool`   | whether runtime is in WSL             | `{{ .WSL }}`                                                                 |
 | `.Home`       | `string` | the user's `$HOME` folder             | `{{ .Home }}/go/bin/aliae`                                                   |
@@ -47,6 +48,7 @@ Out of the box you get the following functionality:
 | `hasCommandNoCache` | `boolean` | check if an executable exists without using cache      | `{{ hasCommandNoCache "oh-my-posh" }}` |
 | `fileExists`     | `boolean` | check if a file exists relative to `.Home` by default      | `{{ fileExists ".cache/aliae" }}`      |
 | `dirExists`      | `boolean` | check if a directory exists relative to `.Home` by default | `{{ dirExists ".cache" }}`             |
+| `setArg`         | `string`  | emit shell-specific argument assignment statement | `{{ setArg "TARGET_HOST" 1 }}`          |
 | `progress`       | `string`  | emit shell OSC progress command (`0-100` or `"reset"`)     | `{{ progress 71 }}`                    |
 <!-- markdownlint-enable MD060 -->
 
@@ -61,6 +63,15 @@ Use `hasCommandNoCache` when you need a fresh check after mutating `PATH` in the
 `var` entries are computed before other config sections render.
 You can use `.Var.<Name>` in other template values and `if` expressions.
 To prevent loops, `var` entries cannot reference `.Var` in their own `value` or `if`.
+
+`.ShellLike` is `true` for `bash`, `zsh`, `fish`, `tcsh`, `pwsh`, and `powershell`.
+
+`setArg` converts one-based argument indexes into shell syntax:
+
+- Bash/Zsh: `TARGET_HOST=$1`
+- Fish: `set TARGET_HOST $argv[1]`
+- Pwsh/PowerShell: `$TARGET_HOST = $args[0]`
+- Tcsh: `set TARGET_HOST=$1`
 
 `progress` renders shell-specific commands:
 

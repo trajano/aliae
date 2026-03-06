@@ -60,4 +60,33 @@ func TestInitLoadsEnvironmentMap(t *testing.T) {
 	if Current.Cygpath != CygpathInternal {
 		t.Fatalf("expected default cygpath mode to be internal")
 	}
+
+	if !Current.ShellLike {
+		t.Fatalf("expected bash to be marked as shell-like")
+	}
+}
+
+func TestIsShellLike(t *testing.T) {
+	cases := []struct {
+		name     string
+		shell    string
+		expected bool
+	}{
+		{name: "bash", shell: "bash", expected: true},
+		{name: "zsh", shell: "zsh", expected: true},
+		{name: "fish", shell: "fish", expected: true},
+		{name: "tcsh", shell: "tcsh", expected: true},
+		{name: "pwsh", shell: "pwsh", expected: true},
+		{name: "powershell", shell: "powershell", expected: true},
+		{name: "nu", shell: "nu", expected: false},
+		{name: "cmd", shell: "cmd", expected: false},
+		{name: "xonsh", shell: "xonsh", expected: false},
+		{name: "empty", shell: "", expected: false},
+	}
+
+	for _, tc := range cases {
+		if got := isShellLike(tc.shell); got != tc.expected {
+			t.Fatalf("%s: expected %t, got %t", tc.name, tc.expected, got)
+		}
+	}
 }

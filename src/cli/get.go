@@ -324,6 +324,7 @@ func printVariableDiagnostics(out io.Writer) error {
 	fmt.Fprintf(out, "tty.stdin=%t\n", stdinTTY)
 	fmt.Fprintf(out, "tty.stdout=%t\n", stdoutTTY)
 	fmt.Fprintf(out, "template.Shell=%s\n", context.Current.Shell)
+	fmt.Fprintf(out, "template.ShellLike=%t\n", context.Current.ShellLike)
 	fmt.Fprintf(out, "template.OS=%s\n", context.Current.OS)
 	fmt.Fprintf(out, "template.WSL=%t\n", context.Current.WSL)
 	fmt.Fprintf(out, "template.Hostname=%s\n", context.Current.Hostname)

@@ -25,6 +25,7 @@ type Runtime struct {
 	ConfigPath string
 	ConfigDir  string
 	Cygpath    string
+	ShellLike  bool
 	WSL        bool
 }
 
@@ -33,19 +34,29 @@ func Init(shell string) {
 	hostname, _ := os.Hostname()
 
 	Current = &Runtime{
-		Shell:    shell,
-		OS:       runtimeGOOS,
-		WSL:      isWSL(),
-		Arch:     runtime.GOARCH,
-		Home:     home,
-		Hostname: hostname,
-		Env:      getEnvironment(),
-		Var:      map[string]any{},
-		Cygpath:  CygpathInternal,
+		Shell:     shell,
+		ShellLike: isShellLike(shell),
+		OS:        runtimeGOOS,
+		WSL:       isWSL(),
+		Arch:      runtime.GOARCH,
+		Home:      home,
+		Hostname:  hostname,
+		Env:       getEnvironment(),
+		Var:       map[string]any{},
+		Cygpath:   CygpathInternal,
 	}
 
 	Current.Path = getPath()
 	Current.CDPath = getCDPath()
+}
+
+func isShellLike(shell string) bool {
+	switch strings.ToLower(strings.TrimSpace(shell)) {
+	case "bash", "zsh", "fish", "tcsh", "pwsh", "powershell":
+		return true
+	default:
+		return false
+	}
 }
 
 func Home() string {

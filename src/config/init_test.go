@@ -27,6 +27,8 @@ func TestInitTemplateConfigVariables(t *testing.T) {
     value: '{{ .ConfigDir }}'
   - name: IS_WSL
     value: '{{ .WSL }}'
+  - name: IS_SHELL_LIKE
+    value: '{{ .ShellLike }}'
   - name: DOTFILES_DIR
     value: '{{ .Env.DOTFILES }}'
 `
@@ -40,6 +42,7 @@ func TestInitTemplateConfigVariables(t *testing.T) {
 	expected := "export CONFIG_PATH=\"" + configFile + "\"\n" +
 		"export CONFIG_DIR=\"" + escapedDir + "\"\n" +
 		fmt.Sprintf("export IS_WSL=\"%t\"\n", context.Current.WSL) +
+		"export IS_SHELL_LIKE=\"true\"\n" +
 		"export DOTFILES_DIR=\"/tmp/dotfiles\""
 	assert.Equal(t, expected, script)
 }
