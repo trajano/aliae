@@ -1,4 +1,4 @@
-package config
+package init
 
 import (
 	"bytes"
@@ -8,6 +8,7 @@ import (
 	"strings"
 	"testing"
 
+	cfg "github.com/jandedobbeleer/aliae/src/config"
 	"github.com/jandedobbeleer/aliae/src/context"
 	"github.com/jandedobbeleer/aliae/src/shell"
 	"github.com/stretchr/testify/assert"
@@ -38,7 +39,8 @@ func TestInitTemplateConfigVariables(t *testing.T) {
 	t.Setenv("DOTFILES", "/tmp/dotfiles")
 
 	script := Init(configFile, shell.BASH, true)
-	escapedDir := strings.ReplaceAll(resolveConfigDir(configFile), `\`, `\\`)
+	_, configDir := cfg.ResolveTemplateContext(configFile)
+	escapedDir := strings.ReplaceAll(configDir, `\`, `\\`)
 	expected := "export CONFIG_PATH=\"" + configFile + "\"\n" +
 		"export CONFIG_DIR=\"" + escapedDir + "\"\n" +
 		fmt.Sprintf("export IS_WSL=\"%t\"\n", context.Current.WSL) +
@@ -77,8 +79,8 @@ alias:
 `), 0o600))
 
 	var stderr bytes.Buffer
-	SetInitProgressWriter(&stderr)
-	t.Cleanup(resetInitProgressWriter)
+	SetProgressWriter(&stderr)
+	t.Cleanup(func() { SetProgressWriter(os.Stderr) })
 
 	_ = Init(configFile, shell.BASH, true)
 
@@ -120,8 +122,8 @@ script:
 `), 0o600))
 
 	var stderr bytes.Buffer
-	SetInitProgressWriter(&stderr)
-	t.Cleanup(resetInitProgressWriter)
+	SetProgressWriter(&stderr)
+	t.Cleanup(func() { SetProgressWriter(os.Stderr) })
 
 	_ = Init(configFile, shell.BASH, true)
 
@@ -394,8 +396,8 @@ alias:
 `), 0o600))
 
 	var stderr bytes.Buffer
-	SetInitProgressWriter(&stderr)
-	t.Cleanup(resetInitProgressWriter)
+	SetProgressWriter(&stderr)
+	t.Cleanup(func() { SetProgressWriter(os.Stderr) })
 
 	_ = Init(configFile, shell.BASH, true)
 
