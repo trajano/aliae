@@ -16,6 +16,9 @@ type ShellFormatStrategy interface {
 	FormatCDPathCurrentDirScript() string
 	FormatSetArg(name string, oneBasedIndex int) string
 	FormatProgress(state, percentage int) string
+	EscapeString(value string) string
+	FormatAliasScriptPrelude() string
+	FormatAliasScriptPostlude() string
 }
 
 // formatStrategy applies a Factory Method-style selection to return
@@ -62,3 +65,6 @@ func (noopFormatStrategy) FormatEcho(*Echo) string              { return "" }
 func (noopFormatStrategy) FormatCDPathCurrentDirScript() string { return "" }
 func (noopFormatStrategy) FormatSetArg(string, int) string      { return "" }
 func (noopFormatStrategy) FormatProgress(int, int) string       { return "" }
+func (noopFormatStrategy) EscapeString(value string) string     { return defaultEscapedString(value) }
+func (noopFormatStrategy) FormatAliasScriptPrelude() string     { return "" }
+func (noopFormatStrategy) FormatAliasScriptPostlude() string    { return "" }

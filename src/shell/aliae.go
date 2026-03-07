@@ -1,7 +1,5 @@
 package shell
 
-import "github.com/jandedobbeleer/aliae/src/context"
-
 type Aliae []*Alias
 
 type Alias struct {
@@ -57,6 +55,8 @@ func (a Aliae) Render() {
 	}
 
 	first := true
+	strategy := formatStrategy()
+	wrotePrelude := false
 	for _, alias := range a {
 		if alias.If.Ignore() {
 			continue
@@ -72,8 +72,12 @@ func (a Aliae) Render() {
 			writeRenderOutput("\n\n")
 		}
 
-		if first && context.Current.Shell == CMD {
-			writeRenderOutput(cmdAliasPre())
+		if first {
+			prelude := strategy.FormatAliasScriptPrelude()
+			if prelude != "" {
+				writeRenderOutput(prelude)
+				wrotePrelude = true
+			}
 		}
 
 		if !first {
@@ -88,7 +92,7 @@ func (a Aliae) Render() {
 		advanceAutoProgress(1)
 	}
 
-	if context.Current.Shell == CMD {
-		writeRenderOutput(cmdAliasPost())
+	if wrotePrelude {
+		writeRenderOutput(strategy.FormatAliasScriptPostlude())
 	}
 }

@@ -178,33 +178,12 @@ func formatArray(variable any, delim ...string) any {
 }
 
 func escapeString(variable any) any {
-	clean := func(v string) string {
-		current := currentTemplateRuntime()
-		shellName := ""
-		if current != nil {
-			shellName = current.Shell
-		}
-
-		switch shellName {
-		case PWSH, POWERSHELL:
-			return strings.NewReplacer(
-				"`", "``",
-				`"`, "`\"",
-			).Replace(v)
-		default:
-			return strings.NewReplacer(
-				`\`, `\\`,
-				`"`, `\"`,
-			).Replace(v)
-		}
-	}
-
 	switch v := variable.(type) {
 	case Template:
 		value := v.String()
-		return clean(value)
+		return formatStrategyForShell(currentShellName()).EscapeString(value)
 	case string:
-		return clean(v)
+		return formatStrategyForShell(currentShellName()).EscapeString(v)
 	default:
 		return variable
 	}
