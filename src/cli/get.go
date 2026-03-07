@@ -9,10 +9,13 @@ import (
 )
 
 // getCmd represents the get command
-var getCmd = &cobra.Command{
-	Use:   "get [shell|config|variables|benchmark [shell]]",
-	Short: "Get a value from aliae",
-	Long: `Get a value from aliae.
+var getCmd = newGetCommand()
+
+func newGetCommand() *cobra.Command {
+	return &cobra.Command{
+		Use:   "get [shell|config|variables|benchmark [shell]]",
+		Short: "Get a value from aliae",
+		Long: `Get a value from aliae.
 
 This command is used to get the value of the following variables:
 
@@ -20,47 +23,50 @@ This command is used to get the value of the following variables:
 - config
 - variables
 - benchmark [shell]`,
-	ValidArgs: []string{
-		"shell",
-		"config",
-		"variables",
-		"benchmark",
-	},
-	Args: validateGetArgs,
-	RunE: func(cmd *cobra.Command, args []string) error {
-		switch args[0] {
-		case "shell":
-			return appcmd.GetShellCommand{Out: cmd.OutOrStdout()}.Execute()
-		case "config":
-			return appcmd.GetResolvedConfigCommand{
-				ConfigPath: config,
-				Out:        cmd.OutOrStdout(),
-			}.Execute()
-		case "variables":
-			return appcmd.GetVariablesCommand{
-				ConfigPath: config,
-				Out:        cmd.OutOrStdout(),
-			}.Execute()
-		case "benchmark":
-			benchmarkShell := ""
-			if len(args) == 2 {
-				benchmarkShell = args[1]
+		ValidArgs: []string{
+			"shell",
+			"config",
+			"variables",
+			"benchmark",
+		},
+		Args: validateGetArgs,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			switch args[0] {
+			case "shell":
+				return appcmd.GetShellCommand{Out: cmd.OutOrStdout()}.Execute()
+			case "config":
+				return appcmd.GetResolvedConfigCommand{
+					ConfigPath: config,
+					Out:        cmd.OutOrStdout(),
+				}.Execute()
+			case "variables":
+				return appcmd.GetVariablesCommand{
+					ConfigPath: config,
+					Out:        cmd.OutOrStdout(),
+				}.Execute()
+			case "benchmark":
+				benchmarkShell := ""
+				if len(args) == 2 {
+					benchmarkShell = args[1]
+				}
+				return appcmd.BenchmarkCommand{
+					ConfigPath:     config,
+					BenchmarkShell: benchmarkShell,
+					NoCache:        benchmarkNoCache,
+					Out:            cmd.OutOrStdout(),
+				}.Execute()
 			}
-			return appcmd.BenchmarkCommand{
-				ConfigPath:     config,
-				BenchmarkShell: benchmarkShell,
-				NoCache:        benchmarkNoCache,
-				Out:            cmd.OutOrStdout(),
-			}.Execute()
-		}
 
-		return nil
-	},
+			return nil
+		},
+	}
 }
 
 var benchmarkNoCache bool
 
 func registerGetCommand(root *cobra.Command) {
+	benchmarkNoCache = false
+	getCmd = newGetCommand()
 	getCmd.Flags().BoolVar(&benchmarkNoCache, "no-cache", false, "disable config cache while running benchmark")
 	root.AddCommand(getCmd)
 }

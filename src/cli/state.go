@@ -5,34 +5,47 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var stateCmd = &cobra.Command{
-	Use:   "state [list|clear]",
-	Short: "Inspect and manage aliae script state files",
-	Args:  cobra.NoArgs,
-	RunE: func(cmd *cobra.Command, _ []string) error {
-		return runStateList(cmd)
-	},
+var stateCmd = newStateCommand()
+var stateListCmd = newStateListCommand()
+var stateClearCmd = newStateClearCommand()
+
+func newStateCommand() *cobra.Command {
+	return &cobra.Command{
+		Use:   "state [list|clear]",
+		Short: "Inspect and manage aliae script state files",
+		Args:  cobra.NoArgs,
+		RunE: func(cmd *cobra.Command, _ []string) error {
+			return runStateList(cmd)
+		},
+	}
 }
 
-var stateListCmd = &cobra.Command{
-	Use:   "list",
-	Short: "List referenced aliae script state files",
-	Args:  cobra.NoArgs,
-	RunE: func(cmd *cobra.Command, _ []string) error {
-		return runStateList(cmd)
-	},
+func newStateListCommand() *cobra.Command {
+	return &cobra.Command{
+		Use:   "list",
+		Short: "List referenced aliae script state files",
+		Args:  cobra.NoArgs,
+		RunE: func(cmd *cobra.Command, _ []string) error {
+			return runStateList(cmd)
+		},
+	}
 }
 
-var stateClearCmd = &cobra.Command{
-	Use:   "clear",
-	Short: "Remove referenced aliae script state files",
-	Args:  cobra.NoArgs,
-	RunE: func(cmd *cobra.Command, _ []string) error {
-		return runStateClear(cmd)
-	},
+func newStateClearCommand() *cobra.Command {
+	return &cobra.Command{
+		Use:   "clear",
+		Short: "Remove referenced aliae script state files",
+		Args:  cobra.NoArgs,
+		RunE: func(cmd *cobra.Command, _ []string) error {
+			return runStateClear(cmd)
+		},
+	}
 }
 
 func registerStateCommand(root *cobra.Command) {
+	stateCmd = newStateCommand()
+	stateListCmd = newStateListCommand()
+	stateClearCmd = newStateClearCommand()
 	stateCmd.AddCommand(stateListCmd)
 	stateCmd.AddCommand(stateClearCmd)
 	root.AddCommand(stateCmd)

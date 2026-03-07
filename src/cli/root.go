@@ -2,7 +2,6 @@ package cli
 
 import (
 	"os"
-	"sync"
 
 	"github.com/spf13/cobra"
 )
@@ -13,34 +12,36 @@ var (
 
 	// Version number of aliae
 	cliVersion string
-
-	setupRootOnce sync.Once
 )
 
-var RootCmd = &cobra.Command{
-	Use:   "aliae",
-	Short: "aliae is a tool to do cross platform shell management",
-	Long: `aliae is a tool to do cross platform shell management.
+var RootCmd = newRootCommand()
+
+func newRootCommand() *cobra.Command {
+	return &cobra.Command{
+		Use:   "aliae",
+		Short: "aliae is a tool to do cross platform shell management",
+		Long: `aliae is a tool to do cross platform shell management.
 It can use the same configuration everywhere to offer a consistent
 experience, regardless of where you are. For a detailed guide
 on getting started, have a look at the docs at https://trajano.github.io/aliae.
 This is a personal fork. For the official project and docs, see https://aliae.dev.`,
-	Run: func(cmd *cobra.Command, _ []string) {
-		if displayVersion {
-			cmd.Println(cliVersion)
-			return
-		}
-		_ = cmd.Help()
-	},
+		Run: func(cmd *cobra.Command, _ []string) {
+			if displayVersion {
+				cmd.Println(cliVersion)
+				return
+			}
+			_ = cmd.Help()
+		},
+	}
 }
 
 func NewRootCommand(version string) *cobra.Command {
 	cliVersion = version
-
-	setupRootOnce.Do(func() {
-		registerRootFlags(RootCmd)
-		registerCommands(RootCmd)
-	})
+	config = ""
+	displayVersion = false
+	RootCmd = newRootCommand()
+	registerRootFlags(RootCmd)
+	registerCommands(RootCmd)
 
 	return RootCmd
 }
