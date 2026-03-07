@@ -85,7 +85,7 @@ func parse(text string, ctx any) (string, error) {
 
 func funcMap() template.FuncMap {
 	funcMap := template.FuncMap{}
-	for _, provider := range templateFuncProviders {
+	for _, provider := range shellTemplateFuncProviders() {
 		funcMap[provider.Name()] = provider.Func()
 	}
 
