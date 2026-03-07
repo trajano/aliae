@@ -9,7 +9,7 @@ import (
 
 func TestPathDelimiterWindowsMSYS2(t *testing.T) {
 	t.Setenv("MSYSTEM", "MINGW64")
-	Current = &Runtime{OS: WINDOWS, Shell: "bash"}
+	SetCurrent(&Runtime{OS: WINDOWS, Shell: "bash"})
 
 	assert.Equal(t, ":", PathDelimiter())
 	assert.Equal(t, "/", PathSeparator())
@@ -17,7 +17,7 @@ func TestPathDelimiterWindowsMSYS2(t *testing.T) {
 
 func TestPathDelimiterWindowsNonMSYS2(t *testing.T) {
 	t.Setenv("MSYSTEM", "")
-	Current = &Runtime{OS: WINDOWS, Shell: "pwsh"}
+	SetCurrent(&Runtime{OS: WINDOWS, Shell: "pwsh"})
 
 	assert.Equal(t, ";", PathDelimiter())
 	assert.Equal(t, "\\", PathSeparator())
@@ -26,7 +26,7 @@ func TestPathDelimiterWindowsNonMSYS2(t *testing.T) {
 func TestPathContainsEquivalentWindowsAndMSYS2Forms(t *testing.T) {
 	t.Setenv("MSYSTEM", "MINGW64")
 	t.Setenv("PATH", "")
-	Current = &Runtime{OS: WINDOWS, Shell: "bash", Cygpath: CygpathInternal}
+	SetCurrent(&Runtime{OS: WINDOWS, Shell: "bash", Cygpath: CygpathInternal})
 	clearCleanPathCache()
 	t.Cleanup(clearCleanPathCache)
 
@@ -41,7 +41,7 @@ func TestPathContainsEquivalentWindowsAndMSYS2Forms(t *testing.T) {
 
 func TestSplitPathEntriesWindowsMSYS2MixedDelimiters(t *testing.T) {
 	t.Setenv("MSYSTEM", "MINGW64")
-	Current = &Runtime{OS: WINDOWS, Shell: "bash"}
+	SetCurrent(&Runtime{OS: WINDOWS, Shell: "bash"})
 
 	paths := `C:\Users\trajano\bin;C:\Program Files\Git\usr\bin:/c/Users/trajano/.local/bin:/c/Users/trajano/AppData/Local/Android/Sdk/platform-tools`
 	got := splitPathEntries(paths)
@@ -56,7 +56,7 @@ func TestSplitPathEntriesWindowsMSYS2MixedDelimiters(t *testing.T) {
 
 func TestGetPathDoesNotMutateEnvironmentPath(t *testing.T) {
 	t.Setenv("MSYSTEM", "")
-	Current = &Runtime{OS: WINDOWS, Shell: "pwsh"}
+	SetCurrent(&Runtime{OS: WINDOWS, Shell: "pwsh"})
 
 	original := `C:\Windows\System32;C:\Users\trajano\bin`
 	t.Setenv("PATH", original)
@@ -67,7 +67,7 @@ func TestGetPathDoesNotMutateEnvironmentPath(t *testing.T) {
 
 func TestCleanPathUsesCygpath(t *testing.T) {
 	t.Setenv("MSYSTEM", "MINGW64")
-	Current = &Runtime{OS: WINDOWS, Shell: "bash", Cygpath: CygpathExternal}
+	SetCurrent(&Runtime{OS: WINDOWS, Shell: "bash", Cygpath: CygpathExternal})
 	clearCleanPathCache()
 	t.Cleanup(clearCleanPathCache)
 
@@ -84,7 +84,7 @@ func TestCleanPathUsesCygpath(t *testing.T) {
 
 func TestCleanPathKeepsWindowsPathWhenCygpathFails(t *testing.T) {
 	t.Setenv("MSYSTEM", "MINGW64")
-	Current = &Runtime{OS: WINDOWS, Shell: "bash", Cygpath: CygpathExternal}
+	SetCurrent(&Runtime{OS: WINDOWS, Shell: "bash", Cygpath: CygpathExternal})
 	clearCleanPathCache()
 	t.Cleanup(clearCleanPathCache)
 
@@ -100,7 +100,7 @@ func TestCleanPathKeepsWindowsPathWhenCygpathFails(t *testing.T) {
 
 func TestCleanPathCachesCygpathResult(t *testing.T) {
 	t.Setenv("MSYSTEM", "MINGW64")
-	Current = &Runtime{OS: WINDOWS, Shell: "bash", Cygpath: CygpathExternal}
+	SetCurrent(&Runtime{OS: WINDOWS, Shell: "bash", Cygpath: CygpathExternal})
 	clearCleanPathCache()
 	t.Cleanup(clearCleanPathCache)
 
@@ -121,7 +121,7 @@ func TestCleanPathCachesCygpathResult(t *testing.T) {
 
 func TestCleanPathUsesInternalCygpathByDefault(t *testing.T) {
 	t.Setenv("MSYSTEM", "MINGW64")
-	Current = &Runtime{OS: WINDOWS, Shell: "bash"}
+	SetCurrent(&Runtime{OS: WINDOWS, Shell: "bash"})
 	clearCleanPathCache()
 	t.Cleanup(clearCleanPathCache)
 

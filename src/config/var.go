@@ -95,21 +95,22 @@ func normalizeVarValue(value string) any {
 }
 
 func ensureTemplateRuntime() *context.Runtime {
-	if context.Current != nil {
-		shell.SetRuntime(context.Current)
-		return context.Current
+	if current := context.GetCurrent(); current != nil {
+		shell.SetRuntime(current)
+		return current
 	}
 
-	context.Current = &context.Runtime{
+	current := &context.Runtime{
 		Shell: shell.BASH,
 		OS:    context.LINUX,
 		Home:  context.Home(),
 		Env:   map[string]string{},
 		Var:   map[string]any{},
 	}
-	shell.SetRuntime(context.Current)
+	context.SetCurrent(current)
+	shell.SetRuntime(current)
 
-	return context.Current
+	return current
 }
 
 func validateVarDefinitions(vars Vars, lineResolver *yamlLineResolver) error {

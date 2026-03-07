@@ -217,7 +217,7 @@ func TestTemplateHostname(t *testing.T) {
 	text := `{{ .Hostname }}`
 	useRuntime(t, &context.Runtime{Shell: BASH, Hostname: "my-host"})
 
-	got, err := parse(text, context.Current)
+	got, err := parse(text, context.GetCurrent())
 	assert.NoError(t, err)
 	assert.Equal(t, "my-host", got)
 }
@@ -226,7 +226,7 @@ func TestTemplateWSL(t *testing.T) {
 	text := `{{ .WSL }}`
 	useRuntime(t, &context.Runtime{Shell: BASH, WSL: true})
 
-	got, err := parse(text, context.Current)
+	got, err := parse(text, context.GetCurrent())
 	assert.NoError(t, err)
 	assert.Equal(t, "true", got)
 }
@@ -235,7 +235,7 @@ func TestTemplateShellLike(t *testing.T) {
 	text := `{{ .ShellLike }}`
 	useRuntime(t, &context.Runtime{Shell: BASH, ShellLike: true})
 
-	got, err := parse(text, context.Current)
+	got, err := parse(text, context.GetCurrent())
 	assert.NoError(t, err)
 	assert.Equal(t, "true", got)
 }
@@ -279,7 +279,7 @@ func TestTemplateEnv(t *testing.T) {
 		},
 	})
 
-	got, err := parse(text, context.Current)
+	got, err := parse(text, context.GetCurrent())
 	assert.NoError(t, err)
 	assert.Equal(t, "/home/test/.dotfiles", got)
 }
@@ -293,7 +293,7 @@ func TestTemplateEnvMissingValueBehavesAsEmptyString(t *testing.T) {
 		},
 	})
 
-	got, err := parse(text, context.Current)
+	got, err := parse(text, context.GetCurrent())
 	assert.NoError(t, err)
 	assert.Equal(t, "true", got)
 }

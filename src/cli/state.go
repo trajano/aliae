@@ -126,14 +126,19 @@ func runStateClear(cmd *cobra.Command) error {
 }
 
 func referencedStateEntries(configPath string) ([]stateEntry, error) {
-	if context.Current == nil {
+	runtime := context.GetCurrent()
+	if runtime == nil {
 		context.Init(shell.Name())
+		runtime = context.GetCurrent()
 	}
-	shell.SetRuntime(context.Current)
+	if runtime == nil {
+		return nil, fmt.Errorf("runtime initialization failed")
+	}
+	shell.SetRuntime(runtime)
 
 	resolvedConfigPath, resolvedConfigDir := cfg.ResolveTemplateContext(configPath)
-	context.Current.ConfigPath = resolvedConfigPath
-	context.Current.ConfigDir = resolvedConfigDir
+	runtime.ConfigPath = resolvedConfigPath
+	runtime.ConfigDir = resolvedConfigDir
 
 	aliae, err := cfg.LoadConfig(configPath)
 	if err != nil {

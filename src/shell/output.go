@@ -2,13 +2,11 @@ package shell
 
 import (
 	"strings"
-	"sync"
 )
 
 var (
-	renderOutputMu sync.RWMutex
-	defaultOutput  strings.Builder
-	renderOutput   = &defaultOutput
+	defaultOutput strings.Builder
+	renderOutput  = &defaultOutput
 )
 
 func SetRenderOutput(builder *strings.Builder) func() {
@@ -16,15 +14,11 @@ func SetRenderOutput(builder *strings.Builder) func() {
 		builder = &defaultOutput
 	}
 
-	renderOutputMu.Lock()
 	previous := renderOutput
 	renderOutput = builder
-	renderOutputMu.Unlock()
 
 	return func() {
-		renderOutputMu.Lock()
 		renderOutput = previous
-		renderOutputMu.Unlock()
 	}
 }
 
@@ -49,7 +43,5 @@ func writeRenderOutput(value string) {
 }
 
 func activeRenderOutput() *strings.Builder {
-	renderOutputMu.RLock()
-	defer renderOutputMu.RUnlock()
 	return renderOutput
 }

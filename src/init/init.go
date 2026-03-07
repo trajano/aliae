@@ -45,9 +45,9 @@ func createNuInit(script string) string {
 }
 
 func formatError(err error) string {
-	restoreRuntime := shell.SetRuntime(context.Current)
+	restoreRuntime := shell.SetRuntime(context.GetCurrent())
 	defer restoreRuntime()
-	restoreTemplateRuntime := shell.SetTemplateRuntime(context.Current)
+	restoreTemplateRuntime := shell.SetTemplateRuntime(context.GetCurrent())
 	defer restoreTemplateRuntime()
 
 	message := fmt.Sprintf("aliae error:\n%s", err.Error())

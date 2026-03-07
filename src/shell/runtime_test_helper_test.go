@@ -8,7 +8,10 @@ import (
 
 func useRuntime(t *testing.T, runtime *context.Runtime) {
 	t.Helper()
-	context.Current = runtime
+	context.SetCurrent(runtime)
 	restore := SetRuntime(runtime)
-	t.Cleanup(restore)
+	t.Cleanup(func() {
+		context.SetCurrent(nil)
+		restore()
+	})
 }

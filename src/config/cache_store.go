@@ -48,11 +48,12 @@ func configCachePath(configPath string) string {
 }
 
 func cacheContextKey() string {
-	if context.Current == nil {
+	current := context.GetCurrent()
+	if current == nil {
 		return "shell=;os=;wsl=false"
 	}
 
-	return fmt.Sprintf("shell=%s;os=%s;wsl=%t", context.Current.Shell, context.Current.OS, context.Current.WSL)
+	return fmt.Sprintf("shell=%s;os=%s;wsl=%t", current.Shell, current.OS, current.WSL)
 }
 
 func configSchemaHash() string {

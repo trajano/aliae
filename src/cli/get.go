@@ -313,11 +313,15 @@ func toLinkOutput(items shell.Links) []yaml.MapSlice {
 func printVariableDiagnostics(out io.Writer) error {
 	shellName, trace := shell.NameVerbose()
 	context.Init(shellName)
-	shell.SetRuntime(context.Current)
+	runtime := context.GetCurrent()
+	if runtime == nil {
+		return fmt.Errorf("runtime initialization failed")
+	}
+	shell.SetRuntime(runtime)
 
 	configPath, configDir := cfg.ResolveTemplateContext(config)
-	context.Current.ConfigPath = configPath
-	context.Current.ConfigDir = configDir
+	runtime.ConfigPath = configPath
+	runtime.ConfigDir = configDir
 
 	stdinTTY := term.IsTerminal(int(os.Stdin.Fd()))
 	stdoutTTY := term.IsTerminal(int(os.Stdout.Fd()))
@@ -325,15 +329,15 @@ func printVariableDiagnostics(out io.Writer) error {
 	fmt.Fprintln(out, "aliae get variables")
 	fmt.Fprintf(out, "tty.stdin=%t\n", stdinTTY)
 	fmt.Fprintf(out, "tty.stdout=%t\n", stdoutTTY)
-	fmt.Fprintf(out, "template.Shell=%s\n", context.Current.Shell)
-	fmt.Fprintf(out, "template.ShellLike=%t\n", context.Current.ShellLike)
-	fmt.Fprintf(out, "template.OS=%s\n", context.Current.OS)
-	fmt.Fprintf(out, "template.WSL=%t\n", context.Current.WSL)
-	fmt.Fprintf(out, "template.Hostname=%s\n", context.Current.Hostname)
-	fmt.Fprintf(out, "template.Home=%s\n", context.Current.Home)
-	fmt.Fprintf(out, "template.Arch=%s\n", context.Current.Arch)
-	fmt.Fprintf(out, "template.ConfigPath=%s\n", context.Current.ConfigPath)
-	fmt.Fprintf(out, "template.ConfigDir=%s\n", context.Current.ConfigDir)
+	fmt.Fprintf(out, "template.Shell=%s\n", runtime.Shell)
+	fmt.Fprintf(out, "template.ShellLike=%t\n", runtime.ShellLike)
+	fmt.Fprintf(out, "template.OS=%s\n", runtime.OS)
+	fmt.Fprintf(out, "template.WSL=%t\n", runtime.WSL)
+	fmt.Fprintf(out, "template.Hostname=%s\n", runtime.Hostname)
+	fmt.Fprintf(out, "template.Home=%s\n", runtime.Home)
+	fmt.Fprintf(out, "template.Arch=%s\n", runtime.Arch)
+	fmt.Fprintf(out, "template.ConfigPath=%s\n", runtime.ConfigPath)
+	fmt.Fprintf(out, "template.ConfigDir=%s\n", runtime.ConfigDir)
 	for _, line := range trace {
 		fmt.Fprintf(out, "shell.trace=%s\n", line)
 	}

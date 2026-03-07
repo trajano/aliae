@@ -39,11 +39,13 @@ func TestInitTemplateConfigVariables(t *testing.T) {
 	t.Setenv("DOTFILES", "/tmp/dotfiles")
 
 	script := Init(configFile, shell.BASH, true)
+	current := context.GetCurrent()
+	require.NotNil(t, current)
 	_, configDir := cfg.ResolveTemplateContext(configFile)
 	escapedDir := strings.ReplaceAll(configDir, `\`, `\\`)
 	expected := "export CONFIG_PATH=\"" + configFile + "\"\n" +
 		"export CONFIG_DIR=\"" + escapedDir + "\"\n" +
-		fmt.Sprintf("export IS_WSL=\"%t\"\n", context.Current.WSL) +
+		fmt.Sprintf("export IS_WSL=\"%t\"\n", current.WSL) +
 		"export IS_SHELL_LIKE=\"true\"\n" +
 		"export DOTFILES_DIR=\"/tmp/dotfiles\""
 	assert.Equal(t, expected, script)

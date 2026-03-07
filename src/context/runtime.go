@@ -4,11 +4,12 @@ import (
 	"os"
 	"runtime"
 	"strings"
+	"sync/atomic"
 )
 
 // used for caching runtime information
 // and testing purposes
-var Current *Runtime
+var currentRuntime atomic.Pointer[Runtime]
 
 var runtimeGOOS = runtime.GOOS
 
@@ -30,7 +31,7 @@ type Runtime struct {
 }
 
 func Init(shell string) {
-	Current = NewRuntime(shell)
+	SetCurrent(NewRuntime(shell))
 }
 
 func NewRuntime(shell string) *Runtime {
@@ -65,8 +66,8 @@ func isShellLike(shell string) bool {
 }
 
 func Home() string {
-	if Current != nil {
-		return Current.Home
+	if current := GetCurrent(); current != nil {
+		return current.Home
 	}
 
 	home := os.Getenv("HOME")
@@ -79,6 +80,14 @@ func Home() string {
 		home = os.Getenv("USERPROFILE")
 	}
 	return home
+}
+
+func SetCurrent(current *Runtime) {
+	currentRuntime.Store(current)
+}
+
+func GetCurrent() *Runtime {
+	return currentRuntime.Load()
 }
 
 func isWSL() bool {

@@ -22,10 +22,7 @@ var runExternalCygpath = func(path string) (string, error) {
 	return strings.TrimSpace(string(output)), nil
 }
 
-var (
-	cleanPathCache   = map[string]string{}
-	cleanPathCacheMu sync.RWMutex
-)
+var cleanPathCache sync.Map
 
 func getPath() *Path {
 	return getEnvPath("PATH")
@@ -89,11 +86,8 @@ func cleanPath(path string) string {
 	}
 
 	cacheKey := cleanPathCacheKey(path)
-	cleanPathCacheMu.RLock()
-	cached, ok := cleanPathCache[cacheKey]
-	cleanPathCacheMu.RUnlock()
-	if ok {
-		return cached
+	if cached, ok := cleanPathCache.Load(cacheKey); ok {
+		return cached.(string)
 	}
 
 	if isMSYS2Shell() {
@@ -108,18 +102,17 @@ func cleanPath(path string) string {
 	}
 
 	clean := strings.TrimRight(path, `/\`)
-	cleanPathCacheMu.Lock()
-	cleanPathCache[cacheKey] = clean
-	cleanPathCacheMu.Unlock()
+	cleanPathCache.Store(cacheKey, clean)
 	return clean
 }
 
 func cygpathMode() string {
-	if Current == nil {
+	current := GetCurrent()
+	if current == nil {
 		return CygpathInternal
 	}
 
-	mode := NormalizeCygpathMode(Current.Cygpath)
+	mode := NormalizeCygpathMode(current.Cygpath)
 	if mode == CygpathExternal {
 		return CygpathExternal
 	}
@@ -128,17 +121,19 @@ func cygpathMode() string {
 }
 
 func cleanPathCacheKey(path string) string {
-	if Current == nil {
+	current := GetCurrent()
+	if current == nil {
 		return "|:" + os.Getenv("MSYSTEM") + ":" + path
 	}
 
-	return Current.OS + "|" + Current.Shell + "|" + cygpathMode() + ":" + os.Getenv("MSYSTEM") + ":" + path
+	return current.OS + "|" + current.Shell + "|" + cygpathMode() + ":" + os.Getenv("MSYSTEM") + ":" + path
 }
 
 func clearCleanPathCache() {
-	cleanPathCacheMu.Lock()
-	defer cleanPathCacheMu.Unlock()
-	cleanPathCache = map[string]string{}
+	cleanPathCache.Range(func(key, _ any) bool {
+		cleanPathCache.Delete(key)
+		return true
+	})
 }
 
 func isASCIIAlpha(value byte) bool {
@@ -146,7 +141,8 @@ func isASCIIAlpha(value byte) bool {
 }
 
 func splitPathEntries(paths string) []string {
-	if Current == nil || Current.OS != WINDOWS {
+	current := GetCurrent()
+	if current == nil || current.OS != WINDOWS {
 		return strings.Split(paths, PathDelimiter())
 	}
 

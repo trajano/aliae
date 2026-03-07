@@ -146,8 +146,8 @@ func parseTimestamp(value string) *time.Time {
 }
 
 func runtimeOS() string {
-	if context.Current != nil && len(context.Current.OS) > 0 {
-		return context.Current.OS
+	if current := context.GetCurrent(); current != nil && len(current.OS) > 0 {
+		return current.OS
 	}
 
 	return runtime.GOOS

@@ -12,12 +12,13 @@ import (
 )
 
 func SetTemplateConfigContext(configPath string) {
-	if context.Current == nil {
+	current := context.GetCurrent()
+	if current == nil {
 		return
 	}
 
-	context.Current.ConfigPath = configPath
-	context.Current.ConfigDir = ResolveConfigDir(configPath)
+	current.ConfigPath = configPath
+	current.ConfigDir = ResolveConfigDir(configPath)
 }
 
 func ResolveTemplateContext(configPath string) (string, string) {

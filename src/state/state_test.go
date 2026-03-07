@@ -12,28 +12,28 @@ import (
 )
 
 func TestRootDirLinux(t *testing.T) {
-	context.Current = &context.Runtime{
+	context.SetCurrent(&context.Runtime{
 		OS:   context.LINUX,
 		Home: "/home/tester",
-	}
+	})
 
 	assert.Equal(t, filepath.Join("/home/tester", ".local", "aliae", "state"), RootDir())
 }
 
 func TestRootDirDarwin(t *testing.T) {
-	context.Current = &context.Runtime{
+	context.SetCurrent(&context.Runtime{
 		OS:   context.DARWIN,
 		Home: "/Users/tester",
-	}
+	})
 
 	assert.Equal(t, filepath.Join("/Users/tester", "Library", "Application Support", "aliae", "State"), RootDir())
 }
 
 func TestRootDirWindows(t *testing.T) {
-	context.Current = &context.Runtime{
+	context.SetCurrent(&context.Runtime{
 		OS:   context.WINDOWS,
 		Home: `C:\Users\tester`,
-	}
+	})
 	t.Setenv("LOCALAPPDATA", `C:\Users\tester\AppData\Local`)
 
 	assert.Equal(t, filepath.Join(`C:\Users\tester\AppData\Local`, "aliae", "state"), RootDir())

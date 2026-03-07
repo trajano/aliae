@@ -77,18 +77,20 @@ func loadLocalConfigRecursive(configPath string, stack []string, depth int) (*Al
 
 	previousTemplatePath := ""
 	previousTemplateDir := ""
-	if contextpkg.Current != nil {
-		previousTemplatePath = contextpkg.Current.ConfigPath
-		previousTemplateDir = contextpkg.Current.ConfigDir
+	runtime := contextpkg.GetCurrent()
+	if runtime != nil {
+		previousTemplatePath = runtime.ConfigPath
+		previousTemplateDir = runtime.ConfigDir
 	}
 	setTemplateConfigContext(absPath)
 	defer func() {
-		if contextpkg.Current == nil {
+		runtime := contextpkg.GetCurrent()
+		if runtime == nil {
 			return
 		}
 
-		contextpkg.Current.ConfigPath = previousTemplatePath
-		contextpkg.Current.ConfigDir = previousTemplateDir
+		runtime.ConfigPath = previousTemplatePath
+		runtime.ConfigDir = previousTemplateDir
 	}()
 
 	data, err := os.ReadFile(absPath)
@@ -141,12 +143,12 @@ func loadLocalConfigRecursive(configPath string, stack []string, depth int) (*Al
 		}
 	}
 
-	current, err := decodeAliae(includedData)
+	currentConfig, err := decodeAliae(includedData)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	merged.merge(current)
+	merged.merge(currentConfig)
 
 	return merged, inputs, nil
 }

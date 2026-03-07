@@ -226,7 +226,7 @@ func TestCDPathIfExists(t *testing.T) {
 	}
 	assert.Equal(t, `export CDPATH="${CDPATH:+$CDPATH:}`+existing+`"`, withExists.string(), "ifExists true keeps only existing entries")
 
-	context.Current.CDPath = &context.Path{}
+	context.GetCurrent().CDPath = &context.Path{}
 	withoutExists := &CDPath{
 		Value:    Template(missing),
 		IfExists: false,

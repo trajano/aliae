@@ -21,11 +21,9 @@ import (
 type Template string
 
 var (
-	hasCommandCache   = map[string]bool{}
-	hasCommandCacheMu sync.RWMutex
+	hasCommandCache sync.Map
 
-	pathExistsCache   = map[string]pathInfo{}
-	pathExistsCacheMu sync.RWMutex
+	pathExistsCache sync.Map
 
 	templateRuntime atomic.Pointer[context.Runtime]
 )
@@ -44,11 +42,11 @@ func (t Template) Parse() Template {
 	return Template(value)
 }
 
-func (t Template) ParseWithRuntime(runtime *context.Runtime) Template {
-	restore := SetTemplateRuntime(runtime)
+func (t Template) ParseWithRuntime(current *context.Runtime) Template {
+	restore := SetTemplateRuntime(current)
 	defer restore()
 
-	value, err := parse(string(t), runtime)
+	value, err := parse(string(t), current)
 	if err != nil {
 		return t
 	}
@@ -101,8 +99,8 @@ func funcMap() template.FuncMap {
 	return funcMap
 }
 
-func SetTemplateRuntime(runtime *context.Runtime) func() {
-	previous := templateRuntime.Swap(runtime)
+func SetTemplateRuntime(current *context.Runtime) func() {
+	previous := templateRuntime.Swap(current)
 
 	return func() {
 		templateRuntime.Store(previous)
@@ -187,18 +185,14 @@ func match(variable string, values ...string) bool {
 }
 
 func hasCommand(command string) bool {
-	hasCommandCacheMu.RLock()
-	cached, ok := hasCommandCache[command]
-	hasCommandCacheMu.RUnlock()
+	cached, ok := hasCommandCache.Load(command)
 	if ok {
-		return cached
+		return cached.(bool)
 	}
 
 	result := hasCommandNoCache(command)
 
-	hasCommandCacheMu.Lock()
-	hasCommandCache[command] = result
-	hasCommandCacheMu.Unlock()
+	hasCommandCache.Store(command, result)
 
 	return result
 }
@@ -219,11 +213,8 @@ func dirExists(path string) bool {
 }
 
 func pathExists(path string) pathInfo {
-	pathExistsCacheMu.RLock()
-	cached, OK := pathExistsCache[path]
-	pathExistsCacheMu.RUnlock()
-	if OK {
-		return cached
+	if cached, ok := pathExistsCache.Load(path); ok {
+		return cached.(pathInfo)
 	}
 
 	info, err := filesystem.StatWithTimeout(path, filesystem.StatTimeout())
@@ -232,9 +223,7 @@ func pathExists(path string) pathInfo {
 		isDir:  err == nil && info.IsDir(),
 	}
 
-	pathExistsCacheMu.Lock()
-	pathExistsCache[path] = result
-	pathExistsCacheMu.Unlock()
+	pathExistsCache.Store(path, result)
 
 	return result
 }
@@ -244,24 +233,26 @@ func resolveFromHome(path string) string {
 		return path
 	}
 
-	runtime := currentTemplateRuntime()
-	if runtime != nil && strings.TrimSpace(runtime.Home) != "" {
-		return filepath.Join(runtime.Home, path)
+	current := currentTemplateRuntime()
+	if current != nil && strings.TrimSpace(current.Home) != "" {
+		return filepath.Join(current.Home, path)
 	}
 
 	return filepath.Join(context.Home(), path)
 }
 
 func clearPathExistsCache() {
-	pathExistsCacheMu.Lock()
-	defer pathExistsCacheMu.Unlock()
-	pathExistsCache = map[string]pathInfo{}
+	pathExistsCache.Range(func(key, _ any) bool {
+		pathExistsCache.Delete(key)
+		return true
+	})
 }
 
 func clearHasCommandCache() {
-	hasCommandCacheMu.Lock()
-	defer hasCommandCacheMu.Unlock()
-	hasCommandCache = map[string]bool{}
+	hasCommandCache.Range(func(key, _ any) bool {
+		hasCommandCache.Delete(key)
+		return true
+	})
 }
 
 // ResetTemplateCaches clears in-memory caches used by template helper functions.
