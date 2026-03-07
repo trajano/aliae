@@ -69,7 +69,7 @@ func (a *Aliae) progressTotalWeight() float64 {
 			total += 1
 		},
 		OnScript: func(script *shell.Script) {
-			if script.If.Ignore() {
+			if script.FreezeIgnore() {
 				return
 			}
 			total += scriptWeight(script)

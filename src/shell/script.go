@@ -30,6 +30,8 @@ type Script struct {
 	statePrepared  bool `yaml:"-"`
 	stateChecked   bool `yaml:"-"`
 	stateShouldRun bool `yaml:"-"`
+	ifFrozen       bool `yaml:"-"`
+	ifIgnoreFrozen bool `yaml:"-"`
 }
 
 type ScriptState struct {
@@ -96,7 +98,7 @@ func (s Scripts) StateReferences() ([]ScriptStateReference, error) {
 func (s Scripts) PrimeState(now time.Time) int {
 	checks := 0
 	for _, script := range s {
-		if script == nil || script.If.Ignore() {
+		if script == nil || script.ignore() {
 			continue
 		}
 
@@ -142,7 +144,8 @@ func (s Scripts) Render() {
 
 	first := true
 	for _, script := range s {
-		if script.If.Ignore() {
+		if script.ignore() {
+			script.clearIgnoreFreeze()
 			continue
 		}
 
@@ -155,6 +158,7 @@ func (s Scripts) Render() {
 		if checked && !shouldRun {
 			advanceAutoProgress(script.effectiveWeight())
 			script.clearPreparedState()
+			script.clearIgnoreFreeze()
 			continue
 		}
 
@@ -162,6 +166,7 @@ func (s Scripts) Render() {
 		if len(scriptBlock) == 0 {
 			advanceAutoProgress(script.effectiveWeight())
 			script.clearPreparedState()
+			script.clearIgnoreFreeze()
 			continue
 		}
 
@@ -182,7 +187,27 @@ func (s Scripts) Render() {
 		first = false
 		advanceAutoProgress(script.effectiveWeight())
 		script.clearPreparedState()
+		script.clearIgnoreFreeze()
 	}
+}
+
+func (s *Script) FreezeIgnore() bool {
+	s.ifFrozen = true
+	s.ifIgnoreFrozen = s.If.Ignore()
+	return s.ifIgnoreFrozen
+}
+
+func (s *Script) ignore() bool {
+	if s.ifFrozen {
+		return s.ifIgnoreFrozen
+	}
+
+	return s.If.Ignore()
+}
+
+func (s *Script) clearIgnoreFreeze() {
+	s.ifFrozen = false
+	s.ifIgnoreFrozen = false
 }
 
 func (s *Script) prepareState(now time.Time) bool {

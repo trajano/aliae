@@ -208,3 +208,44 @@ func TestScriptStateRunEveryNotDue(t *testing.T) {
 	scripts.Render()
 	assert.Equal(t, "", strings.TrimSpace(RenderOutputString()))
 }
+
+func TestScriptRenderReevaluatesConditionWhenNotFrozen(t *testing.T) {
+	runtime := &context.Runtime{
+		Shell: PWSH,
+		Env:   map[string]string{"FLAG": "1"},
+	}
+	useRuntime(t, runtime)
+
+	scripts := Scripts{
+		{
+			Value: "echo hello",
+			If:    `eq .Env.FLAG "1"`,
+		},
+	}
+
+	runtime.Env["FLAG"] = "0"
+	ResetRenderOutput()
+	scripts.Render()
+	assert.Equal(t, "", strings.TrimSpace(RenderOutputString()))
+}
+
+func TestScriptRenderUsesFrozenCondition(t *testing.T) {
+	runtime := &context.Runtime{
+		Shell: PWSH,
+		Env:   map[string]string{"FLAG": "1"},
+	}
+	useRuntime(t, runtime)
+
+	scripts := Scripts{
+		{
+			Value: "echo hello",
+			If:    `eq .Env.FLAG "1"`,
+		},
+	}
+	assert.False(t, scripts[0].FreezeIgnore())
+
+	runtime.Env["FLAG"] = "0"
+	ResetRenderOutput()
+	scripts.Render()
+	assert.Equal(t, "echo hello", strings.TrimSpace(RenderOutputString()))
+}
