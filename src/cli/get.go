@@ -9,6 +9,7 @@ import (
 	"github.com/goccy/go-yaml"
 	cfg "github.com/jandedobbeleer/aliae/src/config"
 	"github.com/jandedobbeleer/aliae/src/context"
+	initpkg "github.com/jandedobbeleer/aliae/src/init"
 	"github.com/jandedobbeleer/aliae/src/shell"
 	"github.com/spf13/cobra"
 	"golang.org/x/term"
@@ -453,10 +454,10 @@ func printBenchmark(out io.Writer, benchmarkShell string) error {
 	if len(benchmarkShell) > 0 {
 		stepName := benchmarkStepGenerateInitPrefix + benchmarkShell
 		if err := record(stepName, func() error {
-			cfg.SetInitProgressWriter(io.Discard)
-			defer cfg.SetInitProgressWriter(os.Stderr)
+			initpkg.SetProgressWriter(io.Discard)
+			defer initpkg.SetProgressWriter(os.Stderr)
 
-			initSteps, initVisits, err := cfg.BenchmarkInit(config, benchmarkShell)
+			initSteps, initVisits, err := initpkg.Benchmark(config, benchmarkShell)
 			if err != nil {
 				return fmt.Errorf("init benchmark failed for shell %s: %w", benchmarkShell, err)
 			}

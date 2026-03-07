@@ -2,6 +2,10 @@ package config
 
 import "github.com/jandedobbeleer/aliae/src/shell"
 
+func AutoProgressConfig(a *Aliae) shell.AutoProgressConfig {
+	return a.autoProgressConfig()
+}
+
 func (a *Aliae) autoProgressConfig() shell.AutoProgressConfig {
 	if a == nil || !a.Progress.Enabled {
 		return shell.AutoProgressConfig{}
@@ -81,6 +85,10 @@ func scriptWeight(script *shell.Script) float64 {
 	}
 
 	return script.Weight
+}
+
+func ProgressVarWeight(a *Aliae) float64 {
+	return a.progressVarWeight()
 }
 
 func (a *Aliae) progressVarWeight() float64 {

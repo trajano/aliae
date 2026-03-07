@@ -49,7 +49,7 @@ func (a *Aliae) computeVars(lineResolver *yamlLineResolver) error {
 	}
 
 	ctx.Var = computed
-	markInternalProgressVarsComputed()
+	MarkInitInternalProgressVarsComputed()
 	return nil
 }
 

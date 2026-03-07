@@ -33,7 +33,7 @@ func resetInitProgressWriter() {
 	initProgressWriter = os.Stderr
 }
 
-func beginInitInternalProgress(configPath string) {
+func BeginInitInternalProgress(configPath string) {
 	progress, err := loadRootProgress(resolveConfigPath(configPath))
 	if err != nil || !progress.Enabled || progress.Internal <= 0 {
 		internalProgress = nil
@@ -57,11 +57,11 @@ func beginInitInternalProgress(configPath string) {
 	internalProgress = reporter
 }
 
-func endInitInternalProgress() {
+func EndInitInternalProgress() {
 	internalProgress = nil
 }
 
-func markInternalProgressDiscoveryComplete() {
+func MarkInitInternalProgressDiscoveryComplete() {
 	if internalProgress == nil {
 		return
 	}
@@ -69,7 +69,7 @@ func markInternalProgressDiscoveryComplete() {
 	internalProgress.advance(1)
 }
 
-func markInternalProgressLinkedConfigLoaded() {
+func MarkInitInternalProgressLinkedConfigLoaded() {
 	if internalProgress == nil {
 		return
 	}
@@ -77,7 +77,7 @@ func markInternalProgressLinkedConfigLoaded() {
 	internalProgress.advance(1)
 }
 
-func markInternalProgressConfigValidated() {
+func MarkInitInternalProgressConfigValidated() {
 	if internalProgress == nil {
 		return
 	}
@@ -85,7 +85,7 @@ func markInternalProgressConfigValidated() {
 	internalProgress.advance(1)
 }
 
-func markInternalProgressVarsComputed() {
+func MarkInitInternalProgressVarsComputed() {
 	if internalProgress == nil {
 		return
 	}
@@ -93,7 +93,7 @@ func markInternalProgressVarsComputed() {
 	internalProgress.advance(1)
 }
 
-func markInternalProgressStatPhaseComplete() {
+func MarkInitInternalProgressStatPhaseComplete() {
 	if internalProgress == nil {
 		return
 	}
@@ -101,7 +101,7 @@ func markInternalProgressStatPhaseComplete() {
 	internalProgress.advance(2)
 }
 
-func markInternalProgressStateChecksComplete(count int) {
+func MarkInitInternalProgressStateChecksComplete(count int) {
 	if internalProgress == nil || count <= 0 {
 		return
 	}
@@ -109,7 +109,7 @@ func markInternalProgressStateChecksComplete(count int) {
 	internalProgress.advance(count)
 }
 
-func markInternalProgressOutputFormulated() {
+func MarkInitInternalProgressOutputFormulated() {
 	if internalProgress == nil {
 		return
 	}
@@ -117,7 +117,7 @@ func markInternalProgressOutputFormulated() {
 	internalProgress.advance(1)
 }
 
-func markInternalProgressReadyToOutput() {
+func MarkInitInternalProgressReadyToOutput() {
 	if internalProgress == nil {
 		return
 	}

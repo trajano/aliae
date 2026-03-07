@@ -7,7 +7,7 @@ import (
 	"github.com/spf13/cobra"
 	"golang.org/x/term"
 
-	cfg "github.com/jandedobbeleer/aliae/src/config"
+	initpkg "github.com/jandedobbeleer/aliae/src/init"
 )
 
 var (
@@ -55,10 +55,10 @@ func runInit(cmd *cobra.Command, shellName string) {
 	if skip {
 		return
 	}
-	cfg.SetInitProgressWriter(cmd.ErrOrStderr())
-	defer cfg.SetInitProgressWriter(os.Stderr)
+	initpkg.SetProgressWriter(cmd.ErrOrStderr())
+	defer initpkg.SetProgressWriter(os.Stderr)
 
-	init := cfg.Init(config, shellName, printOutput)
+	init := initpkg.Init(config, shellName, printOutput)
 	fmt.Fprint(cmd.OutOrStdout(), init)
 }
 
