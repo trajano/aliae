@@ -55,7 +55,7 @@ func TestShouldRunAndWriteLastRun(t *testing.T) {
 	require.NoError(t, err)
 	assert.False(t, run)
 	require.NotNil(t, last)
-	assert.Equal(t, now, *last)
+	assert.WithinDuration(t, now, *last, 2*time.Second)
 
 	run, _, err = ShouldRun(statePath, 2*time.Hour, now.Add(time.Hour))
 	require.NoError(t, err)

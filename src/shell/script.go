@@ -32,6 +32,12 @@ type Script struct {
 	stateShouldRun bool `yaml:"-"`
 	ifFrozen       bool `yaml:"-"`
 	ifIgnoreFrozen bool `yaml:"-"`
+	ifEvaluated    bool `yaml:"-"`
+	ifIgnored      bool `yaml:"-"`
+
+	stateRunEveryParsed bool          `yaml:"-"`
+	stateRunEvery       time.Duration `yaml:"-"`
+	stateRunEveryErr    error         `yaml:"-"`
 }
 
 type ScriptState struct {
@@ -52,14 +58,9 @@ func (s *Script) stateReference() (*ScriptStateReference, error) {
 		return nil, nil
 	}
 
-	runEvery := time.Duration(0)
-	runEveryRaw := strings.TrimSpace(s.State.RunEvery)
-	if len(runEveryRaw) > 0 {
-		parsed, err := time.ParseDuration(runEveryRaw)
-		if err != nil {
-			return nil, err
-		}
-		runEvery = parsed
+	runEvery, err := s.parsedRunEvery()
+	if err != nil {
+		return nil, err
 	}
 
 	format := s.State.Format
@@ -72,6 +73,30 @@ func (s *Script) stateReference() (*ScriptStateReference, error) {
 		RunEvery: runEvery,
 		Format:   format,
 	}, nil
+}
+
+func (s *Script) parsedRunEvery() (time.Duration, error) {
+	if s.stateRunEveryParsed {
+		return s.stateRunEvery, s.stateRunEveryErr
+	}
+
+	s.stateRunEveryParsed = true
+	s.stateRunEvery = 0
+	s.stateRunEveryErr = nil
+
+	runEveryRaw := strings.TrimSpace(s.State.RunEvery)
+	if len(runEveryRaw) == 0 {
+		return s.stateRunEvery, nil
+	}
+
+	parsed, err := time.ParseDuration(runEveryRaw)
+	if err != nil {
+		s.stateRunEveryErr = err
+		return 0, err
+	}
+
+	s.stateRunEvery = parsed
+	return s.stateRunEvery, nil
 }
 
 func (s Scripts) StateReferences() ([]ScriptStateReference, error) {
@@ -98,7 +123,16 @@ func (s Scripts) StateReferences() ([]ScriptStateReference, error) {
 func (s Scripts) PrimeState(now time.Time) int {
 	checks := 0
 	for _, script := range s {
-		if script == nil || script.ignore() {
+		if script == nil {
+			continue
+		}
+
+		// Stateless scripts do not participate in state priming.
+		if strings.TrimSpace(string(script.State.File)) == "" {
+			continue
+		}
+
+		if script.ignore() {
 			continue
 		}
 
@@ -204,7 +238,13 @@ func (s *Script) ignore() bool {
 		return s.ifIgnoreFrozen
 	}
 
-	return s.If.Ignore()
+	if s.ifEvaluated {
+		return s.ifIgnored
+	}
+
+	s.ifIgnored = s.If.Ignore()
+	s.ifEvaluated = true
+	return s.ifIgnored
 }
 
 func (s *Script) clearIgnoreFreeze() {
