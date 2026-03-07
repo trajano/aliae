@@ -422,6 +422,9 @@ func printBenchmark(out io.Writer, benchmarkShell string) error {
 	if err := record(benchmarkStepLoadConfig, func() error {
 		var err error
 		aliae, err = cfg.LoadConfigWithoutVars(config)
+		if err != nil {
+			return err
+		}
 		cacheUsed = cfg.LastLoadUsedCache()
 		cygpathMode = context.NormalizeCygpathMode(aliae.Cygpath)
 		return err

@@ -128,3 +128,28 @@ func TestValidateGetArgsBenchmarkShellValidation(t *testing.T) {
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "unsupported shell")
 }
+
+func TestGetBenchmarkReturnsErrorWhenConfigLoadFails(t *testing.T) {
+	root := t.TempDir()
+	configFile := filepath.Join(root, "aliae.yaml")
+	require.NoError(t, os.WriteFile(configFile, []byte(`extends:
+  - path: does-not-exist.yml
+`), 0o600))
+
+	previousConfig := config
+	config = configFile
+	t.Cleanup(func() {
+		config = previousConfig
+	})
+
+	var stdout bytes.Buffer
+	var stderr bytes.Buffer
+	cmd := &cobra.Command{}
+	cmd.SetOut(&stdout)
+	cmd.SetErr(&stderr)
+
+	require.NotPanics(t, func() {
+		err := getCmd.RunE(cmd, []string{"benchmark", "bash"})
+		require.Error(t, err)
+	})
+}
