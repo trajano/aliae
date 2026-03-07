@@ -67,7 +67,7 @@ func parse(text string, ctx any) (string, error) {
 
 	ctx = templateContext(ctx)
 
-	parsedTemplate, err := template.New("alias").Option("missingkey=zero").Funcs(funcMap()).Parse(text)
+	parsedTemplate, err := template.New("alias").Option("missingkey=zero").Funcs(shellTemplateFuncMap).Parse(text)
 	if err != nil {
 		return "", err
 	}
@@ -81,15 +81,6 @@ func parse(text string, ctx any) (string, error) {
 	}
 
 	return buffer.String(), nil
-}
-
-func funcMap() template.FuncMap {
-	funcMap := template.FuncMap{}
-	for _, provider := range shellTemplateFuncProviders() {
-		funcMap[provider.Name()] = provider.Func()
-	}
-
-	return funcMap
 }
 
 func SetTemplateRuntime(current *context.Runtime) func() {
