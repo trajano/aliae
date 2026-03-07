@@ -66,6 +66,24 @@ func TestInitLoadsEnvironmentMap(t *testing.T) {
 	}
 }
 
+func TestNewRuntimeBuildsRuntimeWithoutMutatingCurrent(t *testing.T) {
+	original := Current
+	t.Cleanup(func() { Current = original })
+
+	Current = nil
+	current := NewRuntime("bash")
+
+	if current == nil {
+		t.Fatalf("expected runtime context")
+	}
+	if current.Shell != "bash" {
+		t.Fatalf("expected shell to be bash, got %s", current.Shell)
+	}
+	if Current != nil {
+		t.Fatalf("expected Current to remain unchanged")
+	}
+}
+
 func TestIsShellLike(t *testing.T) {
 	cases := []struct {
 		name     string

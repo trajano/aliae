@@ -30,10 +30,14 @@ type Runtime struct {
 }
 
 func Init(shell string) {
+	Current = NewRuntime(shell)
+}
+
+func NewRuntime(shell string) *Runtime {
 	home := Home()
 	hostname, _ := os.Hostname()
 
-	Current = &Runtime{
+	current := &Runtime{
 		Shell:     shell,
 		ShellLike: isShellLike(shell),
 		OS:        runtimeGOOS,
@@ -46,8 +50,9 @@ func Init(shell string) {
 		Cygpath:   CygpathInternal,
 	}
 
-	Current.Path = getPath()
-	Current.CDPath = getCDPath()
+	current.Path = getPath()
+	current.CDPath = getCDPath()
+	return current
 }
 
 func isShellLike(shell string) bool {

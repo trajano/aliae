@@ -21,7 +21,9 @@ func runWithObserver(configPath, sh string, observer Observer, options runOption
 
 	var aliae *cfg.Aliae
 	if err := runPhase(observer, PhaseContextInit, func() error {
-		context.Init(sh)
+		runtime := context.NewRuntime(sh)
+		context.Current = runtime
+		shell.SetTemplateRuntime(runtime)
 		return nil
 	}); err != nil {
 		return "", err
