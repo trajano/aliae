@@ -2,6 +2,7 @@ package cli
 
 import (
 	"os"
+	"sync"
 
 	"github.com/spf13/cobra"
 )
@@ -12,6 +13,8 @@ var (
 
 	// Version number of aliae
 	cliVersion string
+
+	setupRootOnce sync.Once
 )
 
 var RootCmd = &cobra.Command{
@@ -33,6 +36,12 @@ This is a personal fork. For the official project and docs, see https://aliae.de
 
 func NewRootCommand(version string) *cobra.Command {
 	cliVersion = version
+
+	setupRootOnce.Do(func() {
+		registerRootFlags(RootCmd)
+		registerCommands(RootCmd)
+	})
+
 	return RootCmd
 }
 
@@ -42,7 +51,15 @@ func Execute(version string) {
 	}
 }
 
-func init() {
-	RootCmd.PersistentFlags().StringVarP(&config, "config", "c", "", "config file path")
-	RootCmd.Flags().BoolVar(&displayVersion, "version", false, "version")
+func registerRootFlags(root *cobra.Command) {
+	root.PersistentFlags().StringVarP(&config, "config", "c", "", "config file path")
+	root.Flags().BoolVar(&displayVersion, "version", false, "version")
+}
+
+func registerCommands(root *cobra.Command) {
+	registerInitCommand(root)
+	registerGetCommand(root)
+	registerStateCommand(root)
+	registerValidateCommand(root)
+	registerVersionCommand(root)
 }

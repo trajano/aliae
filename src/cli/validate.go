@@ -25,6 +25,6 @@ This command validates the resolved configuration after extends and include dire
 	},
 }
 
-func init() {
-	RootCmd.AddCommand(validateCmd)
+func registerValidateCommand(root *cobra.Command) {
+	root.AddCommand(validateCmd)
 }

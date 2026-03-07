@@ -60,9 +60,9 @@ This command is used to get the value of the following variables:
 
 var benchmarkNoCache bool
 
-func init() {
+func registerGetCommand(root *cobra.Command) {
 	getCmd.Flags().BoolVar(&benchmarkNoCache, "no-cache", false, "disable config cache while running benchmark")
-	RootCmd.AddCommand(getCmd)
+	root.AddCommand(getCmd)
 }
 
 func validateGetArgs(_ *cobra.Command, args []string) error {

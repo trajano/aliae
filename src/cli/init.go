@@ -41,10 +41,10 @@ This is a personal fork. For the official project and docs, see https://aliae.de
 	}
 )
 
-func init() {
+func registerInitCommand(root *cobra.Command) {
 	initCmd.Flags().BoolVarP(&printOutput, "print", "p", false, "print the init script")
 	initCmd.Flags().BoolVar(&ttyOnly, "tty-only", true, "only print if input is a TTY (default: true)")
-	RootCmd.AddCommand(initCmd)
+	root.AddCommand(initCmd)
 }
 
 func runInit(cmd *cobra.Command, shellName string) {

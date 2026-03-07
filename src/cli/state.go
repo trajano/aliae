@@ -32,10 +32,10 @@ var stateClearCmd = &cobra.Command{
 	},
 }
 
-func init() {
+func registerStateCommand(root *cobra.Command) {
 	stateCmd.AddCommand(stateListCmd)
 	stateCmd.AddCommand(stateClearCmd)
-	RootCmd.AddCommand(stateCmd)
+	root.AddCommand(stateCmd)
 }
 
 func runStateList(cmd *cobra.Command) error {

@@ -13,6 +13,6 @@ var versionCmd = &cobra.Command{
 	},
 }
 
-func init() {
-	RootCmd.AddCommand(versionCmd)
+func registerVersionCommand(root *cobra.Command) {
+	root.AddCommand(versionCmd)
 }
