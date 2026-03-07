@@ -36,7 +36,7 @@ Use grouped validation by changed scope:
   - `cd src && go fmt ./...`
   - `cd src && go mod tidy`
   - `cd src && go test ./...`
-  - `cd src && go run github.com/golangci/golangci-lint/cmd/golangci-lint@latest run`
+  - `cd src && go run github.com/golangci/golangci-lint/v2/cmd/golangci-lint@latest run`
   - `cd src && go install golang.org/x/tools/go/analysis/passes/fieldalignment/cmd/fieldalignment@latest`
   - `cd src && "$(go env GOPATH)"/bin/fieldalignment ./...`
 - `website/**` changes:
