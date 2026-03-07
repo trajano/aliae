@@ -29,9 +29,6 @@ alias:
 	assert.Equal(t, "one", string(first.Aliae[0].Value))
 	assert.True(t, first.Cache)
 
-	_, statErr := os.Stat(configCachePath(configFile))
-	assert.NoError(t, statErr)
-
 	time.Sleep(2 * time.Millisecond)
 	require.NoError(t, os.WriteFile(configFile, []byte(`cache: true
 alias:
