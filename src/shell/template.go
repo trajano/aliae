@@ -21,6 +21,9 @@ import (
 type Template string
 
 var (
+	// Template helper caches are process-global and intentionally ephemeral.
+	// The CLI is expected to finish quickly (sub-second target), so cache
+	// lifetime is bounded to the process and tuned for startup throughput.
 	hasCommandCache sync.Map
 
 	pathExistsCache sync.Map

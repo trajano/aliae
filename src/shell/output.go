@@ -5,6 +5,8 @@ import (
 )
 
 var (
+	// Render output is process-global by design for init generation.
+	// This intentionally assumes a single init run in a short-lived CLI process.
 	defaultOutput strings.Builder
 	renderOutput  = &defaultOutput
 )

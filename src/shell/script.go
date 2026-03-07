@@ -192,6 +192,8 @@ func (s Scripts) Render() {
 }
 
 func (s *Script) FreezeIgnore() bool {
+	// Freeze script applicability once per init run so auto-progress uses
+	// the same eligibility decisions as render. This is intentional.
 	s.ifFrozen = true
 	s.ifIgnoreFrozen = s.If.Ignore()
 	return s.ifIgnoreFrozen

@@ -7,8 +7,9 @@ import (
 	"sync/atomic"
 )
 
-// used for caching runtime information
-// and testing purposes
+// currentRuntime is process-global by design.
+// aliae is a short-lived CLI process and init execution is treated as a
+// single-run flow, so this avoids passing runtime through every call frame.
 var currentRuntime atomic.Pointer[Runtime]
 
 var runtimeGOOS = runtime.GOOS
