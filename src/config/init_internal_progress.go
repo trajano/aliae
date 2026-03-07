@@ -29,10 +29,6 @@ func SetInitProgressWriter(writer io.Writer) {
 	initProgressWriter = writer
 }
 
-func resetInitProgressWriter() {
-	initProgressWriter = os.Stderr
-}
-
 func BeginInitInternalProgress(configPath string) {
 	progress, err := loadRootProgress(resolveConfigPath(configPath))
 	if err != nil || !progress.Enabled || progress.Internal <= 0 {

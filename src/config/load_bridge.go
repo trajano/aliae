@@ -10,10 +10,6 @@ func resolveConfigDir(configPath string) string {
 	return cfgload.ResolveConfigDir(configPath)
 }
 
-func home() string {
-	return cfgload.Home()
-}
-
 func resolveConfigPath(configPath string) string {
 	return cfgload.ResolveConfigPath(configPath)
 }

@@ -1,7 +1,9 @@
 package shell
 
-import "fmt"
-import "strings"
+import (
+	"fmt"
+	"strings"
+)
 
 func (bashFormatStrategy) FormatSetArg(name string, oneBasedIndex int) string {
 	return fmt.Sprintf("%s=$%d", name, oneBasedIndex)
