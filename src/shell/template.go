@@ -25,6 +25,9 @@ var (
 
 	pathExistsCache   = map[string]pathInfo{}
 	pathExistsCacheMu sync.RWMutex
+
+	templateRuntime   *context.Runtime
+	templateRuntimeMu sync.RWMutex
 )
 
 type pathInfo struct {
@@ -34,6 +37,18 @@ type pathInfo struct {
 
 func (t Template) Parse() Template {
 	value, err := parse(string(t), context.Current)
+	if err != nil {
+		return t
+	}
+
+	return Template(value)
+}
+
+func (t Template) ParseWithRuntime(runtime *context.Runtime) Template {
+	restore := SetTemplateRuntime(runtime)
+	defer restore()
+
+	value, err := parse(string(t), runtime)
 	if err != nil {
 		return t
 	}
@@ -84,6 +99,30 @@ func funcMap() template.FuncMap {
 		"progress":          progress,
 	}
 	return funcMap
+}
+
+func SetTemplateRuntime(runtime *context.Runtime) func() {
+	templateRuntimeMu.Lock()
+	previous := templateRuntime
+	templateRuntime = runtime
+	templateRuntimeMu.Unlock()
+
+	return func() {
+		templateRuntimeMu.Lock()
+		templateRuntime = previous
+		templateRuntimeMu.Unlock()
+	}
+}
+
+func currentTemplateRuntime() *context.Runtime {
+	templateRuntimeMu.RLock()
+	current := templateRuntime
+	templateRuntimeMu.RUnlock()
+	if current != nil {
+		return current
+	}
+
+	return context.Current
 }
 
 func formatString(variable any) any {
@@ -140,7 +179,13 @@ func formatArray(variable any, delim ...string) any {
 
 func escapeString(variable any) any {
 	clean := func(v string) string {
-		switch context.Current.Shell {
+		current := currentTemplateRuntime()
+		shellName := ""
+		if current != nil {
+			shellName = current.Shell
+		}
+
+		switch shellName {
 		case PWSH, POWERSHELL:
 			return strings.NewReplacer(
 				"`", "``",
@@ -227,6 +272,11 @@ func resolveFromHome(path string) string {
 		return path
 	}
 
+	runtime := currentTemplateRuntime()
+	if runtime != nil && strings.TrimSpace(runtime.Home) != "" {
+		return filepath.Join(runtime.Home, path)
+	}
+
 	return filepath.Join(context.Home(), path)
 }
 
@@ -267,24 +317,7 @@ func setArg(name string, index any) string {
 		return ""
 	}
 
-	switch context.Current.Shell {
-	case BASH, ZSH:
-		return fmt.Sprintf("%s=$%d", name, oneBasedIndex)
-	case FISH:
-		return fmt.Sprintf("set %s $argv[%d]", name, oneBasedIndex)
-	case PWSH, POWERSHELL:
-		return fmt.Sprintf("$%s = $args[%d]", name, oneBasedIndex-1)
-	case NU:
-		return fmt.Sprintf("$%s = $args.%d", name, oneBasedIndex-1)
-	case XONSH:
-		return fmt.Sprintf("%s=$argv[%d]", name, oneBasedIndex)
-	case TCSH:
-		return fmt.Sprintf("set %s=$%d", name, oneBasedIndex)
-	case CMD:
-		return fmt.Sprintf("set %s=%%%d", name, oneBasedIndex)
-	default:
-		return ""
-	}
+	return formatStrategyForShell(currentShellName()).FormatSetArg(name, oneBasedIndex)
 }
 
 func toPositiveInt(value any) (int, bool) {
@@ -383,10 +416,14 @@ func progress(value any) string {
 		return ""
 	}
 
-	switch context.Current.Shell {
-	case PWSH, POWERSHELL:
-		return fmt.Sprintf(`[Console]::Out.Write("$([char]27)]9;4;%d;%d$([char]7)")`, state, percentage)
-	default:
-		return fmt.Sprintf("printf '\\033]9;4;%d;%d\\007'", state, percentage)
+	return formatStrategyForShell(currentShellName()).FormatProgress(state, percentage)
+}
+
+func currentShellName() string {
+	current := currentTemplateRuntime()
+	if current == nil {
+		return ""
 	}
+
+	return current.Shell
 }

@@ -14,6 +14,8 @@ type ShellFormatStrategy interface {
 	FormatLink(*Link) string
 	FormatEcho(*Echo) string
 	FormatCDPathCurrentDirScript() string
+	FormatSetArg(name string, oneBasedIndex int) string
+	FormatProgress(state, percentage int) string
 }
 
 // formatStrategy applies a Factory Method-style selection to return
@@ -23,7 +25,11 @@ func formatStrategy() ShellFormatStrategy {
 		return noopFormatStrategy{}
 	}
 
-	switch context.Current.Shell {
+	return formatStrategyForShell(context.Current.Shell)
+}
+
+func formatStrategyForShell(shellName string) ShellFormatStrategy {
+	switch shellName {
 	case ZSH:
 		return zshFormatStrategy{}
 	case BASH:
@@ -54,3 +60,5 @@ func (noopFormatStrategy) FormatCDPath(*CDPath) string          { return "" }
 func (noopFormatStrategy) FormatLink(*Link) string              { return "" }
 func (noopFormatStrategy) FormatEcho(*Echo) string              { return "" }
 func (noopFormatStrategy) FormatCDPathCurrentDirScript() string { return "" }
+func (noopFormatStrategy) FormatSetArg(string, int) string      { return "" }
+func (noopFormatStrategy) FormatProgress(int, int) string       { return "" }
