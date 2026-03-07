@@ -1,11 +1,11 @@
 package main
 
-import "github.com/jandedobbeleer/aliae/src/cli"
+import "github.com/jandedobbeleer/aliae/src/app"
 
 var (
 	Version = "development"
 )
 
 func main() {
-	cli.Execute(Version)
+	app.Execute(Version)
 }

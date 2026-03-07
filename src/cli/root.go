@@ -31,9 +31,13 @@ This is a personal fork. For the official project and docs, see https://aliae.de
 	},
 }
 
-func Execute(version string) {
+func NewRootCommand(version string) *cobra.Command {
 	cliVersion = version
-	if err := RootCmd.Execute(); err != nil {
+	return RootCmd
+}
+
+func Execute(version string) {
+	if err := NewRootCommand(version).Execute(); err != nil {
 		os.Exit(1)
 	}
 }
