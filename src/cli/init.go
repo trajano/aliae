@@ -1,13 +1,11 @@
 package cli
 
 import (
-	"fmt"
 	"os"
 
+	"github.com/jandedobbeleer/aliae/src/appcmd"
 	"github.com/spf13/cobra"
 	"golang.org/x/term"
-
-	initpkg "github.com/jandedobbeleer/aliae/src/init"
 )
 
 var (
@@ -50,16 +48,15 @@ func init() {
 }
 
 func runInit(cmd *cobra.Command, shellName string) {
-	stdinTTY := term.IsTerminal(int(os.Stdin.Fd()))
-	skip := shouldSkipInitOutput(ttyOnly, stdinTTY)
-	if skip {
-		return
-	}
-	initpkg.SetProgressWriter(cmd.ErrOrStderr())
-	defer initpkg.SetProgressWriter(os.Stderr)
-
-	init := initpkg.Init(config, shellName, printOutput)
-	fmt.Fprint(cmd.OutOrStdout(), init)
+	_ = appcmd.InitCommand{
+		ConfigPath: config,
+		Shell:      shellName,
+		Print:      printOutput,
+		TTYOnly:    ttyOnly,
+		StdinTTY:   term.IsTerminal(int(os.Stdin.Fd())),
+		Out:        cmd.OutOrStdout(),
+		Err:        cmd.ErrOrStderr(),
+	}.Execute()
 }
 
 func shouldSkipInitOutput(ttyOnly, stdinTTY bool) bool {
