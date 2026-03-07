@@ -3,7 +3,6 @@ package shell
 import (
 	"bytes"
 	"fmt"
-	"os"
 	"os/exec"
 	"path/filepath"
 	"runtime"
@@ -83,22 +82,11 @@ func parse(text string, ctx any) (string, error) {
 }
 
 func funcMap() template.FuncMap {
-	funcMap := template.FuncMap{
-		"isPwshOption":      isPwshOption,
-		"isPwshScope":       isPwshScope,
-		"formatString":      formatString,
-		"formatArray":       formatArray,
-		"escapeString":      escapeString,
-		"env":               os.Getenv,
-		"match":             match,
-		"hasCommand":        hasCommand,
-		"hasCommandNoCache": hasCommandNoCache,
-		"fileExists":        fileExists,
-		"dirExists":         dirExists,
-		"isDir":             isDir,
-		"setArg":            setArg,
-		"progress":          progress,
+	funcMap := template.FuncMap{}
+	for _, provider := range templateFuncProviders {
+		funcMap[provider.Name()] = provider.Func()
 	}
+
 	return funcMap
 }
 
