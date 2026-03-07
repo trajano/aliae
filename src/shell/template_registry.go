@@ -51,10 +51,12 @@ func init() {
 func templateContext(ctx any) any {
 	switch current := ctx.(type) {
 	case *context.Runtime:
+		if current != nil {
+			return current
+		}
 		return templatevar.Context(current, shellTemplateVariableProviders)
 	case context.Runtime:
-		runtimeCopy := current
-		return templatevar.Context(&runtimeCopy, shellTemplateVariableProviders)
+		return current
 	default:
 		return ctx
 	}
