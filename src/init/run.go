@@ -15,8 +15,9 @@ type runOptions struct {
 }
 
 func runWithObserver(configPath, sh string, observer Observer, options runOptions) (string, error) {
-	shell.DotFile.Reset()
-	defer shell.DotFile.Reset()
+	var output strings.Builder
+	restoreOutput := shell.SetRenderOutput(&output)
+	defer restoreOutput()
 
 	var aliae *cfg.Aliae
 	if err := runPhase(observer, PhaseContextInit, func() error {
@@ -86,7 +87,7 @@ func runWithObserver(configPath, sh string, observer Observer, options runOption
 
 	result := ""
 	if err := runPhase(observer, PhaseOutputForm, func() error {
-		result = shell.DotFile.String()
+		result = shell.RenderOutputString()
 		if strings.Contains(strings.ToLower(result), "aliae error:") {
 			return errInitFailed
 		}

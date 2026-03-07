@@ -198,13 +198,13 @@ if [ -n "$CDPATH" ]; then export CDPATH=":$CDPATH"; else export CDPATH=":"; fi`,
 	}
 
 	for _, tc := range cases {
-		DotFile.Reset()
+		ResetRenderOutput()
 		if tc.NonEmptyScript {
-			DotFile.WriteString("foo")
+			WriteRenderOutput("foo")
 		}
 		context.Current = &context.Runtime{Shell: tc.Shell, CDPath: &context.Path{}}
 		tc.CDPaths.Render()
-		assert.Equal(t, tc.Expected, strings.TrimSpace(DotFile.String()), tc.Case)
+		assert.Equal(t, tc.Expected, strings.TrimSpace(RenderOutputString()), tc.Case)
 	}
 }
 
@@ -235,7 +235,7 @@ func TestCDPathIfExists(t *testing.T) {
 }
 
 func TestCDPathEnsuresCurrentDir(t *testing.T) {
-	DotFile.Reset()
+	ResetRenderOutput()
 	context.Current = &context.Runtime{
 		Shell:  BASH,
 		CDPath: &context.Path{},
@@ -244,11 +244,11 @@ func TestCDPathEnsuresCurrentDir(t *testing.T) {
 	paths.Render()
 	expected := `export CDPATH="${CDPATH:+$CDPATH:}/usr/local/share"` + "\n" +
 		`if [ -n "$CDPATH" ]; then export CDPATH=":$CDPATH"; else export CDPATH=":"; fi`
-	assert.Equal(t, expected, strings.TrimSpace(DotFile.String()))
+	assert.Equal(t, expected, strings.TrimSpace(RenderOutputString()))
 }
 
 func TestCDPathDoesNotInjectCurrentDirWhenAlreadyPresent(t *testing.T) {
-	DotFile.Reset()
+	ResetRenderOutput()
 	context.Current = &context.Runtime{
 		Shell:  BASH,
 		CDPath: &context.Path{".", "/existing"},
@@ -256,7 +256,7 @@ func TestCDPathDoesNotInjectCurrentDirWhenAlreadyPresent(t *testing.T) {
 
 	paths := CDPaths{&CDPath{Value: "/usr/local/share"}}
 	paths.Render()
-	assert.Equal(t, `export CDPATH="${CDPATH:+$CDPATH:}/usr/local/share"`, strings.TrimSpace(DotFile.String()))
+	assert.Equal(t, `export CDPATH="${CDPATH:+$CDPATH:}/usr/local/share"`, strings.TrimSpace(RenderOutputString()))
 }
 
 func TestCDPathWithExistingCurrentDirSkipsDotInsertion(t *testing.T) {

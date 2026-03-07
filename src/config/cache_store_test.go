@@ -103,7 +103,7 @@ env:
 	assert.Contains(t, first, `export CACHE_VAR_TEST="ok"`)
 	assert.False(t, cfg.LastLoadUsedCache())
 
-	shell.DotFile.Reset()
+	shell.ResetRenderOutput()
 	second := initpkg.Init(configFile, shell.BASH, true)
 	assert.Contains(t, second, `export CACHE_VAR_TEST="ok"`)
 	assert.True(t, cfg.LastLoadUsedCache())

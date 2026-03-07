@@ -16,8 +16,8 @@ import (
 )
 
 func TestInitTemplateConfigVariables(t *testing.T) {
-	shell.DotFile.Reset()
-	t.Cleanup(shell.DotFile.Reset)
+	shell.ResetRenderOutput()
+	t.Cleanup(shell.ResetRenderOutput)
 
 	tempDir := t.TempDir()
 	configFile := filepath.ToSlash(filepath.Join(tempDir, "aliae.yaml"))
@@ -50,8 +50,8 @@ func TestInitTemplateConfigVariables(t *testing.T) {
 }
 
 func TestInitInternalProgressSequence(t *testing.T) {
-	shell.DotFile.Reset()
-	t.Cleanup(shell.DotFile.Reset)
+	shell.ResetRenderOutput()
+	t.Cleanup(shell.ResetRenderOutput)
 
 	tempDir := t.TempDir()
 	base1 := filepath.ToSlash(filepath.Join(tempDir, "base1.yaml"))
@@ -105,8 +105,8 @@ alias:
 }
 
 func TestInitInternalProgressIncludesStateChecks(t *testing.T) {
-	shell.DotFile.Reset()
-	t.Cleanup(shell.DotFile.Reset)
+	shell.ResetRenderOutput()
+	t.Cleanup(shell.ResetRenderOutput)
 
 	tempDir := t.TempDir()
 	configFile := filepath.ToSlash(filepath.Join(tempDir, "aliae.yaml"))
@@ -133,8 +133,8 @@ script:
 }
 
 func TestInitAutoProgressWithWeights(t *testing.T) {
-	shell.DotFile.Reset()
-	t.Cleanup(shell.DotFile.Reset)
+	shell.ResetRenderOutput()
+	t.Cleanup(shell.ResetRenderOutput)
 
 	tempDir := t.TempDir()
 	configFile := filepath.ToSlash(filepath.Join(tempDir, "aliae.yaml"))
@@ -176,8 +176,8 @@ script:
 }
 
 func TestInitAutoProgressWithFractionalScriptWeight(t *testing.T) {
-	shell.DotFile.Reset()
-	t.Cleanup(shell.DotFile.Reset)
+	shell.ResetRenderOutput()
+	t.Cleanup(shell.ResetRenderOutput)
 
 	tempDir := t.TempDir()
 	configFile := filepath.ToSlash(filepath.Join(tempDir, "aliae.yaml"))
@@ -219,8 +219,8 @@ script:
 }
 
 func TestInitAutoProgressStartsAfterInternalSpan(t *testing.T) {
-	shell.DotFile.Reset()
-	t.Cleanup(shell.DotFile.Reset)
+	shell.ResetRenderOutput()
+	t.Cleanup(shell.ResetRenderOutput)
 
 	tempDir := t.TempDir()
 	configFile := filepath.ToSlash(filepath.Join(tempDir, "aliae.yaml"))
@@ -241,8 +241,8 @@ alias:
 }
 
 func TestInitAllowsUnknownPropertiesAtRuntime(t *testing.T) {
-	shell.DotFile.Reset()
-	t.Cleanup(shell.DotFile.Reset)
+	shell.ResetRenderOutput()
+	t.Cleanup(shell.ResetRenderOutput)
 
 	tempDir := t.TempDir()
 	configFile := filepath.ToSlash(filepath.Join(tempDir, "aliae.yaml"))
@@ -261,8 +261,8 @@ func TestInitAllowsUnknownPropertiesAtRuntime(t *testing.T) {
 }
 
 func TestInitRejectsNonPositiveScriptWeight(t *testing.T) {
-	shell.DotFile.Reset()
-	t.Cleanup(shell.DotFile.Reset)
+	shell.ResetRenderOutput()
+	t.Cleanup(shell.ResetRenderOutput)
 
 	tempDir := t.TempDir()
 	configFile := filepath.ToSlash(filepath.Join(tempDir, "aliae.yaml"))
@@ -281,8 +281,8 @@ func TestInitRejectsNonPositiveScriptWeight(t *testing.T) {
 }
 
 func TestInitRejectsInvalidScriptStateRunEvery(t *testing.T) {
-	shell.DotFile.Reset()
-	t.Cleanup(shell.DotFile.Reset)
+	shell.ResetRenderOutput()
+	t.Cleanup(shell.ResetRenderOutput)
 
 	tempDir := t.TempDir()
 	configFile := filepath.ToSlash(filepath.Join(tempDir, "aliae.yaml"))
@@ -302,8 +302,8 @@ func TestInitRejectsInvalidScriptStateRunEvery(t *testing.T) {
 }
 
 func TestInitSupportsTopLevelVars(t *testing.T) {
-	shell.DotFile.Reset()
-	t.Cleanup(shell.DotFile.Reset)
+	shell.ResetRenderOutput()
+	t.Cleanup(shell.ResetRenderOutput)
 
 	tempDir := t.TempDir()
 	configFile := filepath.ToSlash(filepath.Join(tempDir, "aliae.yaml"))
@@ -333,8 +333,8 @@ alias:
 }
 
 func TestInitSupportsTopLevelVarBareExpression(t *testing.T) {
-	shell.DotFile.Reset()
-	t.Cleanup(shell.DotFile.Reset)
+	shell.ResetRenderOutput()
+	t.Cleanup(shell.ResetRenderOutput)
 
 	tempDir := t.TempDir()
 	configFile := filepath.ToSlash(filepath.Join(tempDir, "aliae.yaml"))
@@ -355,8 +355,8 @@ alias:
 }
 
 func TestInitTopLevelVarBooleanFalseIsFalseInIf(t *testing.T) {
-	shell.DotFile.Reset()
-	t.Cleanup(shell.DotFile.Reset)
+	shell.ResetRenderOutput()
+	t.Cleanup(shell.ResetRenderOutput)
 
 	tempDir := t.TempDir()
 	configFile := filepath.ToSlash(filepath.Join(tempDir, "aliae.yaml"))
@@ -377,8 +377,8 @@ alias:
 }
 
 func TestInitInternalProgressIncludesVarComputation(t *testing.T) {
-	shell.DotFile.Reset()
-	t.Cleanup(shell.DotFile.Reset)
+	shell.ResetRenderOutput()
+	t.Cleanup(shell.ResetRenderOutput)
 
 	tempDir := t.TempDir()
 	configFile := filepath.ToSlash(filepath.Join(tempDir, "aliae.yaml"))

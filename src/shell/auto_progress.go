@@ -107,21 +107,21 @@ func writeDotFileProgress(value any) {
 		return
 	}
 
-	if DotFile.Len() > 0 && !dotFileEndsWithNewline() {
-		DotFile.WriteString("\n")
+	if renderOutputLen() > 0 && !dotFileEndsWithNewline() {
+		writeRenderOutput("\n")
 	}
 
-	DotFile.WriteString(command)
-	DotFile.WriteString("\n")
+	writeRenderOutput(command)
+	writeRenderOutput("\n")
 }
 
 func dotFileEndsWithNewline() bool {
-	text := DotFile.String()
+	text := RenderOutputString()
 	return len(text) > 0 && text[len(text)-1] == '\n'
 }
 
 func dotFileHasRenderableContent() bool {
-	text := DotFile.String()
+	text := RenderOutputString()
 	if len(text) == 0 {
 		return false
 	}

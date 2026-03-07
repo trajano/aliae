@@ -93,13 +93,13 @@ func (p CDPaths) Render() {
 
 		if first && dotFileHasRenderableContent() {
 			if !dotFileEndsWithNewline() {
-				DotFile.WriteString("\n")
+				writeRenderOutput("\n")
 			}
-			DotFile.WriteString("\n")
+			writeRenderOutput("\n")
 		} else if !dotFileEndsWithNewline() {
-			DotFile.WriteString("\n")
+			writeRenderOutput("\n")
 		}
-		DotFile.WriteString(script)
+		writeRenderOutput(script)
 
 		first = false
 		rendered = true
@@ -110,9 +110,9 @@ func (p CDPaths) Render() {
 	// when CDPATH/cdpath is set and "." is missing.
 	if rendered && !context.Current.CDPath.Contains(".") {
 		if !dotFileEndsWithNewline() {
-			DotFile.WriteString("\n")
+			writeRenderOutput("\n")
 		}
-		DotFile.WriteString(cdpathCurrentDirScript())
+		writeRenderOutput(cdpathCurrentDirScript())
 		context.Current.CDPath.AppendCDPath(".")
 	}
 }

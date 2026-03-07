@@ -168,13 +168,13 @@ func (s Scripts) Render() {
 
 		if first && dotFileHasRenderableContent() {
 			if !dotFileEndsWithNewline() {
-				DotFile.WriteString("\n")
+				writeRenderOutput("\n")
 			}
-			DotFile.WriteString("\n")
+			writeRenderOutput("\n")
 		} else if !dotFileEndsWithNewline() {
-			DotFile.WriteString("\n")
+			writeRenderOutput("\n")
 		}
-		DotFile.WriteString(scriptBlock)
+		writeRenderOutput(scriptBlock)
 
 		if script.stateChecked {
 			_ = aliaeState.WriteLastRun(script.statePath, time.Now(), script.stateFormat)

@@ -1,14 +1,6 @@
 package shell
 
-import (
-	"strings"
-
-	"github.com/jandedobbeleer/aliae/src/context"
-)
-
-var (
-	DotFile strings.Builder
-)
+import "github.com/jandedobbeleer/aliae/src/context"
 
 type Aliae []*Alias
 
@@ -77,26 +69,26 @@ func (a Aliae) Render() {
 		}
 
 		if first && dotFileHasRenderableContent() {
-			DotFile.WriteString("\n\n")
+			writeRenderOutput("\n\n")
 		}
 
 		if first && context.Current.Shell == CMD {
-			DotFile.WriteString(cmdAliasPre())
+			writeRenderOutput(cmdAliasPre())
 		}
 
 		if !first {
 			if !dotFileEndsWithNewline() {
-				DotFile.WriteString("\n")
+				writeRenderOutput("\n")
 			}
 		}
 
-		DotFile.WriteString(script)
+		writeRenderOutput(script)
 
 		first = false
 		advanceAutoProgress(1)
 	}
 
 	if context.Current.Shell == CMD {
-		DotFile.WriteString(cmdAliasPost())
+		writeRenderOutput(cmdAliasPost())
 	}
 }

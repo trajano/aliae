@@ -263,13 +263,13 @@ $env:PATH = "/Users/jan/.tools/bin" + ':' + $env:PATH`,
 	}
 
 	for _, tc := range cases {
-		DotFile.Reset()
+		ResetRenderOutput()
 		if tc.NonEmptyScript {
-			DotFile.WriteString("foo")
+			WriteRenderOutput("foo")
 		}
 		context.Current = &context.Runtime{Shell: tc.Shell, OS: tc.OS, Path: &context.Path{}}
 		tc.Paths.Render()
-		assert.Equal(t, tc.Expected, strings.TrimSpace(DotFile.String()), tc.Case)
+		assert.Equal(t, tc.Expected, strings.TrimSpace(RenderOutputString()), tc.Case)
 	}
 }
 

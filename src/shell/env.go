@@ -147,22 +147,22 @@ func (e Envs) Render() {
 	}
 
 	if dotFileHasRenderableContent() {
-		DotFile.WriteString("\n\n")
+		writeRenderOutput("\n\n")
 	}
 
 	if context.Current.Shell == NU {
-		DotFile.WriteString(NuEnvBlockStart)
+		writeRenderOutput(NuEnvBlockStart)
 	}
 
 	first := true
 	for _, variable := range e {
 		if !first {
 			if !dotFileEndsWithNewline() {
-				DotFile.WriteString("\n")
+				writeRenderOutput("\n")
 			}
 		}
 
-		DotFile.WriteString(variable.string())
+		writeRenderOutput(variable.string())
 		advanceAutoProgress(1)
 
 		os.Setenv(variable.Name, toString(variable.Value))
@@ -171,7 +171,7 @@ func (e Envs) Render() {
 	}
 
 	if context.Current.Shell == NU {
-		DotFile.WriteString(NuEnvBlockEnd)
+		writeRenderOutput(NuEnvBlockEnd)
 	}
 }
 

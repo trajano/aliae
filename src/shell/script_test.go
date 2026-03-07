@@ -96,13 +96,13 @@ func TestScriptRender(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		DotFile.Reset()
+		ResetRenderOutput()
 		if tc.NonEmptyScript {
-			DotFile.WriteString("foo")
+			WriteRenderOutput("foo")
 		}
 		context.Current = &context.Runtime{Shell: PWSH}
 		tc.Scripts.Render()
-		assert.Equal(t, tc.Expected, strings.TrimSpace(DotFile.String()), tc.Case)
+		assert.Equal(t, tc.Expected, strings.TrimSpace(RenderOutputString()), tc.Case)
 	}
 }
 
@@ -149,13 +149,13 @@ func TestScriptStateRunOnce(t *testing.T) {
 		},
 	}
 
-	DotFile.Reset()
+	ResetRenderOutput()
 	scripts.Render()
-	assert.Equal(t, "echo hello", strings.TrimSpace(DotFile.String()))
+	assert.Equal(t, "echo hello", strings.TrimSpace(RenderOutputString()))
 
-	DotFile.Reset()
+	ResetRenderOutput()
 	scripts.Render()
-	assert.Equal(t, "", strings.TrimSpace(DotFile.String()))
+	assert.Equal(t, "", strings.TrimSpace(RenderOutputString()))
 }
 
 func TestScriptStateRunEvery(t *testing.T) {
@@ -176,9 +176,9 @@ func TestScriptStateRunEvery(t *testing.T) {
 		},
 	}
 
-	DotFile.Reset()
+	ResetRenderOutput()
 	scripts.Render()
-	assert.Equal(t, "echo hello", strings.TrimSpace(DotFile.String()))
+	assert.Equal(t, "echo hello", strings.TrimSpace(RenderOutputString()))
 
 	updatedLastRun, err := aliaeState.ReadLastRun(statePath)
 	require.NoError(t, err)
@@ -204,7 +204,7 @@ func TestScriptStateRunEveryNotDue(t *testing.T) {
 		},
 	}
 
-	DotFile.Reset()
+	ResetRenderOutput()
 	scripts.Render()
-	assert.Equal(t, "", strings.TrimSpace(DotFile.String()))
+	assert.Equal(t, "", strings.TrimSpace(RenderOutputString()))
 }

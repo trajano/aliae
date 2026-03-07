@@ -208,10 +208,10 @@ alias BAR="foo"`,
 	}
 
 	for _, tc := range cases {
-		DotFile.Reset()
+		ResetRenderOutput()
 		context.Current = &context.Runtime{Shell: BASH}
 		tc.Aliae.Render()
-		assert.Equal(t, tc.Expected, DotFile.String(), tc.Case)
+		assert.Equal(t, tc.Expected, RenderOutputString(), tc.Case)
 	}
 }
 

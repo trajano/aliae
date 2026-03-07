@@ -213,13 +213,13 @@ $env:FOO = "bar"`,
 	}
 
 	for _, tc := range cases {
-		DotFile.Reset()
+		ResetRenderOutput()
 		if tc.NonEmptyScript {
-			DotFile.WriteString("foo")
+			WriteRenderOutput("foo")
 		}
 		context.Current = &context.Runtime{Shell: tc.Shell}
 		tc.Env.Render()
-		assert.Equal(t, tc.Expected, DotFile.String(), tc.Case)
+		assert.Equal(t, tc.Expected, RenderOutputString(), tc.Case)
 	}
 }
 
@@ -320,7 +320,7 @@ func TestEnvironmentVariableIfExists(t *testing.T) {
 	_ = os.Unsetenv("ALIAE_EXISTING")
 	_ = os.Unsetenv("ALIAE_MISSING")
 
-	DotFile.Reset()
+	ResetRenderOutput()
 	context.Current = &context.Runtime{Shell: PWSH, OS: context.LINUX, Home: "/home/trajano"}
 	envs := Envs{
 		&Env{Name: "ALIAE_EXISTING", Value: existing, IsPath: true, IfExists: true},
@@ -328,8 +328,8 @@ func TestEnvironmentVariableIfExists(t *testing.T) {
 	}
 	envs.Render()
 
-	assert.Contains(t, DotFile.String(), `$env:ALIAE_EXISTING = "`)
-	assert.NotContains(t, DotFile.String(), "ALIAE_MISSING")
+	assert.Contains(t, RenderOutputString(), `$env:ALIAE_EXISTING = "`)
+	assert.NotContains(t, RenderOutputString(), "ALIAE_MISSING")
 	assert.Equal(t, existing, os.Getenv("ALIAE_EXISTING"))
 	assert.Equal(t, "", os.Getenv("ALIAE_MISSING"))
 }
@@ -340,14 +340,14 @@ func TestEnvironmentVariableIfExistsOnWindowsGitBashUsesOriginalPathForExistence
 	existing := t.TempDir()
 	_ = os.Unsetenv("ALIAE_EXISTING")
 
-	DotFile.Reset()
+	ResetRenderOutput()
 	context.Current = &context.Runtime{Shell: BASH, OS: context.WINDOWS, Home: `C:\Users\trajano`}
 	envs := Envs{
 		&Env{Name: "ALIAE_EXISTING", Value: existing, IsPath: true, IfExists: true},
 	}
 	envs.Render()
 
-	assert.Contains(t, DotFile.String(), `export ALIAE_EXISTING="`)
+	assert.Contains(t, RenderOutputString(), `export ALIAE_EXISTING="`)
 	assert.Equal(t, windowsToMSYSPathOrOriginal(existing), os.Getenv("ALIAE_EXISTING"))
 }
 
@@ -365,7 +365,7 @@ func TestEnvironmentVariableIsPathMultilineUsesFirstExisting(t *testing.T) {
 	thirdExisting := t.TempDir()
 	_ = os.Unsetenv("ANDROID_HOME")
 
-	DotFile.Reset()
+	ResetRenderOutput()
 	context.Current = &context.Runtime{Shell: PWSH, OS: context.LINUX, Home: "/home/trajano"}
 	envs := Envs{
 		&Env{
@@ -378,10 +378,10 @@ func TestEnvironmentVariableIsPathMultilineUsesFirstExisting(t *testing.T) {
 	}
 	envs.Render()
 
-	assert.Contains(t, DotFile.String(), `$env:ANDROID_HOME = "`)
-	assert.Contains(t, DotFile.String(), secondExisting)
-	assert.NotContains(t, DotFile.String(), firstMissing)
-	assert.NotContains(t, DotFile.String(), thirdExisting)
+	assert.Contains(t, RenderOutputString(), `$env:ANDROID_HOME = "`)
+	assert.Contains(t, RenderOutputString(), secondExisting)
+	assert.NotContains(t, RenderOutputString(), firstMissing)
+	assert.NotContains(t, RenderOutputString(), thirdExisting)
 	assert.Equal(t, secondExisting, os.Getenv("ANDROID_HOME"))
 }
 
@@ -391,7 +391,7 @@ func TestEnvironmentVariableIsPathMultilineSkipsWhenNoneExists(t *testing.T) {
 
 	_ = os.Unsetenv("ANDROID_HOME")
 
-	DotFile.Reset()
+	ResetRenderOutput()
 	context.Current = &context.Runtime{Shell: PWSH, OS: context.LINUX, Home: "/home/trajano"}
 	envs := Envs{
 		&Env{
@@ -402,7 +402,7 @@ func TestEnvironmentVariableIsPathMultilineSkipsWhenNoneExists(t *testing.T) {
 	}
 	envs.Render()
 
-	assert.NotContains(t, DotFile.String(), "ANDROID_HOME")
+	assert.NotContains(t, RenderOutputString(), "ANDROID_HOME")
 	assert.Equal(t, "", os.Getenv("ANDROID_HOME"))
 }
 
@@ -410,7 +410,7 @@ func TestEnvironmentVariableIsPathSingleLineStillExportsByDefault(t *testing.T) 
 	missing := filepath.Join(t.TempDir(), "missing")
 	_ = os.Unsetenv("ANDROID_HOME")
 
-	DotFile.Reset()
+	ResetRenderOutput()
 	context.Current = &context.Runtime{Shell: PWSH, OS: context.LINUX, Home: "/home/trajano"}
 	envs := Envs{
 		&Env{
@@ -421,7 +421,7 @@ func TestEnvironmentVariableIsPathSingleLineStillExportsByDefault(t *testing.T) 
 	}
 	envs.Render()
 
-	assert.Contains(t, DotFile.String(), `$env:ANDROID_HOME = "`)
-	assert.Contains(t, DotFile.String(), missing)
+	assert.Contains(t, RenderOutputString(), `$env:ANDROID_HOME = "`)
+	assert.Contains(t, RenderOutputString(), missing)
 	assert.Equal(t, missing, os.Getenv("ANDROID_HOME"))
 }
