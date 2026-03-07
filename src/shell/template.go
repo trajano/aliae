@@ -65,6 +65,8 @@ func parse(text string, ctx any) (string, error) {
 		return text, nil
 	}
 
+	ctx = templateContext(ctx)
+
 	parsedTemplate, err := template.New("alias").Option("missingkey=zero").Funcs(funcMap()).Parse(text)
 	if err != nil {
 		return "", err
