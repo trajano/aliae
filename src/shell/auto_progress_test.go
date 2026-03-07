@@ -9,8 +9,8 @@ import (
 )
 
 func TestAutoProgressRendersAndResets(t *testing.T) {
-	DotFile.Reset()
-	context.Current = &context.Runtime{Shell: BASH}
+	ResetRenderOutput()
+	useRuntime(t, &context.Runtime{Shell: BASH})
 
 	StartAutoProgress(AutoProgressConfig{
 		Enabled:         true,
@@ -26,7 +26,7 @@ func TestAutoProgressRendersAndResets(t *testing.T) {
 	advanceAutoProgress(1)
 	EndAutoProgress()
 
-	got := strings.Split(strings.TrimSpace(DotFile.String()), "\n")
+	got := strings.Split(strings.TrimSpace(RenderOutputString()), "\n")
 	assert.Equal(
 		t,
 		[]string{
@@ -42,8 +42,8 @@ func TestAutoProgressRendersAndResets(t *testing.T) {
 }
 
 func TestAutoProgressDisabled(t *testing.T) {
-	DotFile.Reset()
-	context.Current = &context.Runtime{Shell: BASH}
+	ResetRenderOutput()
+	useRuntime(t, &context.Runtime{Shell: BASH})
 
 	StartAutoProgress(AutoProgressConfig{
 		Enabled:     false,
@@ -52,5 +52,5 @@ func TestAutoProgressDisabled(t *testing.T) {
 	advanceAutoProgress(1)
 	EndAutoProgress()
 
-	assert.Equal(t, "", DotFile.String())
+	assert.Equal(t, "", RenderOutputString())
 }

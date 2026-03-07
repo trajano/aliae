@@ -1,7 +1,5 @@
 package shell
 
-import "github.com/jandedobbeleer/aliae/src/context"
-
 // ShellFormatStrategy defines shell-specific rendering behavior for all supported section types.
 //
 // This interface is intentionally public so callers can depend on rendering capabilities
@@ -14,16 +12,26 @@ type ShellFormatStrategy interface {
 	FormatLink(*Link) string
 	FormatEcho(*Echo) string
 	FormatCDPathCurrentDirScript() string
+	FormatSetArg(name string, oneBasedIndex int) string
+	FormatProgress(state, percentage int) string
+	EscapeString(value string) string
+	FormatAliasScriptPrelude() string
+	FormatAliasScriptPostlude() string
 }
 
 // formatStrategy applies a Factory Method-style selection to return
 // the concrete ShellFormatStrategy for the active shell runtime.
 func formatStrategy() ShellFormatStrategy {
-	if context.Current == nil {
+	runtime := currentRuntime()
+	if runtime == nil {
 		return noopFormatStrategy{}
 	}
 
-	switch context.Current.Shell {
+	return formatStrategyForShell(runtime.Shell)
+}
+
+func formatStrategyForShell(shellName string) ShellFormatStrategy {
+	switch shellName {
 	case ZSH:
 		return zshFormatStrategy{}
 	case BASH:
@@ -54,3 +62,8 @@ func (noopFormatStrategy) FormatCDPath(*CDPath) string          { return "" }
 func (noopFormatStrategy) FormatLink(*Link) string              { return "" }
 func (noopFormatStrategy) FormatEcho(*Echo) string              { return "" }
 func (noopFormatStrategy) FormatCDPathCurrentDirScript() string { return "" }
+func (noopFormatStrategy) FormatSetArg(string, int) string      { return "" }
+func (noopFormatStrategy) FormatProgress(int, int) string       { return "" }
+func (noopFormatStrategy) EscapeString(value string) string     { return defaultEscapedString(value) }
+func (noopFormatStrategy) FormatAliasScriptPrelude() string     { return "" }
+func (noopFormatStrategy) FormatAliasScriptPostlude() string    { return "" }

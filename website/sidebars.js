@@ -1,6 +1,14 @@
 module.exports = {
   docs: [
-    "introduction",
+    {
+      type: "category",
+      label: "👋 Introduction",
+      collapsed: false,
+      items: [
+        "introduction",
+        "introduction/architecture",
+      ],
+    },
     {
       type: "category",
       label: "📦 Installation",

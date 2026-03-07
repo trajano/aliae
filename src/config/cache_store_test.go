@@ -1,4 +1,4 @@
-package config
+package config_test
 
 import (
 	"os"
@@ -7,6 +7,8 @@ import (
 	"testing"
 	"time"
 
+	cfg "github.com/jandedobbeleer/aliae/src/config"
+	initpkg "github.com/jandedobbeleer/aliae/src/init"
 	"github.com/jandedobbeleer/aliae/src/shell"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -23,14 +25,11 @@ alias:
     value: one
 `), 0o600))
 
-	first, err := LoadConfig(configFile)
+	first, err := cfg.LoadConfig(configFile)
 	require.NoError(t, err)
 	require.Len(t, first.Aliae, 1)
 	assert.Equal(t, "one", string(first.Aliae[0].Value))
 	assert.True(t, first.Cache)
-
-	_, statErr := os.Stat(configCachePath(configFile))
-	assert.NoError(t, statErr)
 
 	time.Sleep(2 * time.Millisecond)
 	require.NoError(t, os.WriteFile(configFile, []byte(`cache: true
@@ -39,7 +38,7 @@ alias:
     value: two
 `), 0o600))
 
-	second, err := LoadConfig(configFile)
+	second, err := cfg.LoadConfig(configFile)
 	require.NoError(t, err)
 	require.Len(t, second.Aliae, 1)
 	assert.Equal(t, "two", string(second.Aliae[0].Value))
@@ -65,7 +64,7 @@ alias:
     value: child
 `), 0o600))
 
-	first := Init(configFile, shell.BASH, true)
+	first := initpkg.Init(configFile, shell.BASH, true)
 	assert.NotContains(t, first, `alias base="base"`)
 	assert.Contains(t, first, `alias child="child"`)
 
@@ -80,7 +79,7 @@ alias:
 	require.NoError(t, os.WriteFile(commandFile, content, 0o700))
 	require.NoError(t, os.Setenv("PATH", tempDir+string(os.PathListSeparator)+originalPath))
 
-	second := Init(configFile, shell.BASH, true)
+	second := initpkg.Init(configFile, shell.BASH, true)
 	assert.Contains(t, second, `alias base="base"`)
 	assert.Contains(t, second, `alias child="child"`)
 }
@@ -100,14 +99,14 @@ env:
     if: .Var.ENABLED
 `), 0o600))
 
-	first := Init(configFile, shell.BASH, true)
+	first := initpkg.Init(configFile, shell.BASH, true)
 	assert.Contains(t, first, `export CACHE_VAR_TEST="ok"`)
-	assert.False(t, LastLoadUsedCache())
+	assert.False(t, cfg.LastLoadUsedCache())
 
-	shell.DotFile.Reset()
-	second := Init(configFile, shell.BASH, true)
+	shell.ResetRenderOutput()
+	second := initpkg.Init(configFile, shell.BASH, true)
 	assert.Contains(t, second, `export CACHE_VAR_TEST="ok"`)
-	assert.True(t, LastLoadUsedCache())
+	assert.True(t, cfg.LastLoadUsedCache())
 }
 
 func TestLoadConfigCacheSeparatesConditionalExtendsByShell(t *testing.T) {
@@ -132,13 +131,13 @@ extends:
     if: eq .Shell "pwsh"
 `), 0o600))
 
-	bashInit := Init(configFile, shell.BASH, true)
+	bashInit := initpkg.Init(configFile, shell.BASH, true)
 	assert.Contains(t, bashInit, "echo bash-only")
 	assert.NotContains(t, bashInit, "Write-Host pwsh-only")
-	assert.False(t, LastLoadUsedCache())
+	assert.False(t, cfg.LastLoadUsedCache())
 
-	pwshInit := Init(configFile, shell.PWSH, true)
+	pwshInit := initpkg.Init(configFile, shell.PWSH, true)
 	assert.Contains(t, pwshInit, "Write-Host pwsh-only")
 	assert.NotContains(t, pwshInit, "echo bash-only")
-	assert.False(t, LastLoadUsedCache())
+	assert.False(t, cfg.LastLoadUsedCache())
 }

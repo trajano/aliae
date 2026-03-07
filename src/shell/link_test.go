@@ -66,7 +66,7 @@ func TestLinkCommand(t *testing.T) {
 
 	for _, tc := range cases {
 		link.template = ""
-		context.Current = &context.Runtime{Shell: tc.Shell, OS: tc.OS}
+		useRuntime(t, &context.Runtime{Shell: tc.Shell, OS: tc.OS})
 		assert.Equal(t, tc.Expected, link.string(), tc.Case)
 	}
 }
@@ -102,10 +102,10 @@ ln -sf foo BAR`,
 	}
 
 	for _, tc := range cases {
-		DotFile.Reset()
-		context.Current = &context.Runtime{Shell: BASH}
+		ResetRenderOutput()
+		useRuntime(t, &context.Runtime{Shell: BASH})
 		tc.Links.Render()
-		assert.Equal(t, tc.Expected, strings.TrimSpace(DotFile.String()), tc.Case)
+		assert.Equal(t, tc.Expected, strings.TrimSpace(RenderOutputString()), tc.Case)
 	}
 }
 
@@ -134,7 +134,7 @@ func TestLinkWithTemplate(t *testing.T) {
 
 	for _, tc := range cases {
 		link := &Link{Name: "/tmp/l", Target: tc.Target, force: true}
-		context.Current = &context.Runtime{Shell: BASH, Home: "/Users/jan", OS: context.WINDOWS}
+		useRuntime(t, &context.Runtime{Shell: BASH, Home: "/Users/jan", OS: context.WINDOWS})
 		assert.Equal(t, tc.Expected, link.string(), tc.Case)
 	}
 }

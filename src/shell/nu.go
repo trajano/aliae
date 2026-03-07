@@ -56,8 +56,9 @@ func (nuFormatStrategy) FormatEnv(e *Env) string {
 func (nuFormatStrategy) FormatPath(p *Path) string {
 	template := `$env.%s = ($env.%s | prepend {{ formatString .Value }})`
 	pathName := "PATH"
+	runtime := currentRuntime()
 
-	if context.Current.OS == context.WINDOWS {
+	if runtime != nil && runtime.OS == context.WINDOWS {
 		pathName = "Path"
 	}
 
@@ -69,7 +70,8 @@ func (nuFormatStrategy) FormatCDPath(*CDPath) string { return "" }
 
 func (nuFormatStrategy) FormatLink(l *Link) string {
 	l.template = `ln -sf {{ .Target }} {{ .Name }} out+err>| ignore`
-	if context.Current.OS == context.WINDOWS {
+	runtime := currentRuntime()
+	if runtime != nil && runtime.OS == context.WINDOWS {
 		l.template = `{{ $source := (escapeString .Name) }}mklink {{ if isDir $source }}/d{{ else }}/h{{ end }} {{ $source }} {{ escapeString .Target }} out+err>| ignore`
 	}
 

@@ -10,12 +10,14 @@ const defaultLinkTemplate = `ln -sf {{ .Target }} {{ .Name }}`
 type Links []*Link
 
 type Link struct {
-	Name     Template `yaml:"name"`
-	Target   Template `yaml:"target"`
-	If       If       `yaml:"if"`
-	template string
-	MkDir    bool `yaml:"mkdir"`
-	force    bool
+	Name        Template `yaml:"name"`
+	Target      Template `yaml:"target"`
+	If          If       `yaml:"if"`
+	template    string
+	MkDir       bool `yaml:"mkdir"`
+	force       bool
+	ifEvaluated bool `yaml:"-"`
+	ifIgnored   bool `yaml:"-"`
 }
 
 func (l *Link) string() string {
@@ -62,6 +64,16 @@ func (l *Link) render() string {
 	return script
 }
 
+func (l *Link) Ignore() bool {
+	if l.ifEvaluated {
+		return l.ifIgnored
+	}
+
+	l.ifIgnored = l.If.Ignore()
+	l.ifEvaluated = true
+	return l.ifIgnored
+}
+
 func (l Links) Render() {
 	if len(l) == 0 {
 		return
@@ -69,7 +81,7 @@ func (l Links) Render() {
 
 	first := true
 	for _, link := range l {
-		if link.If.Ignore() {
+		if link.Ignore() {
 			continue
 		}
 		script := link.string()
@@ -80,13 +92,13 @@ func (l Links) Render() {
 
 		if first && dotFileHasRenderableContent() {
 			if !dotFileEndsWithNewline() {
-				DotFile.WriteString("\n")
+				writeRenderOutput("\n")
 			}
-			DotFile.WriteString("\n")
+			writeRenderOutput("\n")
 		} else if !dotFileEndsWithNewline() {
-			DotFile.WriteString("\n")
+			writeRenderOutput("\n")
 		}
-		DotFile.WriteString(script)
+		writeRenderOutput(script)
 
 		first = false
 		advanceAutoProgress(1)

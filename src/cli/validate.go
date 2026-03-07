@@ -3,7 +3,7 @@ package cli
 import (
 	"fmt"
 
-	cfg "github.com/jandedobbeleer/aliae/src/config"
+	"github.com/jandedobbeleer/aliae/src/appcmd"
 	"github.com/spf13/cobra"
 )
 
@@ -16,7 +16,7 @@ var validateCmd = &cobra.Command{
 This command validates the resolved configuration after extends and include directives are applied.`,
 	Args: cobra.NoArgs,
 	RunE: func(_ *cobra.Command, _ []string) error {
-		if err := cfg.ValidateConfig(config); err != nil {
+		if err := (appcmd.ValidateCommand{ConfigPath: config}).Execute(); err != nil {
 			return err
 		}
 

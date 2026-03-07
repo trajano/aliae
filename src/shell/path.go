@@ -13,12 +13,14 @@ import (
 type Paths []*Path
 
 type Path struct {
-	Value    Template `yaml:"value"`
-	If       If       `yaml:"if"`
-	template string
-	Persist  bool `yaml:"persist"`
-	Force    bool `yaml:"force"`
-	IfExists bool `yaml:"ifExists"`
+	Value       Template `yaml:"value"`
+	If          If       `yaml:"if"`
+	template    string
+	Persist     bool `yaml:"persist"`
+	Force       bool `yaml:"force"`
+	IfExists    bool `yaml:"ifExists"`
+	ifEvaluated bool `yaml:"-"`
+	ifIgnored   bool `yaml:"-"`
 }
 
 func (p *Path) string() string {
@@ -27,6 +29,13 @@ func (p *Path) string() string {
 
 func (p *Path) render() string {
 	p.Value = p.Value.Parse()
+	runtime := currentRuntime()
+	if runtime == nil {
+		return ""
+	}
+	if runtime.Path == nil {
+		runtime.Path = &context.Path{}
+	}
 
 	var builder strings.Builder
 	ctx := struct {
@@ -48,11 +57,11 @@ func (p *Path) render() string {
 
 		line = normalizePathEntry(rawLine)
 
-		if context.Current.Path.Contains(line) && !p.Force {
+		if runtime.Path.Contains(line) && !p.Force {
 			continue
 		}
 
-		context.Current.Path.Append(line)
+		runtime.Path.Append(line)
 
 		if !first {
 			builder.WriteString("\n")
@@ -76,20 +85,40 @@ func (p *Path) render() string {
 	return builder.String()
 }
 
+func (p *Path) Ignore() bool {
+	if p.ifEvaluated {
+		return p.ifIgnored
+	}
+
+	p.ifIgnored = p.If.Ignore()
+	p.ifEvaluated = true
+	return p.ifIgnored
+}
+
 func pathEntryExists(entry string) bool {
+	runtime := currentRuntime()
+
 	resolved := entry
 	if strings.HasPrefix(resolved, "~") {
 		rem := resolved[1:]
 		if len(rem) == 0 || rem[0] == '/' || rem[0] == '\\' {
-			resolved = context.Home() + rem
+			if runtime != nil && runtime.Home != "" {
+				resolved = runtime.Home + rem
+			} else {
+				resolved = context.Home() + rem
+			}
 		}
 	}
 
 	if !filepath.IsAbs(resolved) && !strings.HasPrefix(resolved, "/") {
-		resolved = filepath.Join(context.Home(), resolved)
+		if runtime != nil && runtime.Home != "" {
+			resolved = filepath.Join(runtime.Home, resolved)
+		} else {
+			resolved = filepath.Join(context.Home(), resolved)
+		}
 	}
 
-	if context.Current != nil && context.Current.OS == context.WINDOWS && isMSYS2Environment() {
+	if runtime != nil && runtime.OS == context.WINDOWS && isMSYS2Environment() {
 		if windowsPath, ok := msysToWindowsPath(resolved); ok {
 			resolved = windowsPath
 		}
@@ -99,11 +128,12 @@ func pathEntryExists(entry string) bool {
 }
 
 func normalizePathEntry(entry string) string {
-	if context.Current == nil || context.Current.OS != context.WINDOWS {
+	runtime := currentRuntime()
+	if runtime == nil || runtime.OS != context.WINDOWS {
 		return entry
 	}
 
-	if context.Current.Shell == BASH && isMSYS2Environment() {
+	if runtime.Shell == BASH && isMSYS2Environment() {
 		normalized, ok := windowsToMSYSPath(entry)
 		if !ok {
 			return entry
@@ -112,7 +142,7 @@ func normalizePathEntry(entry string) string {
 		return normalized
 	}
 
-	switch context.Current.Shell {
+	switch runtime.Shell {
 	case PWSH, POWERSHELL, CMD, NU:
 		if windowsPath, ok := msysToWindowsPath(entry); ok {
 			return windowsPath
@@ -171,7 +201,7 @@ func (p Paths) Render() {
 
 	first := true
 	for _, entry := range p {
-		if entry.If.Ignore() {
+		if entry.Ignore() {
 			continue
 		}
 
@@ -183,13 +213,13 @@ func (p Paths) Render() {
 
 		if first && dotFileHasRenderableContent() {
 			if !dotFileEndsWithNewline() {
-				DotFile.WriteString("\n")
+				writeRenderOutput("\n")
 			}
-			DotFile.WriteString("\n")
+			writeRenderOutput("\n")
 		} else if !dotFileEndsWithNewline() {
-			DotFile.WriteString("\n")
+			writeRenderOutput("\n")
 		}
-		DotFile.WriteString(script)
+		writeRenderOutput(script)
 
 		first = false
 		advanceAutoProgress(1)

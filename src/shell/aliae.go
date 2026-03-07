@@ -1,15 +1,5 @@
 package shell
 
-import (
-	"strings"
-
-	"github.com/jandedobbeleer/aliae/src/context"
-)
-
-var (
-	DotFile strings.Builder
-)
-
 type Aliae []*Alias
 
 type Alias struct {
@@ -22,6 +12,8 @@ type Alias struct {
 	Scope       Option   `yaml:"scope"`
 	template    string
 	Force       bool `yaml:"force"`
+	ifEvaluated bool `yaml:"-"`
+	ifIgnored   bool `yaml:"-"`
 }
 
 type Option string
@@ -59,14 +51,26 @@ func (a *Alias) render() string {
 	return script
 }
 
+func (a *Alias) Ignore() bool {
+	if a.ifEvaluated {
+		return a.ifIgnored
+	}
+
+	a.ifIgnored = a.If.Ignore()
+	a.ifEvaluated = true
+	return a.ifIgnored
+}
+
 func (a Aliae) Render() {
 	if len(a) == 0 {
 		return
 	}
 
 	first := true
+	strategy := formatStrategy()
+	wrotePrelude := false
 	for _, alias := range a {
-		if alias.If.Ignore() {
+		if alias.Ignore() {
 			continue
 		}
 
@@ -77,26 +81,30 @@ func (a Aliae) Render() {
 		}
 
 		if first && dotFileHasRenderableContent() {
-			DotFile.WriteString("\n\n")
+			writeRenderOutput("\n\n")
 		}
 
-		if first && context.Current.Shell == CMD {
-			DotFile.WriteString(cmdAliasPre())
+		if first {
+			prelude := strategy.FormatAliasScriptPrelude()
+			if prelude != "" {
+				writeRenderOutput(prelude)
+				wrotePrelude = true
+			}
 		}
 
 		if !first {
 			if !dotFileEndsWithNewline() {
-				DotFile.WriteString("\n")
+				writeRenderOutput("\n")
 			}
 		}
 
-		DotFile.WriteString(script)
+		writeRenderOutput(script)
 
 		first = false
 		advanceAutoProgress(1)
 	}
 
-	if context.Current.Shell == CMD {
-		DotFile.WriteString(cmdAliasPost())
+	if wrotePrelude {
+		writeRenderOutput(strategy.FormatAliasScriptPostlude())
 	}
 }

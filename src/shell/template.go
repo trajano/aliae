@@ -11,6 +11,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"text/template"
 
 	"github.com/jandedobbeleer/aliae/src/context"
@@ -20,11 +21,14 @@ import (
 type Template string
 
 var (
-	hasCommandCache   = map[string]bool{}
-	hasCommandCacheMu sync.RWMutex
+	// Template helper caches are process-global and intentionally ephemeral.
+	// The CLI is expected to finish quickly (sub-second target), so cache
+	// lifetime is bounded to the process and tuned for startup throughput.
+	hasCommandCache sync.Map
 
-	pathExistsCache   = map[string]pathInfo{}
-	pathExistsCacheMu sync.RWMutex
+	pathExistsCache sync.Map
+
+	templateRuntime atomic.Pointer[context.Runtime]
 )
 
 type pathInfo struct {
@@ -33,7 +37,19 @@ type pathInfo struct {
 }
 
 func (t Template) Parse() Template {
-	value, err := parse(string(t), context.Current)
+	value, err := parse(string(t), currentRuntime())
+	if err != nil {
+		return t
+	}
+
+	return Template(value)
+}
+
+func (t Template) ParseWithRuntime(current *context.Runtime) Template {
+	restore := SetTemplateRuntime(current)
+	defer restore()
+
+	value, err := parse(string(t), current)
 	if err != nil {
 		return t
 	}
@@ -84,6 +100,23 @@ func funcMap() template.FuncMap {
 		"progress":          progress,
 	}
 	return funcMap
+}
+
+func SetTemplateRuntime(current *context.Runtime) func() {
+	previous := templateRuntime.Swap(current)
+
+	return func() {
+		templateRuntime.Store(previous)
+	}
+}
+
+func currentTemplateRuntime() *context.Runtime {
+	current := templateRuntime.Load()
+	if current != nil {
+		return current
+	}
+
+	return currentRuntime()
 }
 
 func formatString(variable any) any {
@@ -139,27 +172,12 @@ func formatArray(variable any, delim ...string) any {
 }
 
 func escapeString(variable any) any {
-	clean := func(v string) string {
-		switch context.Current.Shell {
-		case PWSH, POWERSHELL:
-			return strings.NewReplacer(
-				"`", "``",
-				`"`, "`\"",
-			).Replace(v)
-		default:
-			return strings.NewReplacer(
-				`\`, `\\`,
-				`"`, `\"`,
-			).Replace(v)
-		}
-	}
-
 	switch v := variable.(type) {
 	case Template:
 		value := v.String()
-		return clean(value)
+		return formatStrategyForShell(currentShellName()).EscapeString(value)
 	case string:
-		return clean(v)
+		return formatStrategyForShell(currentShellName()).EscapeString(v)
 	default:
 		return variable
 	}
@@ -170,18 +188,14 @@ func match(variable string, values ...string) bool {
 }
 
 func hasCommand(command string) bool {
-	hasCommandCacheMu.RLock()
-	cached, ok := hasCommandCache[command]
-	hasCommandCacheMu.RUnlock()
+	cached, ok := hasCommandCache.Load(command)
 	if ok {
-		return cached
+		return cached.(bool)
 	}
 
 	result := hasCommandNoCache(command)
 
-	hasCommandCacheMu.Lock()
-	hasCommandCache[command] = result
-	hasCommandCacheMu.Unlock()
+	hasCommandCache.Store(command, result)
 
 	return result
 }
@@ -202,11 +216,8 @@ func dirExists(path string) bool {
 }
 
 func pathExists(path string) pathInfo {
-	pathExistsCacheMu.RLock()
-	cached, OK := pathExistsCache[path]
-	pathExistsCacheMu.RUnlock()
-	if OK {
-		return cached
+	if cached, ok := pathExistsCache.Load(path); ok {
+		return cached.(pathInfo)
 	}
 
 	info, err := filesystem.StatWithTimeout(path, filesystem.StatTimeout())
@@ -215,9 +226,7 @@ func pathExists(path string) pathInfo {
 		isDir:  err == nil && info.IsDir(),
 	}
 
-	pathExistsCacheMu.Lock()
-	pathExistsCache[path] = result
-	pathExistsCacheMu.Unlock()
+	pathExistsCache.Store(path, result)
 
 	return result
 }
@@ -227,19 +236,26 @@ func resolveFromHome(path string) string {
 		return path
 	}
 
+	current := currentTemplateRuntime()
+	if current != nil && strings.TrimSpace(current.Home) != "" {
+		return filepath.Join(current.Home, path)
+	}
+
 	return filepath.Join(context.Home(), path)
 }
 
 func clearPathExistsCache() {
-	pathExistsCacheMu.Lock()
-	defer pathExistsCacheMu.Unlock()
-	pathExistsCache = map[string]pathInfo{}
+	pathExistsCache.Range(func(key, _ any) bool {
+		pathExistsCache.Delete(key)
+		return true
+	})
 }
 
 func clearHasCommandCache() {
-	hasCommandCacheMu.Lock()
-	defer hasCommandCacheMu.Unlock()
-	hasCommandCache = map[string]bool{}
+	hasCommandCache.Range(func(key, _ any) bool {
+		hasCommandCache.Delete(key)
+		return true
+	})
 }
 
 // ResetTemplateCaches clears in-memory caches used by template helper functions.
@@ -267,24 +283,7 @@ func setArg(name string, index any) string {
 		return ""
 	}
 
-	switch context.Current.Shell {
-	case BASH, ZSH:
-		return fmt.Sprintf("%s=$%d", name, oneBasedIndex)
-	case FISH:
-		return fmt.Sprintf("set %s $argv[%d]", name, oneBasedIndex)
-	case PWSH, POWERSHELL:
-		return fmt.Sprintf("$%s = $args[%d]", name, oneBasedIndex-1)
-	case NU:
-		return fmt.Sprintf("$%s = $args.%d", name, oneBasedIndex-1)
-	case XONSH:
-		return fmt.Sprintf("%s=$argv[%d]", name, oneBasedIndex)
-	case TCSH:
-		return fmt.Sprintf("set %s=$%d", name, oneBasedIndex)
-	case CMD:
-		return fmt.Sprintf("set %s=%%%d", name, oneBasedIndex)
-	default:
-		return ""
-	}
+	return formatStrategyForShell(currentShellName()).FormatSetArg(name, oneBasedIndex)
 }
 
 func toPositiveInt(value any) (int, bool) {
@@ -383,10 +382,14 @@ func progress(value any) string {
 		return ""
 	}
 
-	switch context.Current.Shell {
-	case PWSH, POWERSHELL:
-		return fmt.Sprintf(`[Console]::Out.Write("$([char]27)]9;4;%d;%d$([char]7)")`, state, percentage)
-	default:
-		return fmt.Sprintf("printf '\\033]9;4;%d;%d\\007'", state, percentage)
+	return formatStrategyForShell(currentShellName()).FormatProgress(state, percentage)
+}
+
+func currentShellName() string {
+	current := currentTemplateRuntime()
+	if current == nil {
+		return ""
 	}
+
+	return current.Shell
 }

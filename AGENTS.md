@@ -36,7 +36,7 @@ Use grouped validation by changed scope:
   - `cd src && go fmt ./...`
   - `cd src && go mod tidy`
   - `cd src && go test ./...`
-  - `cd src && go run github.com/golangci/golangci-lint/cmd/golangci-lint@latest run`
+  - `cd src && go run github.com/golangci/golangci-lint/v2/cmd/golangci-lint@latest run`
   - `cd src && go install golang.org/x/tools/go/analysis/passes/fieldalignment/cmd/fieldalignment@latest`
   - `cd src && "$(go env GOPATH)"/bin/fieldalignment ./...`
 - `website/**` changes:
@@ -59,6 +59,18 @@ For features added in this fork since `https://github.com/JanDeDobbeleer/aliae`
 ## Testing
 
 - When testing `init` from the agent, `--tty-only=false` must be set the TTY checks will fail when running inside the agent.
+
+## Architecture review notes
+
+- Script `if` eligibility is intentionally frozen during init progress-weight computation and reused
+  during script render in the same run.
+  This keeps progress accounting and applied elements consistent.
+  Do not flag this as a bug in architecture reviews unless the behavior explicitly changes.
+- aliae CLI execution is intentionally short-lived with a startup target under one second.
+  Process-global runtime/output/cache state in `src/**` is an intentional performance tradeoff for
+  this model.
+  In architecture reviews, treat this as expected unless there is a requirement to support
+  concurrent multi-run execution in one process.
 
 ## Template variable change checklist
 

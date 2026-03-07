@@ -9,19 +9,21 @@ const (
 )
 
 func isMSYS2Shell() bool {
-	if Current == nil {
+	current := GetCurrent()
+	if current == nil {
 		return false
 	}
 
-	return Current.OS == WINDOWS && Current.Shell == "bash" && os.Getenv("MSYSTEM") != ""
+	return current.OS == WINDOWS && current.Shell == "bash" && os.Getenv("MSYSTEM") != ""
 }
 
 func PathDelimiter() string {
-	if Current == nil {
+	current := GetCurrent()
+	if current == nil {
 		return ":"
 	}
 
-	switch Current.OS {
+	switch current.OS {
 	case WINDOWS:
 		if isMSYS2Shell() {
 			return ":"
@@ -33,11 +35,12 @@ func PathDelimiter() string {
 }
 
 func PathSeparator() string {
-	if Current == nil {
+	current := GetCurrent()
+	if current == nil {
 		return "/"
 	}
 
-	switch Current.OS {
+	switch current.OS {
 	case WINDOWS:
 		if isMSYS2Shell() {
 			return "/"

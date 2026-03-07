@@ -4,11 +4,13 @@ import (
 	"os"
 	"runtime"
 	"strings"
+	"sync/atomic"
 )
 
-// used for caching runtime information
-// and testing purposes
-var Current *Runtime
+// currentRuntime is process-global by design.
+// aliae is a short-lived CLI process and init execution is treated as a
+// single-run flow, so this avoids passing runtime through every call frame.
+var currentRuntime atomic.Pointer[Runtime]
 
 var runtimeGOOS = runtime.GOOS
 
@@ -30,10 +32,14 @@ type Runtime struct {
 }
 
 func Init(shell string) {
+	SetCurrent(NewRuntime(shell))
+}
+
+func NewRuntime(shell string) *Runtime {
 	home := Home()
 	hostname, _ := os.Hostname()
 
-	Current = &Runtime{
+	current := &Runtime{
 		Shell:     shell,
 		ShellLike: isShellLike(shell),
 		OS:        runtimeGOOS,
@@ -46,8 +52,9 @@ func Init(shell string) {
 		Cygpath:   CygpathInternal,
 	}
 
-	Current.Path = getPath()
-	Current.CDPath = getCDPath()
+	current.Path = getPath()
+	current.CDPath = getCDPath()
+	return current
 }
 
 func isShellLike(shell string) bool {
@@ -60,8 +67,8 @@ func isShellLike(shell string) bool {
 }
 
 func Home() string {
-	if Current != nil {
-		return Current.Home
+	if current := GetCurrent(); current != nil {
+		return current.Home
 	}
 
 	home := os.Getenv("HOME")
@@ -74,6 +81,14 @@ func Home() string {
 		home = os.Getenv("USERPROFILE")
 	}
 	return home
+}
+
+func SetCurrent(current *Runtime) {
+	currentRuntime.Store(current)
+}
+
+func GetCurrent() *Runtime {
+	return currentRuntime.Load()
 }
 
 func isWSL() bool {

@@ -1,4 +1,4 @@
-package config
+package init
 
 import (
 	"bytes"
@@ -8,6 +8,7 @@ import (
 	"strings"
 	"testing"
 
+	cfg "github.com/jandedobbeleer/aliae/src/config"
 	"github.com/jandedobbeleer/aliae/src/context"
 	"github.com/jandedobbeleer/aliae/src/shell"
 	"github.com/stretchr/testify/assert"
@@ -15,8 +16,8 @@ import (
 )
 
 func TestInitTemplateConfigVariables(t *testing.T) {
-	shell.DotFile.Reset()
-	t.Cleanup(shell.DotFile.Reset)
+	shell.ResetRenderOutput()
+	t.Cleanup(shell.ResetRenderOutput)
 
 	tempDir := t.TempDir()
 	configFile := filepath.ToSlash(filepath.Join(tempDir, "aliae.yaml"))
@@ -38,18 +39,21 @@ func TestInitTemplateConfigVariables(t *testing.T) {
 	t.Setenv("DOTFILES", "/tmp/dotfiles")
 
 	script := Init(configFile, shell.BASH, true)
-	escapedDir := strings.ReplaceAll(resolveConfigDir(configFile), `\`, `\\`)
+	current := context.GetCurrent()
+	require.NotNil(t, current)
+	_, configDir := cfg.ResolveTemplateContext(configFile)
+	escapedDir := strings.ReplaceAll(configDir, `\`, `\\`)
 	expected := "export CONFIG_PATH=\"" + configFile + "\"\n" +
 		"export CONFIG_DIR=\"" + escapedDir + "\"\n" +
-		fmt.Sprintf("export IS_WSL=\"%t\"\n", context.Current.WSL) +
+		fmt.Sprintf("export IS_WSL=\"%t\"\n", current.WSL) +
 		"export IS_SHELL_LIKE=\"true\"\n" +
 		"export DOTFILES_DIR=\"/tmp/dotfiles\""
 	assert.Equal(t, expected, script)
 }
 
 func TestInitInternalProgressSequence(t *testing.T) {
-	shell.DotFile.Reset()
-	t.Cleanup(shell.DotFile.Reset)
+	shell.ResetRenderOutput()
+	t.Cleanup(shell.ResetRenderOutput)
 
 	tempDir := t.TempDir()
 	base1 := filepath.ToSlash(filepath.Join(tempDir, "base1.yaml"))
@@ -77,8 +81,8 @@ alias:
 `), 0o600))
 
 	var stderr bytes.Buffer
-	SetInitProgressWriter(&stderr)
-	t.Cleanup(resetInitProgressWriter)
+	SetProgressWriter(&stderr)
+	t.Cleanup(func() { SetProgressWriter(os.Stderr) })
 
 	_ = Init(configFile, shell.BASH, true)
 
@@ -103,8 +107,8 @@ alias:
 }
 
 func TestInitInternalProgressIncludesStateChecks(t *testing.T) {
-	shell.DotFile.Reset()
-	t.Cleanup(shell.DotFile.Reset)
+	shell.ResetRenderOutput()
+	t.Cleanup(shell.ResetRenderOutput)
 
 	tempDir := t.TempDir()
 	configFile := filepath.ToSlash(filepath.Join(tempDir, "aliae.yaml"))
@@ -120,8 +124,8 @@ script:
 `), 0o600))
 
 	var stderr bytes.Buffer
-	SetInitProgressWriter(&stderr)
-	t.Cleanup(resetInitProgressWriter)
+	SetProgressWriter(&stderr)
+	t.Cleanup(func() { SetProgressWriter(os.Stderr) })
 
 	_ = Init(configFile, shell.BASH, true)
 
@@ -131,8 +135,8 @@ script:
 }
 
 func TestInitAutoProgressWithWeights(t *testing.T) {
-	shell.DotFile.Reset()
-	t.Cleanup(shell.DotFile.Reset)
+	shell.ResetRenderOutput()
+	t.Cleanup(shell.ResetRenderOutput)
 
 	tempDir := t.TempDir()
 	configFile := filepath.ToSlash(filepath.Join(tempDir, "aliae.yaml"))
@@ -174,8 +178,8 @@ script:
 }
 
 func TestInitAutoProgressWithFractionalScriptWeight(t *testing.T) {
-	shell.DotFile.Reset()
-	t.Cleanup(shell.DotFile.Reset)
+	shell.ResetRenderOutput()
+	t.Cleanup(shell.ResetRenderOutput)
 
 	tempDir := t.TempDir()
 	configFile := filepath.ToSlash(filepath.Join(tempDir, "aliae.yaml"))
@@ -217,8 +221,8 @@ script:
 }
 
 func TestInitAutoProgressStartsAfterInternalSpan(t *testing.T) {
-	shell.DotFile.Reset()
-	t.Cleanup(shell.DotFile.Reset)
+	shell.ResetRenderOutput()
+	t.Cleanup(shell.ResetRenderOutput)
 
 	tempDir := t.TempDir()
 	configFile := filepath.ToSlash(filepath.Join(tempDir, "aliae.yaml"))
@@ -239,8 +243,8 @@ alias:
 }
 
 func TestInitAllowsUnknownPropertiesAtRuntime(t *testing.T) {
-	shell.DotFile.Reset()
-	t.Cleanup(shell.DotFile.Reset)
+	shell.ResetRenderOutput()
+	t.Cleanup(shell.ResetRenderOutput)
 
 	tempDir := t.TempDir()
 	configFile := filepath.ToSlash(filepath.Join(tempDir, "aliae.yaml"))
@@ -259,8 +263,8 @@ func TestInitAllowsUnknownPropertiesAtRuntime(t *testing.T) {
 }
 
 func TestInitRejectsNonPositiveScriptWeight(t *testing.T) {
-	shell.DotFile.Reset()
-	t.Cleanup(shell.DotFile.Reset)
+	shell.ResetRenderOutput()
+	t.Cleanup(shell.ResetRenderOutput)
 
 	tempDir := t.TempDir()
 	configFile := filepath.ToSlash(filepath.Join(tempDir, "aliae.yaml"))
@@ -279,8 +283,8 @@ func TestInitRejectsNonPositiveScriptWeight(t *testing.T) {
 }
 
 func TestInitRejectsInvalidScriptStateRunEvery(t *testing.T) {
-	shell.DotFile.Reset()
-	t.Cleanup(shell.DotFile.Reset)
+	shell.ResetRenderOutput()
+	t.Cleanup(shell.ResetRenderOutput)
 
 	tempDir := t.TempDir()
 	configFile := filepath.ToSlash(filepath.Join(tempDir, "aliae.yaml"))
@@ -300,8 +304,8 @@ func TestInitRejectsInvalidScriptStateRunEvery(t *testing.T) {
 }
 
 func TestInitSupportsTopLevelVars(t *testing.T) {
-	shell.DotFile.Reset()
-	t.Cleanup(shell.DotFile.Reset)
+	shell.ResetRenderOutput()
+	t.Cleanup(shell.ResetRenderOutput)
 
 	tempDir := t.TempDir()
 	configFile := filepath.ToSlash(filepath.Join(tempDir, "aliae.yaml"))
@@ -331,8 +335,8 @@ alias:
 }
 
 func TestInitSupportsTopLevelVarBareExpression(t *testing.T) {
-	shell.DotFile.Reset()
-	t.Cleanup(shell.DotFile.Reset)
+	shell.ResetRenderOutput()
+	t.Cleanup(shell.ResetRenderOutput)
 
 	tempDir := t.TempDir()
 	configFile := filepath.ToSlash(filepath.Join(tempDir, "aliae.yaml"))
@@ -353,8 +357,8 @@ alias:
 }
 
 func TestInitTopLevelVarBooleanFalseIsFalseInIf(t *testing.T) {
-	shell.DotFile.Reset()
-	t.Cleanup(shell.DotFile.Reset)
+	shell.ResetRenderOutput()
+	t.Cleanup(shell.ResetRenderOutput)
 
 	tempDir := t.TempDir()
 	configFile := filepath.ToSlash(filepath.Join(tempDir, "aliae.yaml"))
@@ -375,8 +379,8 @@ alias:
 }
 
 func TestInitInternalProgressIncludesVarComputation(t *testing.T) {
-	shell.DotFile.Reset()
-	t.Cleanup(shell.DotFile.Reset)
+	shell.ResetRenderOutput()
+	t.Cleanup(shell.ResetRenderOutput)
 
 	tempDir := t.TempDir()
 	configFile := filepath.ToSlash(filepath.Join(tempDir, "aliae.yaml"))
@@ -394,8 +398,8 @@ alias:
 `), 0o600))
 
 	var stderr bytes.Buffer
-	SetInitProgressWriter(&stderr)
-	t.Cleanup(resetInitProgressWriter)
+	SetProgressWriter(&stderr)
+	t.Cleanup(func() { SetProgressWriter(os.Stderr) })
 
 	_ = Init(configFile, shell.BASH, true)
 

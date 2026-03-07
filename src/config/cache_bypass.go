@@ -1,13 +1,11 @@
 package config
 
-import "sync/atomic"
-
-var cacheBypass atomic.Bool
+import cfgcache "github.com/jandedobbeleer/aliae/src/config/cache"
 
 func SetCacheBypass(disabled bool) {
-	cacheBypass.Store(disabled)
+	cfgcache.SetBypass(disabled)
 }
 
 func isCacheBypassed() bool {
-	return cacheBypass.Load()
+	return cfgcache.IsBypassed()
 }

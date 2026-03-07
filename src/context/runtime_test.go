@@ -2,6 +2,8 @@ package context
 
 import "testing"
 
+const testShellBash = "bash"
+
 func TestIsWSL(t *testing.T) {
 	originalGOOS := runtimeGOOS
 	t.Cleanup(func() {
@@ -47,22 +49,41 @@ func TestIsWSL(t *testing.T) {
 
 func TestInitLoadsEnvironmentMap(t *testing.T) {
 	t.Setenv("ALIAE_ENV_TEST", "test-value")
-	Init("bash")
+	Init(testShellBash)
+	current := GetCurrent()
 
-	if Current == nil {
+	if current == nil {
 		t.Fatalf("expected runtime context to be initialized")
 	}
 
-	if Current.Env["ALIAE_ENV_TEST"] != "test-value" {
+	if current.Env["ALIAE_ENV_TEST"] != "test-value" {
 		t.Fatalf("expected environment variable to be available in runtime context")
 	}
 
-	if Current.Cygpath != CygpathInternal {
+	if current.Cygpath != CygpathInternal {
 		t.Fatalf("expected default cygpath mode to be internal")
 	}
 
-	if !Current.ShellLike {
+	if !current.ShellLike {
 		t.Fatalf("expected bash to be marked as shell-like")
+	}
+}
+
+func TestNewRuntimeBuildsRuntimeWithoutMutatingCurrent(t *testing.T) {
+	original := GetCurrent()
+	t.Cleanup(func() { SetCurrent(original) })
+
+	SetCurrent(nil)
+	current := NewRuntime(testShellBash)
+
+	if current == nil {
+		t.Fatalf("expected runtime context")
+	}
+	if current.Shell != testShellBash {
+		t.Fatalf("expected shell to be %s, got %s", testShellBash, current.Shell)
+	}
+	if GetCurrent() != nil {
+		t.Fatalf("expected current runtime to remain unchanged")
 	}
 }
 

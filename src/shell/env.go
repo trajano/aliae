@@ -12,17 +12,19 @@ import (
 type Envs []*Env
 
 type Env struct {
-	Value     any      `yaml:"value"`
-	Name      string   `yaml:"name"`
-	Delimiter Template `yaml:"delimiter"`
-	If        If       `yaml:"if"`
-	Type      EnvType  `yaml:"type"`
-	template  string
-	pathCheck string
-	IsPath    bool `yaml:"isPath"`
-	IfExists  bool `yaml:"ifExists"`
-	Persist   bool `yaml:"persist"`
-	parsed    bool
+	Value       any      `yaml:"value"`
+	Name        string   `yaml:"name"`
+	Delimiter   Template `yaml:"delimiter"`
+	If          If       `yaml:"if"`
+	Type        EnvType  `yaml:"type"`
+	template    string
+	pathCheck   string
+	IsPath      bool `yaml:"isPath"`
+	IfExists    bool `yaml:"ifExists"`
+	Persist     bool `yaml:"persist"`
+	parsed      bool
+	ifEvaluated bool `yaml:"-"`
+	ifIgnored   bool `yaml:"-"`
 }
 
 func toString(value any) string {
@@ -93,7 +95,8 @@ func (e *Env) parse() {
 }
 
 func (e *Env) normalizePath() {
-	if !e.IsPath || context.Current == nil || context.Current.OS != context.WINDOWS {
+	runtime := currentRuntime()
+	if !e.IsPath || runtime == nil || runtime.OS != context.WINDOWS {
 		return
 	}
 
@@ -109,7 +112,7 @@ func (e *Env) normalizePath() {
 			continue
 		}
 
-		if context.Current.Shell == BASH && isMSYS2Environment() {
+		if runtime.Shell == BASH && isMSYS2Environment() {
 			if msysPath, isWindowsPath := windowsToMSYSPath(trimmed); isWindowsPath {
 				trimmed = msysPath
 			}
@@ -147,22 +150,23 @@ func (e Envs) Render() {
 	}
 
 	if dotFileHasRenderableContent() {
-		DotFile.WriteString("\n\n")
+		writeRenderOutput("\n\n")
 	}
 
-	if context.Current.Shell == NU {
-		DotFile.WriteString(NuEnvBlockStart)
+	runtime := currentRuntime()
+	if runtime != nil && runtime.Shell == NU {
+		writeRenderOutput(NuEnvBlockStart)
 	}
 
 	first := true
 	for _, variable := range e {
 		if !first {
 			if !dotFileEndsWithNewline() {
-				DotFile.WriteString("\n")
+				writeRenderOutput("\n")
 			}
 		}
 
-		DotFile.WriteString(variable.string())
+		writeRenderOutput(variable.string())
 		advanceAutoProgress(1)
 
 		os.Setenv(variable.Name, toString(variable.Value))
@@ -170,16 +174,26 @@ func (e Envs) Render() {
 		first = false
 	}
 
-	if context.Current.Shell == NU {
-		DotFile.WriteString(NuEnvBlockEnd)
+	if runtime != nil && runtime.Shell == NU {
+		writeRenderOutput(NuEnvBlockEnd)
 	}
+}
+
+func (e *Env) Ignore() bool {
+	if e.ifEvaluated {
+		return e.ifIgnored
+	}
+
+	e.ifIgnored = e.If.Ignore()
+	e.ifEvaluated = true
+	return e.ifIgnored
 }
 
 func (e Envs) filter() Envs {
 	var env Envs
 
 	for _, variable := range e {
-		if variable.If.Ignore() {
+		if variable.Ignore() {
 			continue
 		}
 

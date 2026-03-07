@@ -32,7 +32,7 @@ func (i If) Validate() error {
 
 func evaluate(i If) (string, error) {
 	template := fmt.Sprintf(`{{ if %s }}false{{ else }}true{{ end }}`, i)
-	ctx := context.Current
+	ctx := currentRuntime()
 	if ctx == nil {
 		ctx = &context.Runtime{
 			Shell: BASH,

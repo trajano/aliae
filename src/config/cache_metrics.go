@@ -1,13 +1,11 @@
 package config
 
-import "sync/atomic"
-
-var lastLoadUsedCache atomic.Bool
+import cfgcache "github.com/jandedobbeleer/aliae/src/config/cache"
 
 func setLastLoadUsedCache(value bool) {
-	lastLoadUsedCache.Store(value)
+	cfgcache.SetLastLoadUsed(value)
 }
 
 func LastLoadUsedCache() bool {
-	return lastLoadUsedCache.Load()
+	return cfgcache.LastLoadUsed()
 }

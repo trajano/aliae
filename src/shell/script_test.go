@@ -96,13 +96,13 @@ func TestScriptRender(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		DotFile.Reset()
+		ResetRenderOutput()
 		if tc.NonEmptyScript {
-			DotFile.WriteString("foo")
+			WriteRenderOutput("foo")
 		}
-		context.Current = &context.Runtime{Shell: PWSH}
+		useRuntime(t, &context.Runtime{Shell: PWSH})
 		tc.Scripts.Render()
-		assert.Equal(t, tc.Expected, strings.TrimSpace(DotFile.String()), tc.Case)
+		assert.Equal(t, tc.Expected, strings.TrimSpace(RenderOutputString()), tc.Case)
 	}
 }
 
@@ -131,14 +131,14 @@ func TestScriptRenderCmdPythonAndPerl(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		context.Current = &context.Runtime{Shell: CMD}
+		useRuntime(t, &context.Runtime{Shell: CMD})
 		assert.Equal(t, tc.Expected, tc.Script.String(), tc.Case)
 	}
 }
 
 func TestScriptStateRunOnce(t *testing.T) {
 	tempDir := t.TempDir()
-	context.Current = &context.Runtime{Shell: PWSH, OS: context.LINUX, Home: tempDir}
+	useRuntime(t, &context.Runtime{Shell: PWSH, OS: context.LINUX, Home: tempDir})
 
 	scripts := Scripts{
 		{
@@ -149,18 +149,18 @@ func TestScriptStateRunOnce(t *testing.T) {
 		},
 	}
 
-	DotFile.Reset()
+	ResetRenderOutput()
 	scripts.Render()
-	assert.Equal(t, "echo hello", strings.TrimSpace(DotFile.String()))
+	assert.Equal(t, "echo hello", strings.TrimSpace(RenderOutputString()))
 
-	DotFile.Reset()
+	ResetRenderOutput()
 	scripts.Render()
-	assert.Equal(t, "", strings.TrimSpace(DotFile.String()))
+	assert.Equal(t, "", strings.TrimSpace(RenderOutputString()))
 }
 
 func TestScriptStateRunEvery(t *testing.T) {
 	tempDir := t.TempDir()
-	context.Current = &context.Runtime{Shell: PWSH, OS: context.LINUX, Home: tempDir}
+	useRuntime(t, &context.Runtime{Shell: PWSH, OS: context.LINUX, Home: tempDir})
 
 	statePath := filepath.Join(tempDir, ".local", "aliae", "state", "hourly.state")
 	old := time.Now().Add(-2 * time.Hour)
@@ -176,9 +176,9 @@ func TestScriptStateRunEvery(t *testing.T) {
 		},
 	}
 
-	DotFile.Reset()
+	ResetRenderOutput()
 	scripts.Render()
-	assert.Equal(t, "echo hello", strings.TrimSpace(DotFile.String()))
+	assert.Equal(t, "echo hello", strings.TrimSpace(RenderOutputString()))
 
 	updatedLastRun, err := aliaeState.ReadLastRun(statePath)
 	require.NoError(t, err)
@@ -188,7 +188,7 @@ func TestScriptStateRunEvery(t *testing.T) {
 
 func TestScriptStateRunEveryNotDue(t *testing.T) {
 	tempDir := t.TempDir()
-	context.Current = &context.Runtime{Shell: PWSH, OS: context.LINUX, Home: tempDir}
+	useRuntime(t, &context.Runtime{Shell: PWSH, OS: context.LINUX, Home: tempDir})
 
 	statePath := filepath.Join(tempDir, ".local", "aliae", "state", "daily.state")
 	require.NoError(t, os.MkdirAll(filepath.Dir(statePath), 0o700))
@@ -204,7 +204,48 @@ func TestScriptStateRunEveryNotDue(t *testing.T) {
 		},
 	}
 
-	DotFile.Reset()
+	ResetRenderOutput()
 	scripts.Render()
-	assert.Equal(t, "", strings.TrimSpace(DotFile.String()))
+	assert.Equal(t, "", strings.TrimSpace(RenderOutputString()))
+}
+
+func TestScriptRenderReevaluatesConditionWhenNotFrozen(t *testing.T) {
+	runtime := &context.Runtime{
+		Shell: PWSH,
+		Env:   map[string]string{"FLAG": "1"},
+	}
+	useRuntime(t, runtime)
+
+	scripts := Scripts{
+		{
+			Value: "echo hello",
+			If:    `eq .Env.FLAG "1"`,
+		},
+	}
+
+	runtime.Env["FLAG"] = "0"
+	ResetRenderOutput()
+	scripts.Render()
+	assert.Equal(t, "", strings.TrimSpace(RenderOutputString()))
+}
+
+func TestScriptRenderUsesFrozenCondition(t *testing.T) {
+	runtime := &context.Runtime{
+		Shell: PWSH,
+		Env:   map[string]string{"FLAG": "1"},
+	}
+	useRuntime(t, runtime)
+
+	scripts := Scripts{
+		{
+			Value: "echo hello",
+			If:    `eq .Env.FLAG "1"`,
+		},
+	}
+	assert.False(t, scripts[0].FreezeIgnore())
+
+	runtime.Env["FLAG"] = "0"
+	ResetRenderOutput()
+	scripts.Render()
+	assert.Equal(t, "echo hello", strings.TrimSpace(RenderOutputString()))
 }

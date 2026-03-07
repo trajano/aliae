@@ -35,7 +35,7 @@ func TestFormatString(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		context.Current = &context.Runtime{Shell: BASH}
+		useRuntime(t, &context.Runtime{Shell: BASH})
 		got, _ := parse(text, tc)
 		assert.Equal(t, tc.Expected, got, tc.Case)
 	}
@@ -108,7 +108,7 @@ string`,
 	}
 
 	for _, tc := range cases {
-		context.Current = &context.Runtime{Shell: BASH}
+		useRuntime(t, &context.Runtime{Shell: BASH})
 		var got string
 		if tc.Delim == "" {
 			got, _ = parse(text, tc)
@@ -174,7 +174,7 @@ func TestEscapeString(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		context.Current = &context.Runtime{Shell: tc.Shell}
+		useRuntime(t, &context.Runtime{Shell: tc.Shell})
 		if len(tc.Shell) == 0 {
 			tc.Shell = BASH
 		}
@@ -215,27 +215,27 @@ func TestMatch(t *testing.T) {
 
 func TestTemplateHostname(t *testing.T) {
 	text := `{{ .Hostname }}`
-	context.Current = &context.Runtime{Shell: BASH, Hostname: "my-host"}
+	useRuntime(t, &context.Runtime{Shell: BASH, Hostname: "my-host"})
 
-	got, err := parse(text, context.Current)
+	got, err := parse(text, context.GetCurrent())
 	assert.NoError(t, err)
 	assert.Equal(t, "my-host", got)
 }
 
 func TestTemplateWSL(t *testing.T) {
 	text := `{{ .WSL }}`
-	context.Current = &context.Runtime{Shell: BASH, WSL: true}
+	useRuntime(t, &context.Runtime{Shell: BASH, WSL: true})
 
-	got, err := parse(text, context.Current)
+	got, err := parse(text, context.GetCurrent())
 	assert.NoError(t, err)
 	assert.Equal(t, "true", got)
 }
 
 func TestTemplateShellLike(t *testing.T) {
 	text := `{{ .ShellLike }}`
-	context.Current = &context.Runtime{Shell: BASH, ShellLike: true}
+	useRuntime(t, &context.Runtime{Shell: BASH, ShellLike: true})
 
-	got, err := parse(text, context.Current)
+	got, err := parse(text, context.GetCurrent())
 	assert.NoError(t, err)
 	assert.Equal(t, "true", got)
 }
@@ -263,7 +263,7 @@ func TestSetArg(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		context.Current = &context.Runtime{Shell: tc.Shell}
+		useRuntime(t, &context.Runtime{Shell: tc.Shell})
 		got, err := parse(text, tc)
 		assert.NoError(t, err)
 		assert.Equal(t, tc.Expected, got, tc.Case)
@@ -272,28 +272,28 @@ func TestSetArg(t *testing.T) {
 
 func TestTemplateEnv(t *testing.T) {
 	text := `{{ .Env.DOTFILES }}`
-	context.Current = &context.Runtime{
+	useRuntime(t, &context.Runtime{
 		Shell: BASH,
 		Env: map[string]string{
 			"DOTFILES": "/home/test/.dotfiles",
 		},
-	}
+	})
 
-	got, err := parse(text, context.Current)
+	got, err := parse(text, context.GetCurrent())
 	assert.NoError(t, err)
 	assert.Equal(t, "/home/test/.dotfiles", got)
 }
 
 func TestTemplateEnvMissingValueBehavesAsEmptyString(t *testing.T) {
 	text := `{{ eq .Env.TMUX "" }}`
-	context.Current = &context.Runtime{
+	useRuntime(t, &context.Runtime{
 		Shell: BASH,
 		Env: map[string]string{
 			"DOTFILES": "/home/test/.dotfiles",
 		},
-	}
+	})
 
-	got, err := parse(text, context.Current)
+	got, err := parse(text, context.GetCurrent())
 	assert.NoError(t, err)
 	assert.Equal(t, "true", got)
 }
@@ -399,7 +399,7 @@ func TestHasCommandNoCacheBypassesCache(t *testing.T) {
 func TestFileExists(t *testing.T) {
 	text := `{{ fileExists .Path }}`
 	tempDir := t.TempDir()
-	context.Current = &context.Runtime{Shell: BASH, Home: tempDir}
+	useRuntime(t, &context.Runtime{Shell: BASH, Home: tempDir})
 	relExisting := filepath.Join(tempDir, ".cache", "aliae")
 	absExisting := filepath.Join(tempDir, "absolute.txt")
 	assert.NoError(t, os.MkdirAll(filepath.Dir(relExisting), 0o700))
@@ -452,7 +452,7 @@ func TestDirExists(t *testing.T) {
 
 func TestFileExistsAndDirExistsShareCache(t *testing.T) {
 	tempDir := t.TempDir()
-	context.Current = &context.Runtime{Shell: BASH, Home: tempDir}
+	useRuntime(t, &context.Runtime{Shell: BASH, Home: tempDir})
 	target := filepath.Join(tempDir, "target")
 	assert.NoError(t, os.MkdirAll(target, 0o700))
 
@@ -470,7 +470,7 @@ func TestFileExistsAndDirExistsShareCache(t *testing.T) {
 func testDirExistsTemplate(t *testing.T, text string) {
 	t.Helper()
 	tempDir := t.TempDir()
-	context.Current = &context.Runtime{Shell: BASH, Home: tempDir}
+	useRuntime(t, &context.Runtime{Shell: BASH, Home: tempDir})
 	relDir := filepath.Join(tempDir, ".cache", "aliae")
 	absDir := filepath.Join(tempDir, "absolute-dir")
 	assert.NoError(t, os.MkdirAll(relDir, 0o700))
@@ -560,7 +560,7 @@ func TestProgress(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		context.Current = &context.Runtime{Shell: tc.Shell}
+		useRuntime(t, &context.Runtime{Shell: tc.Shell})
 		got, _ := parse(text, tc)
 		assert.Equal(t, tc.Expected, got, tc.Case)
 	}

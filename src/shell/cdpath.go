@@ -9,11 +9,13 @@ import (
 type CDPaths []*CDPath
 
 type CDPath struct {
-	Value    Template `yaml:"value"`
-	If       If       `yaml:"if"`
-	template string
-	Force    bool `yaml:"force"`
-	IfExists bool `yaml:"ifExists"`
+	Value       Template `yaml:"value"`
+	If          If       `yaml:"if"`
+	template    string
+	Force       bool `yaml:"force"`
+	IfExists    bool `yaml:"ifExists"`
+	ifEvaluated bool `yaml:"-"`
+	ifIgnored   bool `yaml:"-"`
 }
 
 func (p *CDPath) string() string {
@@ -22,8 +24,12 @@ func (p *CDPath) string() string {
 
 func (p *CDPath) render() string {
 	p.Value = p.Value.Parse()
-	if context.Current.CDPath == nil {
-		context.Current.CDPath = &context.Path{}
+	runtime := currentRuntime()
+	if runtime == nil {
+		return ""
+	}
+	if runtime.CDPath == nil {
+		runtime.CDPath = &context.Path{}
 	}
 
 	var builder strings.Builder
@@ -46,11 +52,11 @@ func (p *CDPath) render() string {
 
 		line = normalizePathEntry(rawLine)
 
-		if context.Current.CDPath.Contains(line) && !p.Force {
+		if runtime.CDPath.Contains(line) && !p.Force {
 			continue
 		}
 
-		context.Current.CDPath.AppendCDPath(line)
+		runtime.CDPath.AppendCDPath(line)
 
 		if !first {
 			builder.WriteString("\n")
@@ -73,6 +79,16 @@ func cdpathCurrentDirScript() string {
 	return formatStrategy().FormatCDPathCurrentDirScript()
 }
 
+func (p *CDPath) Ignore() bool {
+	if p.ifEvaluated {
+		return p.ifIgnored
+	}
+
+	p.ifIgnored = p.If.Ignore()
+	p.ifEvaluated = true
+	return p.ifIgnored
+}
+
 func (p CDPaths) Render() {
 	if len(p) == 0 {
 		return
@@ -81,7 +97,7 @@ func (p CDPaths) Render() {
 	first := true
 	rendered := false
 	for _, entry := range p {
-		if entry.If.Ignore() {
+		if entry.Ignore() {
 			continue
 		}
 
@@ -93,13 +109,13 @@ func (p CDPaths) Render() {
 
 		if first && dotFileHasRenderableContent() {
 			if !dotFileEndsWithNewline() {
-				DotFile.WriteString("\n")
+				writeRenderOutput("\n")
 			}
-			DotFile.WriteString("\n")
+			writeRenderOutput("\n")
 		} else if !dotFileEndsWithNewline() {
-			DotFile.WriteString("\n")
+			writeRenderOutput("\n")
 		}
-		DotFile.WriteString(script)
+		writeRenderOutput(script)
 
 		first = false
 		rendered = true
@@ -108,11 +124,15 @@ func (p CDPaths) Render() {
 
 	// Some shells stop treating the current directory as an implicit fallback
 	// when CDPATH/cdpath is set and "." is missing.
-	if rendered && !context.Current.CDPath.Contains(".") {
+	runtime := currentRuntime()
+	if runtime == nil {
+		return
+	}
+	if rendered && !runtime.CDPath.Contains(".") {
 		if !dotFileEndsWithNewline() {
-			DotFile.WriteString("\n")
+			writeRenderOutput("\n")
 		}
-		DotFile.WriteString(cdpathCurrentDirScript())
-		context.Current.CDPath.AppendCDPath(".")
+		writeRenderOutput(cdpathCurrentDirScript())
+		runtime.CDPath.AppendCDPath(".")
 	}
 }

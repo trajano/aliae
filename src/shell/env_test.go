@@ -112,7 +112,7 @@ func TestEnvironmentVariable(t *testing.T) {
 
 	for _, tc := range cases {
 		tc.Env.template = ""
-		context.Current = &context.Runtime{Shell: tc.Shell}
+		useRuntime(t, &context.Runtime{Shell: tc.Shell})
 		assert.Equal(t, tc.Expected, tc.Env.string(), tc.Case)
 	}
 }
@@ -142,7 +142,7 @@ func TestEnvironmentVariableWithTemplate(t *testing.T) {
 
 	for _, tc := range cases {
 		env := &Env{Name: "HELLO", Value: tc.Value}
-		context.Current = &context.Runtime{Shell: BASH, Home: "/Users/jan"}
+		useRuntime(t, &context.Runtime{Shell: BASH, Home: "/Users/jan"})
 		assert.Equal(t, tc.Expected, env.string(), tc.Case)
 	}
 }
@@ -153,7 +153,7 @@ func TestEnvFilter(t *testing.T) {
 		&Env{Name: "BAR", Value: "foo"},
 		&Env{Name: "BAZ", Value: "baz", If: `eq .Shell "zsh"`},
 	}
-	context.Current = &context.Runtime{Shell: "FISH"}
+	useRuntime(t, &context.Runtime{Shell: "FISH"})
 	filtered := env.filter()
 	assert.Len(t, filtered, 2)
 }
@@ -213,13 +213,13 @@ $env:FOO = "bar"`,
 	}
 
 	for _, tc := range cases {
-		DotFile.Reset()
+		ResetRenderOutput()
 		if tc.NonEmptyScript {
-			DotFile.WriteString("foo")
+			WriteRenderOutput("foo")
 		}
-		context.Current = &context.Runtime{Shell: tc.Shell}
+		useRuntime(t, &context.Runtime{Shell: tc.Shell})
 		tc.Env.Render()
-		assert.Equal(t, tc.Expected, DotFile.String(), tc.Case)
+		assert.Equal(t, tc.Expected, RenderOutputString(), tc.Case)
 	}
 }
 
@@ -257,7 +257,7 @@ func TestEnvironmentVariableDelimiter(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		context.Current = &context.Runtime{Shell: PWSH, OS: context.LINUX}
+		useRuntime(t, &context.Runtime{Shell: PWSH, OS: context.LINUX})
 		assert.Equal(t, tc.Expected, tc.Env.string(), tc.Case)
 	}
 }
@@ -284,14 +284,14 @@ func TestEnvironmentVariablePathNormalizationOnWindows(t *testing.T) {
 
 	for _, tc := range cases {
 		env := &Env{Name: "ANDROID_SDK_ROOT", Value: tc.Value, IsPath: true}
-		context.Current = &context.Runtime{Shell: PWSH, OS: context.WINDOWS, Home: `C:\Users\trajano`}
+		useRuntime(t, &context.Runtime{Shell: PWSH, OS: context.WINDOWS, Home: `C:\Users\trajano`})
 		assert.Equal(t, tc.Expected, env.string(), tc.Case)
 	}
 }
 
 func TestEnvironmentVariableWithoutPathNormalizationOnWindows(t *testing.T) {
 	env := &Env{Name: "ANDROID_SDK_ROOT", Value: "{{ .Home }}/AppData/Local/Android/Sdk"}
-	context.Current = &context.Runtime{Shell: PWSH, OS: context.WINDOWS, Home: `C:\Users\trajano`}
+	useRuntime(t, &context.Runtime{Shell: PWSH, OS: context.WINDOWS, Home: `C:\Users\trajano`})
 
 	assert.Equal(t, `$env:ANDROID_SDK_ROOT = "C:\Users\trajano/AppData/Local/Android/Sdk"`, env.string())
 }
@@ -304,7 +304,7 @@ func TestEnvironmentVariablePathNormalizationOnWindowsGitBashUsesMSYSPath(t *tes
 		Value:  `C:\Users\trajano\scoop\apps\bat\current`,
 		IsPath: true,
 	}
-	context.Current = &context.Runtime{Shell: BASH, OS: context.WINDOWS, Home: `C:\Users\trajano`}
+	useRuntime(t, &context.Runtime{Shell: BASH, OS: context.WINDOWS, Home: `C:\Users\trajano`})
 
 	assert.Equal(
 		t,
@@ -320,16 +320,16 @@ func TestEnvironmentVariableIfExists(t *testing.T) {
 	_ = os.Unsetenv("ALIAE_EXISTING")
 	_ = os.Unsetenv("ALIAE_MISSING")
 
-	DotFile.Reset()
-	context.Current = &context.Runtime{Shell: PWSH, OS: context.LINUX, Home: "/home/trajano"}
+	ResetRenderOutput()
+	useRuntime(t, &context.Runtime{Shell: PWSH, OS: context.LINUX, Home: "/home/trajano"})
 	envs := Envs{
 		&Env{Name: "ALIAE_EXISTING", Value: existing, IsPath: true, IfExists: true},
 		&Env{Name: "ALIAE_MISSING", Value: missing, IsPath: true, IfExists: true},
 	}
 	envs.Render()
 
-	assert.Contains(t, DotFile.String(), `$env:ALIAE_EXISTING = "`)
-	assert.NotContains(t, DotFile.String(), "ALIAE_MISSING")
+	assert.Contains(t, RenderOutputString(), `$env:ALIAE_EXISTING = "`)
+	assert.NotContains(t, RenderOutputString(), "ALIAE_MISSING")
 	assert.Equal(t, existing, os.Getenv("ALIAE_EXISTING"))
 	assert.Equal(t, "", os.Getenv("ALIAE_MISSING"))
 }
@@ -340,14 +340,14 @@ func TestEnvironmentVariableIfExistsOnWindowsGitBashUsesOriginalPathForExistence
 	existing := t.TempDir()
 	_ = os.Unsetenv("ALIAE_EXISTING")
 
-	DotFile.Reset()
-	context.Current = &context.Runtime{Shell: BASH, OS: context.WINDOWS, Home: `C:\Users\trajano`}
+	ResetRenderOutput()
+	useRuntime(t, &context.Runtime{Shell: BASH, OS: context.WINDOWS, Home: `C:\Users\trajano`})
 	envs := Envs{
 		&Env{Name: "ALIAE_EXISTING", Value: existing, IsPath: true, IfExists: true},
 	}
 	envs.Render()
 
-	assert.Contains(t, DotFile.String(), `export ALIAE_EXISTING="`)
+	assert.Contains(t, RenderOutputString(), `export ALIAE_EXISTING="`)
 	assert.Equal(t, windowsToMSYSPathOrOriginal(existing), os.Getenv("ALIAE_EXISTING"))
 }
 
@@ -365,8 +365,8 @@ func TestEnvironmentVariableIsPathMultilineUsesFirstExisting(t *testing.T) {
 	thirdExisting := t.TempDir()
 	_ = os.Unsetenv("ANDROID_HOME")
 
-	DotFile.Reset()
-	context.Current = &context.Runtime{Shell: PWSH, OS: context.LINUX, Home: "/home/trajano"}
+	ResetRenderOutput()
+	useRuntime(t, &context.Runtime{Shell: PWSH, OS: context.LINUX, Home: "/home/trajano"})
 	envs := Envs{
 		&Env{
 			Name: "ANDROID_HOME",
@@ -378,10 +378,10 @@ func TestEnvironmentVariableIsPathMultilineUsesFirstExisting(t *testing.T) {
 	}
 	envs.Render()
 
-	assert.Contains(t, DotFile.String(), `$env:ANDROID_HOME = "`)
-	assert.Contains(t, DotFile.String(), secondExisting)
-	assert.NotContains(t, DotFile.String(), firstMissing)
-	assert.NotContains(t, DotFile.String(), thirdExisting)
+	assert.Contains(t, RenderOutputString(), `$env:ANDROID_HOME = "`)
+	assert.Contains(t, RenderOutputString(), secondExisting)
+	assert.NotContains(t, RenderOutputString(), firstMissing)
+	assert.NotContains(t, RenderOutputString(), thirdExisting)
 	assert.Equal(t, secondExisting, os.Getenv("ANDROID_HOME"))
 }
 
@@ -391,8 +391,8 @@ func TestEnvironmentVariableIsPathMultilineSkipsWhenNoneExists(t *testing.T) {
 
 	_ = os.Unsetenv("ANDROID_HOME")
 
-	DotFile.Reset()
-	context.Current = &context.Runtime{Shell: PWSH, OS: context.LINUX, Home: "/home/trajano"}
+	ResetRenderOutput()
+	useRuntime(t, &context.Runtime{Shell: PWSH, OS: context.LINUX, Home: "/home/trajano"})
 	envs := Envs{
 		&Env{
 			Name:   "ANDROID_HOME",
@@ -402,7 +402,7 @@ func TestEnvironmentVariableIsPathMultilineSkipsWhenNoneExists(t *testing.T) {
 	}
 	envs.Render()
 
-	assert.NotContains(t, DotFile.String(), "ANDROID_HOME")
+	assert.NotContains(t, RenderOutputString(), "ANDROID_HOME")
 	assert.Equal(t, "", os.Getenv("ANDROID_HOME"))
 }
 
@@ -410,8 +410,8 @@ func TestEnvironmentVariableIsPathSingleLineStillExportsByDefault(t *testing.T) 
 	missing := filepath.Join(t.TempDir(), "missing")
 	_ = os.Unsetenv("ANDROID_HOME")
 
-	DotFile.Reset()
-	context.Current = &context.Runtime{Shell: PWSH, OS: context.LINUX, Home: "/home/trajano"}
+	ResetRenderOutput()
+	useRuntime(t, &context.Runtime{Shell: PWSH, OS: context.LINUX, Home: "/home/trajano"})
 	envs := Envs{
 		&Env{
 			Name:   "ANDROID_HOME",
@@ -421,7 +421,7 @@ func TestEnvironmentVariableIsPathSingleLineStillExportsByDefault(t *testing.T) 
 	}
 	envs.Render()
 
-	assert.Contains(t, DotFile.String(), `$env:ANDROID_HOME = "`)
-	assert.Contains(t, DotFile.String(), missing)
+	assert.Contains(t, RenderOutputString(), `$env:ANDROID_HOME = "`)
+	assert.Contains(t, RenderOutputString(), missing)
 	assert.Equal(t, missing, os.Getenv("ANDROID_HOME"))
 }

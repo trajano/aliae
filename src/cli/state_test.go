@@ -16,10 +16,10 @@ import (
 
 func TestRunStateListAndClear(t *testing.T) {
 	originalConfig := config
-	originalRuntime := context.Current
+	originalRuntime := context.GetCurrent()
 	t.Cleanup(func() {
 		config = originalConfig
-		context.Current = originalRuntime
+		context.SetCurrent(originalRuntime)
 	})
 
 	root := t.TempDir()
@@ -34,10 +34,10 @@ func TestRunStateListAndClear(t *testing.T) {
       file: bye.state
 `), 0o600))
 
-	context.Current = &context.Runtime{
+	context.SetCurrent(&context.Runtime{
 		OS:   context.LINUX,
 		Home: root,
-	}
+	})
 	config = configFile
 
 	helloStatePath := filepath.Join(root, ".local", "aliae", "state", "hello.state")
@@ -73,10 +73,10 @@ func TestRunStateListAndClear(t *testing.T) {
 
 func TestRunStateListNoEntries(t *testing.T) {
 	originalConfig := config
-	originalRuntime := context.Current
+	originalRuntime := context.GetCurrent()
 	t.Cleanup(func() {
 		config = originalConfig
-		context.Current = originalRuntime
+		context.SetCurrent(originalRuntime)
 	})
 
 	root := t.TempDir()
@@ -85,10 +85,10 @@ func TestRunStateListNoEntries(t *testing.T) {
   - value: echo hello
 `), 0o600))
 
-	context.Current = &context.Runtime{
+	context.SetCurrent(&context.Runtime{
 		OS:   context.LINUX,
 		Home: root,
-	}
+	})
 	config = configFile
 
 	var out bytes.Buffer

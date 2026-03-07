@@ -26,11 +26,11 @@ func TestFormatStrategySelection(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		context.Current = &context.Runtime{Shell: tc.shell}
+		useRuntime(t, &context.Runtime{Shell: tc.shell})
 		assert.Equal(t, tc.expectedType, reflect.TypeOf(formatStrategy()).String(), tc.shell)
 	}
 
-	context.Current = nil
+	useRuntime(t, nil)
 	assert.Equal(t, "shell.noopFormatStrategy", reflect.TypeOf(formatStrategy()).String())
 }
 
@@ -53,7 +53,7 @@ func TestCDPathCurrentDirScriptByStrategy(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		context.Current = &context.Runtime{Shell: tc.shell}
+		useRuntime(t, &context.Runtime{Shell: tc.shell})
 		assert.Equal(t, tc.expected, formatStrategy().FormatCDPathCurrentDirScript(), tc.shell)
 	}
 }

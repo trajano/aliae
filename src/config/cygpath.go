@@ -28,9 +28,10 @@ func validateCygpathMode(aliae *Aliae) error {
 }
 
 func setRuntimeCygpathMode(aliae *Aliae) {
-	if aliae == nil || context.Current == nil {
+	current := context.GetCurrent()
+	if aliae == nil || current == nil {
 		return
 	}
 
-	context.Current.Cygpath = aliae.Cygpath
+	current.Cygpath = aliae.Cygpath
 }

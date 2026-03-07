@@ -1,71 +1,72 @@
-package config
+package init
 
 import (
 	"errors"
 	"testing"
 	"time"
 
+	cfg "github.com/jandedobbeleer/aliae/src/config"
 	"github.com/jandedobbeleer/aliae/src/shell"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
-type testInitObserver struct {
-	started []InitPhase
-	ended   []InitPhase
+type testObserver struct {
+	started []Phase
+	ended   []Phase
 	errs    []error
 	visits  []string
 }
 
-func (t *testInitObserver) OnInitPhaseStart(phase InitPhase) {
+func (t *testObserver) OnPhaseStart(phase Phase) {
 	t.started = append(t.started, phase)
 }
 
-func (t *testInitObserver) OnInitPhaseEnd(phase InitPhase, _ time.Duration, err error) {
+func (t *testObserver) OnPhaseEnd(phase Phase, _ time.Duration, err error) {
 	t.ended = append(t.ended, phase)
 	t.errs = append(t.errs, err)
 }
 
-func (t *testInitObserver) OnInitVisitStart(section InitSection, key string) {
+func (t *testObserver) OnVisitStart(section Section, key string) {
 	t.visits = append(t.visits, "start:"+string(section)+":"+key)
 }
 
-func (t *testInitObserver) OnInitVisitEnd(section InitSection, key string, _ time.Duration) {
+func (t *testObserver) OnVisitEnd(section Section, key string, _ time.Duration) {
 	t.visits = append(t.visits, "end:"+string(section)+":"+key)
 }
 
-func TestRunInitPhaseNotifiesObserverOnSuccess(t *testing.T) {
-	observer := &testInitObserver{}
-	phase := InitPhaseRenderEnv
+func TestRunPhaseNotifiesObserverOnSuccess(t *testing.T) {
+	observer := &testObserver{}
+	phase := PhaseRenderEnv
 
-	err := runInitPhase(observer, phase, func() error { return nil })
+	err := runPhase(observer, phase, func() error { return nil })
 	require.NoError(t, err)
 
-	assert.Equal(t, []InitPhase{phase}, observer.started)
-	assert.Equal(t, []InitPhase{phase}, observer.ended)
+	assert.Equal(t, []Phase{phase}, observer.started)
+	assert.Equal(t, []Phase{phase}, observer.ended)
 	assert.Len(t, observer.errs, 1)
 	assert.NoError(t, observer.errs[0])
 }
 
-func TestRunInitPhaseNotifiesObserverOnError(t *testing.T) {
-	observer := &testInitObserver{}
-	phase := InitPhaseRenderScript
+func TestRunPhaseNotifiesObserverOnError(t *testing.T) {
+	observer := &testObserver{}
+	phase := PhaseRenderScript
 	expected := errors.New("boom")
 
-	err := runInitPhase(observer, phase, func() error { return expected })
+	err := runPhase(observer, phase, func() error { return expected })
 	require.ErrorIs(t, err, expected)
 
-	assert.Equal(t, []InitPhase{phase}, observer.started)
-	assert.Equal(t, []InitPhase{phase}, observer.ended)
+	assert.Equal(t, []Phase{phase}, observer.started)
+	assert.Equal(t, []Phase{phase}, observer.ended)
 	assert.Len(t, observer.errs, 1)
 	assert.ErrorIs(t, observer.errs[0], expected)
 }
 
-func TestEmitInitVisitsUsesWalkerOrder(t *testing.T) {
-	observer := &testInitObserver{}
-	cfg := &Aliae{
-		Extends: []Extend{{Path: "./base.yaml"}},
-		Vars:    Vars{{Name: "V"}},
+func TestEmitVisitsUsesWalkerOrder(t *testing.T) {
+	observer := &testObserver{}
+	aliae := &cfg.Aliae{
+		Extends: []cfg.Extend{{Path: "./base.yaml"}},
+		Vars:    cfg.Vars{{Name: "V"}},
 		Envs:    shell.Envs{{Name: "E"}},
 		Paths:   shell.Paths{{Value: "/bin"}},
 		CDPaths: shell.CDPaths{{Value: "/tmp"}},
@@ -74,7 +75,7 @@ func TestEmitInitVisitsUsesWalkerOrder(t *testing.T) {
 		Scripts: shell.Scripts{{Value: "echo hi"}},
 	}
 
-	emitInitVisits(cfg, observer)
+	emitVisits(aliae, observer)
 
 	assert.Equal(t, []string{
 		"start:extends:./base.yaml", "end:extends:./base.yaml",

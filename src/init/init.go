@@ -1,8 +1,10 @@
-package config
+package init
 
 import (
 	"fmt"
 
+	cfg "github.com/jandedobbeleer/aliae/src/config"
+	"github.com/jandedobbeleer/aliae/src/context"
 	"github.com/jandedobbeleer/aliae/src/shell"
 )
 
@@ -11,10 +13,10 @@ func Init(configPath, sh string, printOutput bool) string {
 		return fmt.Sprintf("(@(& aliae init %s --config=%s --print) -join \"`n\") | Invoke-Expression", sh, configPath)
 	}
 
-	beginInitInternalProgress(configPath)
-	defer endInitInternalProgress()
+	cfg.BeginInitInternalProgress(configPath)
+	defer cfg.EndInitInternalProgress()
 
-	script, err := runInitWithObserver(configPath, sh, nil, initRunOptions{
+	script, err := runWithObserver(configPath, sh, nil, runOptions{
 		computeVars: true,
 		primeState:  true,
 	})
@@ -43,6 +45,11 @@ func createNuInit(script string) string {
 }
 
 func formatError(err error) string {
+	restoreRuntime := shell.SetRuntime(context.GetCurrent())
+	defer restoreRuntime()
+	restoreTemplateRuntime := shell.SetTemplateRuntime(context.GetCurrent())
+	defer restoreTemplateRuntime()
+
 	message := fmt.Sprintf("aliae error:\n%s", err.Error())
 	e := shell.Echo{Message: message}
 	return e.Error().String()

@@ -5,7 +5,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/jandedobbeleer/aliae/src/context"
 	aliaeState "github.com/jandedobbeleer/aliae/src/state"
 )
 
@@ -31,6 +30,8 @@ type Script struct {
 	statePrepared  bool `yaml:"-"`
 	stateChecked   bool `yaml:"-"`
 	stateShouldRun bool `yaml:"-"`
+	ifFrozen       bool `yaml:"-"`
+	ifIgnoreFrozen bool `yaml:"-"`
 }
 
 type ScriptState struct {
@@ -97,7 +98,7 @@ func (s Scripts) StateReferences() ([]ScriptStateReference, error) {
 func (s Scripts) PrimeState(now time.Time) int {
 	checks := 0
 	for _, script := range s {
-		if script == nil || script.If.Ignore() {
+		if script == nil || script.ignore() {
 			continue
 		}
 
@@ -143,7 +144,8 @@ func (s Scripts) Render() {
 
 	first := true
 	for _, script := range s {
-		if script.If.Ignore() {
+		if script.ignore() {
+			script.clearIgnoreFreeze()
 			continue
 		}
 
@@ -156,6 +158,7 @@ func (s Scripts) Render() {
 		if checked && !shouldRun {
 			advanceAutoProgress(script.effectiveWeight())
 			script.clearPreparedState()
+			script.clearIgnoreFreeze()
 			continue
 		}
 
@@ -163,18 +166,19 @@ func (s Scripts) Render() {
 		if len(scriptBlock) == 0 {
 			advanceAutoProgress(script.effectiveWeight())
 			script.clearPreparedState()
+			script.clearIgnoreFreeze()
 			continue
 		}
 
 		if first && dotFileHasRenderableContent() {
 			if !dotFileEndsWithNewline() {
-				DotFile.WriteString("\n")
+				writeRenderOutput("\n")
 			}
-			DotFile.WriteString("\n")
+			writeRenderOutput("\n")
 		} else if !dotFileEndsWithNewline() {
-			DotFile.WriteString("\n")
+			writeRenderOutput("\n")
 		}
-		DotFile.WriteString(scriptBlock)
+		writeRenderOutput(scriptBlock)
 
 		if script.stateChecked {
 			_ = aliaeState.WriteLastRun(script.statePath, time.Now(), script.stateFormat)
@@ -183,7 +187,29 @@ func (s Scripts) Render() {
 		first = false
 		advanceAutoProgress(script.effectiveWeight())
 		script.clearPreparedState()
+		script.clearIgnoreFreeze()
 	}
+}
+
+func (s *Script) FreezeIgnore() bool {
+	// Freeze script applicability once per init run so auto-progress uses
+	// the same eligibility decisions as render. This is intentional.
+	s.ifFrozen = true
+	s.ifIgnoreFrozen = s.If.Ignore()
+	return s.ifIgnoreFrozen
+}
+
+func (s *Script) ignore() bool {
+	if s.ifFrozen {
+		return s.ifIgnoreFrozen
+	}
+
+	return s.If.Ignore()
+}
+
+func (s *Script) clearIgnoreFreeze() {
+	s.ifFrozen = false
+	s.ifIgnoreFrozen = false
 }
 
 func (s *Script) prepareState(now time.Time) bool {
@@ -233,7 +259,8 @@ func inlineInterpreterScript(executable, switchName, script string) string {
 
 	command := fmt.Sprintf("%s %s %s", executable, switchName, formatted)
 
-	if context.Current.Shell == CMD {
+	runtime := currentRuntime()
+	if runtime != nil && runtime.Shell == CMD {
 		luaFormatted, ok := formatString(command).(string)
 		if !ok {
 			return ""

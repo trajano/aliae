@@ -7,17 +7,11 @@ import (
 	"io"
 	"net"
 	"net/http"
-	"net/url"
-	"os"
-	"path"
-	"path/filepath"
-	"runtime"
 	"strconv"
 	"strings"
 	"time"
 
 	"github.com/goccy/go-yaml"
-	"github.com/jandedobbeleer/aliae/src/context"
 	"github.com/jandedobbeleer/aliae/src/filesystem"
 	"github.com/jandedobbeleer/aliae/src/shell"
 	aliaeState "github.com/jandedobbeleer/aliae/src/state"
@@ -130,89 +124,6 @@ func loadConfig(configPath string, computeVars bool) (*Aliae, error) {
 	filesystem.SetStatTimeout(aliae.StatTimeout)
 
 	return aliae, nil
-}
-
-func setTemplateConfigContext(configPath string) {
-	if context.Current == nil {
-		return
-	}
-
-	context.Current.ConfigPath = configPath
-	context.Current.ConfigDir = resolveConfigDir(configPath)
-}
-
-func resolveConfigDir(configPath string) string {
-	if !strings.HasPrefix(configPath, "http://") && !strings.HasPrefix(configPath, "https://") {
-		return filepath.Dir(configPath)
-	}
-
-	parsed, err := url.Parse(configPath)
-	if err != nil {
-		return filepath.Dir(configPath)
-	}
-
-	parsed.Path = path.Dir(parsed.Path)
-	parsed.RawQuery = ""
-	parsed.Fragment = ""
-
-	return parsed.String()
-}
-
-func home() string {
-	home := os.Getenv("HOME")
-	if len(home) > 0 {
-		return home
-	}
-
-	// fallback to older implemenations on Windows
-	home = os.Getenv("HOMEDRIVE") + os.Getenv("HOMEPATH")
-	if len(home) == 0 {
-		home = os.Getenv("USERPROFILE")
-	}
-
-	return home
-}
-
-func resolveConfigPath(configPath string) string {
-	if len(configPath) == 0 {
-		configPath = os.Getenv("ALIAE_CONFIG")
-	}
-
-	if len(configPath) == 0 {
-		configPath = path.Join(home(), ".aliae.yaml")
-	}
-
-	return replaceTildePrefixWithHomeDir(configPath)
-}
-
-func ResolveTemplateContext(configPath string) (string, string) {
-	resolvedPath := resolveConfigPath(configPath)
-	return resolvedPath, resolveConfigDir(resolvedPath)
-}
-
-func replaceTildePrefixWithHomeDir(dir string) string {
-	if !strings.HasPrefix(dir, "~") {
-		return dir
-	}
-
-	rem := dir[1:]
-	if len(rem) == 0 || isSeparator(rem[0]) {
-		return home() + rem
-	}
-
-	return dir
-}
-
-func isSeparator(c uint8) bool {
-	if c == '/' {
-		return true
-	}
-
-	if runtime.GOOS == context.WINDOWS && c == '\\' {
-		return true
-	}
-
-	return false
 }
 
 func getRemoteConfig(configURL string, computeVars bool) (*Aliae, error) {
