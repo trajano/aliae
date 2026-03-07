@@ -100,7 +100,7 @@ func TestScriptRender(t *testing.T) {
 		if tc.NonEmptyScript {
 			WriteRenderOutput("foo")
 		}
-		context.Current = &context.Runtime{Shell: PWSH}
+		useRuntime(t, &context.Runtime{Shell: PWSH})
 		tc.Scripts.Render()
 		assert.Equal(t, tc.Expected, strings.TrimSpace(RenderOutputString()), tc.Case)
 	}
@@ -131,14 +131,14 @@ func TestScriptRenderCmdPythonAndPerl(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		context.Current = &context.Runtime{Shell: CMD}
+		useRuntime(t, &context.Runtime{Shell: CMD})
 		assert.Equal(t, tc.Expected, tc.Script.String(), tc.Case)
 	}
 }
 
 func TestScriptStateRunOnce(t *testing.T) {
 	tempDir := t.TempDir()
-	context.Current = &context.Runtime{Shell: PWSH, OS: context.LINUX, Home: tempDir}
+	useRuntime(t, &context.Runtime{Shell: PWSH, OS: context.LINUX, Home: tempDir})
 
 	scripts := Scripts{
 		{
@@ -160,7 +160,7 @@ func TestScriptStateRunOnce(t *testing.T) {
 
 func TestScriptStateRunEvery(t *testing.T) {
 	tempDir := t.TempDir()
-	context.Current = &context.Runtime{Shell: PWSH, OS: context.LINUX, Home: tempDir}
+	useRuntime(t, &context.Runtime{Shell: PWSH, OS: context.LINUX, Home: tempDir})
 
 	statePath := filepath.Join(tempDir, ".local", "aliae", "state", "hourly.state")
 	old := time.Now().Add(-2 * time.Hour)
@@ -188,7 +188,7 @@ func TestScriptStateRunEvery(t *testing.T) {
 
 func TestScriptStateRunEveryNotDue(t *testing.T) {
 	tempDir := t.TempDir()
-	context.Current = &context.Runtime{Shell: PWSH, OS: context.LINUX, Home: tempDir}
+	useRuntime(t, &context.Runtime{Shell: PWSH, OS: context.LINUX, Home: tempDir})
 
 	statePath := filepath.Join(tempDir, ".local", "aliae", "state", "daily.state")
 	require.NoError(t, os.MkdirAll(filepath.Dir(statePath), 0o700))

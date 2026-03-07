@@ -13,7 +13,7 @@ var (
 )
 
 func (a *Alias) git() string {
-	if a.If.Ignore() {
+	if a.Ignore() {
 		return ""
 	}
 

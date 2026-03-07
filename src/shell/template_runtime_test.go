@@ -8,7 +8,7 @@ import (
 )
 
 func TestTemplateParseWithRuntimeUsesProvidedShell(t *testing.T) {
-	context.Current = &context.Runtime{Shell: BASH}
+	useRuntime(t, &context.Runtime{Shell: BASH})
 
 	template := Template(`{{ setArg "value" 1 }}`)
 	runtime := &context.Runtime{Shell: PWSH}

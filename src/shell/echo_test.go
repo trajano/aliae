@@ -78,7 +78,7 @@ print(message)`,
 		if tc.Error {
 			echo = echo.Error()
 		}
-		context.Current = &context.Runtime{Shell: tc.Shell}
+		useRuntime(t, &context.Runtime{Shell: tc.Shell})
 		assert.Equal(t, tc.Expected, echo.String(), tc.Case)
 	}
 }

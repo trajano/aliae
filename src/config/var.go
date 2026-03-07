@@ -13,9 +13,11 @@ import (
 type Vars []*Var
 
 type Var struct {
-	Name  string         `yaml:"name"`
-	Value shell.Template `yaml:"value"`
-	If    shell.If       `yaml:"if"`
+	Name        string         `yaml:"name"`
+	Value       shell.Template `yaml:"value"`
+	If          shell.If       `yaml:"if"`
+	ifEvaluated bool           `yaml:"-"`
+	ifIgnored   bool           `yaml:"-"`
 }
 
 func (a *Aliae) ComputeVars() error {
@@ -41,7 +43,7 @@ func (a *Aliae) computeVars(lineResolver *yamlLineResolver) error {
 	ctx.Var = computed
 
 	for _, variable := range a.Vars {
-		if variable == nil || variable.If.Ignore() {
+		if variable == nil || variable.Ignore() {
 			continue
 		}
 
@@ -51,6 +53,16 @@ func (a *Aliae) computeVars(lineResolver *yamlLineResolver) error {
 	ctx.Var = computed
 	MarkInitInternalProgressVarsComputed()
 	return nil
+}
+
+func (v *Var) Ignore() bool {
+	if v.ifEvaluated {
+		return v.ifIgnored
+	}
+
+	v.ifIgnored = v.If.Ignore()
+	v.ifEvaluated = true
+	return v.ifIgnored
 }
 
 func evaluateVarValue(value shell.Template) any {
@@ -84,6 +96,7 @@ func normalizeVarValue(value string) any {
 
 func ensureTemplateRuntime() *context.Runtime {
 	if context.Current != nil {
+		shell.SetRuntime(context.Current)
 		return context.Current
 	}
 
@@ -94,6 +107,7 @@ func ensureTemplateRuntime() *context.Runtime {
 		Env:   map[string]string{},
 		Var:   map[string]any{},
 	}
+	shell.SetRuntime(context.Current)
 
 	return context.Current
 }

@@ -129,6 +129,7 @@ func referencedStateEntries(configPath string) ([]stateEntry, error) {
 	if context.Current == nil {
 		context.Init(shell.Name())
 	}
+	shell.SetRuntime(context.Current)
 
 	resolvedConfigPath, resolvedConfigDir := cfg.ResolveTemplateContext(configPath)
 	context.Current.ConfigPath = resolvedConfigPath

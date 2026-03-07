@@ -1,36 +1,23 @@
 package shell
 
 import (
-	"sync"
+	"sync/atomic"
 
 	"github.com/jandedobbeleer/aliae/src/context"
 )
 
 var (
-	activeRuntimeMu sync.RWMutex
-	activeRuntime   *context.Runtime
+	activeRuntime atomic.Pointer[context.Runtime]
 )
 
 func SetRuntime(runtime *context.Runtime) func() {
-	activeRuntimeMu.Lock()
-	previous := activeRuntime
-	activeRuntime = runtime
-	activeRuntimeMu.Unlock()
+	previous := activeRuntime.Swap(runtime)
 
 	return func() {
-		activeRuntimeMu.Lock()
-		activeRuntime = previous
-		activeRuntimeMu.Unlock()
+		activeRuntime.Store(previous)
 	}
 }
 
 func currentRuntime() *context.Runtime {
-	activeRuntimeMu.RLock()
-	current := activeRuntime
-	activeRuntimeMu.RUnlock()
-	if current != nil {
-		return current
-	}
-
-	return context.Current
+	return activeRuntime.Load()
 }

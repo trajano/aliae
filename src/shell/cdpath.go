@@ -9,11 +9,13 @@ import (
 type CDPaths []*CDPath
 
 type CDPath struct {
-	Value    Template `yaml:"value"`
-	If       If       `yaml:"if"`
-	template string
-	Force    bool `yaml:"force"`
-	IfExists bool `yaml:"ifExists"`
+	Value       Template `yaml:"value"`
+	If          If       `yaml:"if"`
+	template    string
+	Force       bool `yaml:"force"`
+	IfExists    bool `yaml:"ifExists"`
+	ifEvaluated bool `yaml:"-"`
+	ifIgnored   bool `yaml:"-"`
 }
 
 func (p *CDPath) string() string {
@@ -77,6 +79,16 @@ func cdpathCurrentDirScript() string {
 	return formatStrategy().FormatCDPathCurrentDirScript()
 }
 
+func (p *CDPath) Ignore() bool {
+	if p.ifEvaluated {
+		return p.ifIgnored
+	}
+
+	p.ifIgnored = p.If.Ignore()
+	p.ifEvaluated = true
+	return p.ifIgnored
+}
+
 func (p CDPaths) Render() {
 	if len(p) == 0 {
 		return
@@ -85,7 +97,7 @@ func (p CDPaths) Render() {
 	first := true
 	rendered := false
 	for _, entry := range p {
-		if entry.If.Ignore() {
+		if entry.Ignore() {
 			continue
 		}
 

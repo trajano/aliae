@@ -13,12 +13,14 @@ import (
 type Paths []*Path
 
 type Path struct {
-	Value    Template `yaml:"value"`
-	If       If       `yaml:"if"`
-	template string
-	Persist  bool `yaml:"persist"`
-	Force    bool `yaml:"force"`
-	IfExists bool `yaml:"ifExists"`
+	Value       Template `yaml:"value"`
+	If          If       `yaml:"if"`
+	template    string
+	Persist     bool `yaml:"persist"`
+	Force       bool `yaml:"force"`
+	IfExists    bool `yaml:"ifExists"`
+	ifEvaluated bool `yaml:"-"`
+	ifIgnored   bool `yaml:"-"`
 }
 
 func (p *Path) string() string {
@@ -81,6 +83,16 @@ func (p *Path) render() string {
 	}
 
 	return builder.String()
+}
+
+func (p *Path) Ignore() bool {
+	if p.ifEvaluated {
+		return p.ifIgnored
+	}
+
+	p.ifIgnored = p.If.Ignore()
+	p.ifEvaluated = true
+	return p.ifIgnored
 }
 
 func pathEntryExists(entry string) bool {
@@ -189,7 +201,7 @@ func (p Paths) Render() {
 
 	first := true
 	for _, entry := range p {
-		if entry.If.Ignore() {
+		if entry.Ignore() {
 			continue
 		}
 

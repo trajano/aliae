@@ -12,6 +12,8 @@ type Alias struct {
 	Scope       Option   `yaml:"scope"`
 	template    string
 	Force       bool `yaml:"force"`
+	ifEvaluated bool `yaml:"-"`
+	ifIgnored   bool `yaml:"-"`
 }
 
 type Option string
@@ -49,6 +51,16 @@ func (a *Alias) render() string {
 	return script
 }
 
+func (a *Alias) Ignore() bool {
+	if a.ifEvaluated {
+		return a.ifIgnored
+	}
+
+	a.ifIgnored = a.If.Ignore()
+	a.ifEvaluated = true
+	return a.ifIgnored
+}
+
 func (a Aliae) Render() {
 	if len(a) == 0 {
 		return
@@ -58,7 +70,7 @@ func (a Aliae) Render() {
 	strategy := formatStrategy()
 	wrotePrelude := false
 	for _, alias := range a {
-		if alias.If.Ignore() {
+		if alias.Ignore() {
 			continue
 		}
 

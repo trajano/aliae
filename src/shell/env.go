@@ -12,17 +12,19 @@ import (
 type Envs []*Env
 
 type Env struct {
-	Value     any      `yaml:"value"`
-	Name      string   `yaml:"name"`
-	Delimiter Template `yaml:"delimiter"`
-	If        If       `yaml:"if"`
-	Type      EnvType  `yaml:"type"`
-	template  string
-	pathCheck string
-	IsPath    bool `yaml:"isPath"`
-	IfExists  bool `yaml:"ifExists"`
-	Persist   bool `yaml:"persist"`
-	parsed    bool
+	Value       any      `yaml:"value"`
+	Name        string   `yaml:"name"`
+	Delimiter   Template `yaml:"delimiter"`
+	If          If       `yaml:"if"`
+	Type        EnvType  `yaml:"type"`
+	template    string
+	pathCheck   string
+	IsPath      bool `yaml:"isPath"`
+	IfExists    bool `yaml:"ifExists"`
+	Persist     bool `yaml:"persist"`
+	parsed      bool
+	ifEvaluated bool `yaml:"-"`
+	ifIgnored   bool `yaml:"-"`
 }
 
 func toString(value any) string {
@@ -177,11 +179,21 @@ func (e Envs) Render() {
 	}
 }
 
+func (e *Env) Ignore() bool {
+	if e.ifEvaluated {
+		return e.ifIgnored
+	}
+
+	e.ifIgnored = e.If.Ignore()
+	e.ifEvaluated = true
+	return e.ifIgnored
+}
+
 func (e Envs) filter() Envs {
 	var env Envs
 
 	for _, variable := range e {
-		if variable.If.Ignore() {
+		if variable.Ignore() {
 			continue
 		}
 

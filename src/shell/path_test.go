@@ -179,7 +179,7 @@ export PATH="/usr/bin:$PATH"`,
 	}
 
 	for _, tc := range cases {
-		context.Current = &context.Runtime{Shell: tc.Shell, Home: "/Users/jan", OS: tc.OS, Path: &context.Path{"/usr/local/bin/src"}}
+		useRuntime(t, &context.Runtime{Shell: tc.Shell, Home: "/Users/jan", OS: tc.OS, Path: &context.Path{"/usr/local/bin/src"}})
 		assert.Equal(t, tc.Expected, tc.Path.string(), tc.Case)
 	}
 }
@@ -267,7 +267,7 @@ $env:PATH = "/Users/jan/.tools/bin" + ':' + $env:PATH`,
 		if tc.NonEmptyScript {
 			WriteRenderOutput("foo")
 		}
-		context.Current = &context.Runtime{Shell: tc.Shell, OS: tc.OS, Path: &context.Path{}}
+		useRuntime(t, &context.Runtime{Shell: tc.Shell, OS: tc.OS, Path: &context.Path{}})
 		tc.Paths.Render()
 		assert.Equal(t, tc.Expected, strings.TrimSpace(RenderOutputString()), tc.Case)
 	}
@@ -409,7 +409,7 @@ $env.Path = ($env.Path | prepend "D:\\bin")`,
 	}
 
 	for _, tc := range cases {
-		context.Current = &context.Runtime{Shell: tc.Shell, Home: "/Users/jan", OS: tc.OS, Path: &context.Path{"/usr/local/bin", "C:\\bin", "D:\\bin"}}
+		useRuntime(t, &context.Runtime{Shell: tc.Shell, Home: "/Users/jan", OS: tc.OS, Path: &context.Path{"/usr/local/bin", "C:\\bin", "D:\\bin"}})
 		assert.Equal(t, tc.Expected, tc.Path.string(), tc.Case)
 	}
 }
@@ -444,11 +444,11 @@ func TestPathIfExists(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		context.Current = &context.Runtime{
+		useRuntime(t, &context.Runtime{
 			Shell: BASH,
 			Home:  home,
 			Path:  &context.Path{},
-		}
+		})
 		assert.Equal(t, tc.Expected, tc.Path.string(), tc.Case)
 	}
 }
@@ -457,12 +457,12 @@ func TestPathWindowsMSYS2Normalization(t *testing.T) {
 	t.Setenv("MSYSTEM", "MINGW64")
 
 	path := &Path{Value: "{{ .Home }}/AppData/Local/Android/Sdk/platform-tools"}
-	context.Current = &context.Runtime{
+	useRuntime(t, &context.Runtime{
 		Shell: BASH,
 		OS:    context.WINDOWS,
 		Home:  `C:\Users\trajano`,
 		Path:  &context.Path{},
-	}
+	})
 
 	got := path.string()
 	assert.Equal(t, `export PATH="/c/Users/trajano/AppData/Local/Android/Sdk/platform-tools:$PATH"`, got)
@@ -472,12 +472,12 @@ func TestPathWindowsWithoutMSYS2Normalization(t *testing.T) {
 	t.Setenv("MSYSTEM", "")
 
 	path := &Path{Value: "{{ .Home }}/AppData/Local/Android/Sdk/platform-tools"}
-	context.Current = &context.Runtime{
+	useRuntime(t, &context.Runtime{
 		Shell: BASH,
 		OS:    context.WINDOWS,
 		Home:  `C:\Users\trajano`,
 		Path:  &context.Path{},
-	}
+	})
 
 	got := path.string()
 	assert.Equal(t, `export PATH="C:\Users\trajano/AppData/Local/Android/Sdk/platform-tools:$PATH"`, got)

@@ -11,6 +11,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"text/template"
 
 	"github.com/jandedobbeleer/aliae/src/context"
@@ -26,8 +27,7 @@ var (
 	pathExistsCache   = map[string]pathInfo{}
 	pathExistsCacheMu sync.RWMutex
 
-	templateRuntime   *context.Runtime
-	templateRuntimeMu sync.RWMutex
+	templateRuntime atomic.Pointer[context.Runtime]
 )
 
 type pathInfo struct {
@@ -102,22 +102,15 @@ func funcMap() template.FuncMap {
 }
 
 func SetTemplateRuntime(runtime *context.Runtime) func() {
-	templateRuntimeMu.Lock()
-	previous := templateRuntime
-	templateRuntime = runtime
-	templateRuntimeMu.Unlock()
+	previous := templateRuntime.Swap(runtime)
 
 	return func() {
-		templateRuntimeMu.Lock()
-		templateRuntime = previous
-		templateRuntimeMu.Unlock()
+		templateRuntime.Store(previous)
 	}
 }
 
 func currentTemplateRuntime() *context.Runtime {
-	templateRuntimeMu.RLock()
-	current := templateRuntime
-	templateRuntimeMu.RUnlock()
+	current := templateRuntime.Load()
 	if current != nil {
 		return current
 	}

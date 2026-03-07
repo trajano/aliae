@@ -33,37 +33,37 @@ func (a *Aliae) progressTotalWeight() float64 {
 	total := 0.0
 	WalkConfig(a, ConfigVisitorFuncs{
 		OnVar: func(variable *Var) {
-			if variable.If.Ignore() {
+			if variable.Ignore() {
 				return
 			}
 			total += 1
 		},
 		OnAlias: func(alias *shell.Alias) {
-			if alias.If.Ignore() {
+			if alias.Ignore() {
 				return
 			}
 			total += 1
 		},
 		OnEnv: func(env *shell.Env) {
-			if env.If.Ignore() {
+			if env.Ignore() {
 				return
 			}
 			total += 1
 		},
 		OnPath: func(path *shell.Path) {
-			if path.If.Ignore() {
+			if path.Ignore() {
 				return
 			}
 			total += 1
 		},
 		OnCDPath: func(cdpath *shell.CDPath) {
-			if cdpath.If.Ignore() {
+			if cdpath.Ignore() {
 				return
 			}
 			total += 1
 		},
 		OnLink: func(link *shell.Link) {
-			if link.If.Ignore() {
+			if link.Ignore() {
 				return
 			}
 			total += 1
@@ -98,7 +98,7 @@ func (a *Aliae) progressVarWeight() float64 {
 
 	total := 0.0
 	for _, variable := range a.Vars {
-		if variable == nil || variable.If.Ignore() {
+		if variable == nil || variable.Ignore() {
 			continue
 		}
 		total += 1

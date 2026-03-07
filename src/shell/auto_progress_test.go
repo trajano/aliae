@@ -10,7 +10,7 @@ import (
 
 func TestAutoProgressRendersAndResets(t *testing.T) {
 	ResetRenderOutput()
-	context.Current = &context.Runtime{Shell: BASH}
+	useRuntime(t, &context.Runtime{Shell: BASH})
 
 	StartAutoProgress(AutoProgressConfig{
 		Enabled:         true,
@@ -43,7 +43,7 @@ func TestAutoProgressRendersAndResets(t *testing.T) {
 
 func TestAutoProgressDisabled(t *testing.T) {
 	ResetRenderOutput()
-	context.Current = &context.Runtime{Shell: BASH}
+	useRuntime(t, &context.Runtime{Shell: BASH})
 
 	StartAutoProgress(AutoProgressConfig{
 		Enabled:     false,

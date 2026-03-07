@@ -59,7 +59,7 @@ func TestAliasCommand(t *testing.T) {
 
 	for _, tc := range cases {
 		alias.template = ""
-		context.Current = &context.Runtime{Shell: tc.Shell}
+		useRuntime(t, &context.Runtime{Shell: tc.Shell})
 		assert.Equal(t, tc.Expected, alias.string(), tc.Case)
 	}
 }
@@ -166,7 +166,7 @@ def __foobar():
 			alias.Description = tc.Description
 		}
 
-		context.Current = &context.Runtime{Shell: tc.Shell}
+		useRuntime(t, &context.Runtime{Shell: tc.Shell})
 		assert.Equal(t, tc.Expected, alias.string(), tc.Case)
 	}
 }
@@ -209,7 +209,7 @@ alias BAR="foo"`,
 
 	for _, tc := range cases {
 		ResetRenderOutput()
-		context.Current = &context.Runtime{Shell: BASH}
+		useRuntime(t, &context.Runtime{Shell: BASH})
 		tc.Aliae.Render()
 		assert.Equal(t, tc.Expected, RenderOutputString(), tc.Case)
 	}
@@ -240,14 +240,14 @@ func TestAliasWithTemplate(t *testing.T) {
 
 	for _, tc := range cases {
 		alias := &Alias{Name: "a", Value: tc.Value}
-		context.Current = &context.Runtime{Shell: BASH, Home: "/Users/jan", OS: context.WINDOWS}
+		useRuntime(t, &context.Runtime{Shell: BASH, Home: "/Users/jan", OS: context.WINDOWS})
 		assert.Equal(t, tc.Expected, alias.string(), tc.Case)
 	}
 }
 
 func TestAliasWithSpacePowerShell(t *testing.T) {
 	alias := &Alias{Name: "foo", Value: "bar baz"}
-	context.Current = &context.Runtime{Shell: PWSH}
+	useRuntime(t, &context.Runtime{Shell: PWSH})
 	assert.Equal(t, `function foo() {
 	bar baz $args
 }`, alias.string())
@@ -255,7 +255,7 @@ func TestAliasWithSpacePowerShell(t *testing.T) {
 
 func TestAliasSingleQuoteFish(t *testing.T) {
 	alias := &Alias{Name: "foo", Value: "echo 'bar'"}
-	context.Current = &context.Runtime{Shell: FISH}
+	useRuntime(t, &context.Runtime{Shell: FISH})
 	assert.Equal(t, `alias foo "echo 'bar'"`, alias.string())
 }
 
@@ -349,7 +349,7 @@ def __%s(args):
 	for _, interpreter := range interpreterCases {
 		for _, shellCase := range shellCases {
 			alias := &Alias{Name: interpreter.Name, Value: Template(interpreter.Value), Type: interpreter.AliasType}
-			context.Current = &context.Runtime{Shell: shellCase.Shell}
+			useRuntime(t, &context.Runtime{Shell: shellCase.Shell})
 
 			var expected string
 			if shellCase.Shell == XONSH {

@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	cfg "github.com/jandedobbeleer/aliae/src/config"
+	"github.com/jandedobbeleer/aliae/src/context"
 	"github.com/jandedobbeleer/aliae/src/shell"
 )
 
@@ -44,6 +45,11 @@ func createNuInit(script string) string {
 }
 
 func formatError(err error) string {
+	restoreRuntime := shell.SetRuntime(context.Current)
+	defer restoreRuntime()
+	restoreTemplateRuntime := shell.SetTemplateRuntime(context.Current)
+	defer restoreTemplateRuntime()
+
 	message := fmt.Sprintf("aliae error:\n%s", err.Error())
 	e := shell.Echo{Message: message}
 	return e.Error().String()

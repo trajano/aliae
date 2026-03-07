@@ -313,6 +313,7 @@ func toLinkOutput(items shell.Links) []yaml.MapSlice {
 func printVariableDiagnostics(out io.Writer) error {
 	shellName, trace := shell.NameVerbose()
 	context.Init(shellName)
+	shell.SetRuntime(context.Current)
 
 	configPath, configDir := cfg.ResolveTemplateContext(config)
 	context.Current.ConfigPath = configPath
