@@ -5,7 +5,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/jandedobbeleer/aliae/src/context"
 	aliaeState "github.com/jandedobbeleer/aliae/src/state"
 )
 
@@ -233,7 +232,8 @@ func inlineInterpreterScript(executable, switchName, script string) string {
 
 	command := fmt.Sprintf("%s %s %s", executable, switchName, formatted)
 
-	if context.Current.Shell == CMD {
+	runtime := currentRuntime()
+	if runtime != nil && runtime.Shell == CMD {
 		luaFormatted, ok := formatString(command).(string)
 		if !ok {
 			return ""

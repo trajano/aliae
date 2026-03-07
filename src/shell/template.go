@@ -36,7 +36,7 @@ type pathInfo struct {
 }
 
 func (t Template) Parse() Template {
-	value, err := parse(string(t), context.Current)
+	value, err := parse(string(t), currentRuntime())
 	if err != nil {
 		return t
 	}
@@ -122,7 +122,7 @@ func currentTemplateRuntime() *context.Runtime {
 		return current
 	}
 
-	return context.Current
+	return currentRuntime()
 }
 
 func formatString(variable any) any {

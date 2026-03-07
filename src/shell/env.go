@@ -93,7 +93,8 @@ func (e *Env) parse() {
 }
 
 func (e *Env) normalizePath() {
-	if !e.IsPath || context.Current == nil || context.Current.OS != context.WINDOWS {
+	runtime := currentRuntime()
+	if !e.IsPath || runtime == nil || runtime.OS != context.WINDOWS {
 		return
 	}
 
@@ -109,7 +110,7 @@ func (e *Env) normalizePath() {
 			continue
 		}
 
-		if context.Current.Shell == BASH && isMSYS2Environment() {
+		if runtime.Shell == BASH && isMSYS2Environment() {
 			if msysPath, isWindowsPath := windowsToMSYSPath(trimmed); isWindowsPath {
 				trimmed = msysPath
 			}
@@ -150,7 +151,8 @@ func (e Envs) Render() {
 		writeRenderOutput("\n\n")
 	}
 
-	if context.Current.Shell == NU {
+	runtime := currentRuntime()
+	if runtime != nil && runtime.Shell == NU {
 		writeRenderOutput(NuEnvBlockStart)
 	}
 
@@ -170,7 +172,7 @@ func (e Envs) Render() {
 		first = false
 	}
 
-	if context.Current.Shell == NU {
+	if runtime != nil && runtime.Shell == NU {
 		writeRenderOutput(NuEnvBlockEnd)
 	}
 }

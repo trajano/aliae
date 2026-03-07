@@ -22,8 +22,12 @@ func (p *CDPath) string() string {
 
 func (p *CDPath) render() string {
 	p.Value = p.Value.Parse()
-	if context.Current.CDPath == nil {
-		context.Current.CDPath = &context.Path{}
+	runtime := currentRuntime()
+	if runtime == nil {
+		return ""
+	}
+	if runtime.CDPath == nil {
+		runtime.CDPath = &context.Path{}
 	}
 
 	var builder strings.Builder
@@ -46,11 +50,11 @@ func (p *CDPath) render() string {
 
 		line = normalizePathEntry(rawLine)
 
-		if context.Current.CDPath.Contains(line) && !p.Force {
+		if runtime.CDPath.Contains(line) && !p.Force {
 			continue
 		}
 
-		context.Current.CDPath.AppendCDPath(line)
+		runtime.CDPath.AppendCDPath(line)
 
 		if !first {
 			builder.WriteString("\n")
@@ -108,11 +112,15 @@ func (p CDPaths) Render() {
 
 	// Some shells stop treating the current directory as an implicit fallback
 	// when CDPATH/cdpath is set and "." is missing.
-	if rendered && !context.Current.CDPath.Contains(".") {
+	runtime := currentRuntime()
+	if runtime == nil {
+		return
+	}
+	if rendered && !runtime.CDPath.Contains(".") {
 		if !dotFileEndsWithNewline() {
 			writeRenderOutput("\n")
 		}
 		writeRenderOutput(cdpathCurrentDirScript())
-		context.Current.CDPath.AppendCDPath(".")
+		runtime.CDPath.AppendCDPath(".")
 	}
 }

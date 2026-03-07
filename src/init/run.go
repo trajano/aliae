@@ -18,12 +18,17 @@ func runWithObserver(configPath, sh string, observer Observer, options runOption
 	var output strings.Builder
 	restoreOutput := shell.SetRenderOutput(&output)
 	defer restoreOutput()
+	restoreRuntime := shell.SetRuntime(nil)
+	defer restoreRuntime()
+	restoreTemplateRuntime := shell.SetTemplateRuntime(nil)
+	defer restoreTemplateRuntime()
 
 	var aliae *cfg.Aliae
 	if err := runPhase(observer, PhaseContextInit, func() error {
 		runtime := context.NewRuntime(sh)
 		context.Current = runtime
-		shell.SetTemplateRuntime(runtime)
+		restoreRuntime = shell.SetRuntime(runtime)
+		restoreTemplateRuntime = shell.SetTemplateRuntime(runtime)
 		return nil
 	}); err != nil {
 		return "", err

@@ -1,7 +1,5 @@
 package shell
 
-import "github.com/jandedobbeleer/aliae/src/context"
-
 // ShellFormatStrategy defines shell-specific rendering behavior for all supported section types.
 //
 // This interface is intentionally public so callers can depend on rendering capabilities
@@ -24,11 +22,12 @@ type ShellFormatStrategy interface {
 // formatStrategy applies a Factory Method-style selection to return
 // the concrete ShellFormatStrategy for the active shell runtime.
 func formatStrategy() ShellFormatStrategy {
-	if context.Current == nil {
+	runtime := currentRuntime()
+	if runtime == nil {
 		return noopFormatStrategy{}
 	}
 
-	return formatStrategyForShell(context.Current.Shell)
+	return formatStrategyForShell(runtime.Shell)
 }
 
 func formatStrategyForShell(shellName string) ShellFormatStrategy {
