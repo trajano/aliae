@@ -69,6 +69,7 @@ func runWithObserver(configPath, sh string, observer Observer, options runOption
 	}
 
 	emitVisits(aliae, observer)
+	cfg.PrecomputeProgressWeights(aliae)
 
 	if err := runPhase(observer, PhaseAutoProgressOn, func() error {
 		shell.StartAutoProgress(cfg.AutoProgressConfig(aliae))
