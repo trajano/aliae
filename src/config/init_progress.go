@@ -6,6 +6,14 @@ func AutoProgressConfig(a *Aliae) shell.AutoProgressConfig {
 	return a.autoProgressConfig()
 }
 
+func PrecomputeProgressWeights(a *Aliae) {
+	if a == nil {
+		return
+	}
+
+	a.precomputeProgressWeights()
+}
+
 func (a *Aliae) autoProgressConfig() shell.AutoProgressConfig {
 	if a == nil || !a.Progress.Enabled {
 		return shell.AutoProgressConfig{}
@@ -30,13 +38,24 @@ func (a *Aliae) progressTotalWeight() float64 {
 		return 0
 	}
 
+	a.precomputeProgressWeights()
+	return a.progressTotalWeightCached
+}
+
+func (a *Aliae) precomputeProgressWeights() {
+	if a == nil || a.progressWeightsPrepared {
+		return
+	}
+
 	total := 0.0
+	varWeight := 0.0
 	WalkConfig(a, ConfigVisitorFuncs{
 		OnVar: func(variable *Var) {
 			if variable.Ignore() {
 				return
 			}
 			total += 1
+			varWeight += 1
 		},
 		OnAlias: func(alias *shell.Alias) {
 			if alias.Ignore() {
@@ -76,7 +95,9 @@ func (a *Aliae) progressTotalWeight() float64 {
 		},
 	})
 
-	return total
+	a.progressTotalWeightCached = total
+	a.progressVarWeightCached = varWeight
+	a.progressWeightsPrepared = true
 }
 
 func scriptWeight(script *shell.Script) float64 {
@@ -96,13 +117,6 @@ func (a *Aliae) progressVarWeight() float64 {
 		return 0
 	}
 
-	total := 0.0
-	for _, variable := range a.Vars {
-		if variable == nil || variable.Ignore() {
-			continue
-		}
-		total += 1
-	}
-
-	return total
+	a.precomputeProgressWeights()
+	return a.progressVarWeightCached
 }

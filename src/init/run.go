@@ -69,6 +69,7 @@ func runWithObserver(configPath, sh string, observer Observer, options runOption
 	}
 
 	emitVisits(aliae, observer)
+	cfg.PrecomputeProgressWeights(aliae)
 
 	if err := runPhase(observer, PhaseAutoProgressOn, func() error {
 		shell.StartAutoProgress(cfg.AutoProgressConfig(aliae))
@@ -115,36 +116,55 @@ func runRenderPhases(aliae *cfg.Aliae, observer Observer) error {
 		return nil
 	}
 
-	renderPhases := []struct {
-		renderer interface{ Render() }
-		phase    Phase
-	}{
-		{renderer: aliae.Envs, phase: PhaseRenderEnv},
-		{renderer: aliae.Paths, phase: PhaseRenderPath},
-		{renderer: aliae.CDPaths, phase: PhaseRenderCDPath},
-		{renderer: aliae.Aliae, phase: PhaseRenderAlias},
-		{renderer: aliae.Links, phase: PhaseRenderLink},
-		{renderer: aliae.Scripts, phase: PhaseRenderScript},
-	}
-
 	if observer == nil {
-		for _, step := range renderPhases {
-			step.renderer.Render()
-		}
+		aliae.Envs.Render()
+		aliae.Paths.Render()
+		aliae.CDPaths.Render()
+		aliae.Aliae.Render()
+		aliae.Links.Render()
+		aliae.Scripts.Render()
 		return nil
 	}
 
-	for _, step := range renderPhases {
-		current := step
-		if err := runPhase(observer, current.phase, func() error {
-			current.renderer.Render()
-			return nil
-		}); err != nil {
-			return err
-		}
+	if err := runPhase(observer, PhaseRenderEnv, func() error {
+		aliae.Envs.Render()
+		return nil
+	}); err != nil {
+		return err
 	}
 
-	return nil
+	if err := runPhase(observer, PhaseRenderPath, func() error {
+		aliae.Paths.Render()
+		return nil
+	}); err != nil {
+		return err
+	}
+
+	if err := runPhase(observer, PhaseRenderCDPath, func() error {
+		aliae.CDPaths.Render()
+		return nil
+	}); err != nil {
+		return err
+	}
+
+	if err := runPhase(observer, PhaseRenderAlias, func() error {
+		aliae.Aliae.Render()
+		return nil
+	}); err != nil {
+		return err
+	}
+
+	if err := runPhase(observer, PhaseRenderLink, func() error {
+		aliae.Links.Render()
+		return nil
+	}); err != nil {
+		return err
+	}
+
+	return runPhase(observer, PhaseRenderScript, func() error {
+		aliae.Scripts.Render()
+		return nil
+	})
 }
 
 func emitVisits(aliae *cfg.Aliae, observer Observer) {

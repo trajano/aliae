@@ -1,6 +1,10 @@
 package init
 
-import "time"
+import (
+	"time"
+
+	aliaeState "github.com/jandedobbeleer/aliae/src/state"
+)
 
 type BenchmarkStep struct {
 	Name     string
@@ -18,12 +22,24 @@ func Benchmark(configPath, sh string) ([]BenchmarkStep, []VisitBenchmark, error)
 		steps: make([]BenchmarkStep, 0, 12),
 		visit: map[Section]VisitBenchmark{},
 	}
+	aliaeState.ResetMetrics()
+	aliaeState.EnableMetrics(true)
+	defer aliaeState.EnableMetrics(false)
 
 	if _, err := runWithObserver(configPath, sh, observer, runOptions{
 		computeVars: false,
 		primeState:  false,
 	}); err != nil {
 		return nil, nil, err
+	}
+
+	metrics := aliaeState.SnapshotMetrics()
+	if metrics.ShouldRunCount > 0 {
+		observer.visit[SectionStateCheck] = VisitBenchmark{
+			Section:  SectionStateCheck,
+			Count:    int(metrics.ShouldRunCount),
+			Duration: metrics.ShouldRunTime,
+		}
 	}
 
 	return observer.steps, observer.visitSummaries(), nil

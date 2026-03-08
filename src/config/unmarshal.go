@@ -26,6 +26,10 @@ type Aliae struct {
 	Progress    Progress      `yaml:"progress,omitempty"`
 	StatTimeout time.Duration `yaml:"stat_timeout"`
 	Cache       bool          `yaml:"cache,omitempty"`
+
+	progressWeightsPrepared   bool    `yaml:"-"`
+	progressTotalWeightCached float64 `yaml:"-"`
+	progressVarWeightCached   float64 `yaml:"-"`
 }
 
 type FuncMap []StringFunc

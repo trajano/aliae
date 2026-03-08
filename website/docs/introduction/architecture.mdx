@@ -64,6 +64,8 @@ C4Component
         Component(initPipeline, "init pipeline", "src/init", "Runs init phases")
         Component(configMod, "config", "src/config", "Load, merge, validate, vars")
         Component(shellMod, "shell", "src/shell", "Render shell-specific output")
+        Component(helperProviders, "template helper providers", "src/shell/templatefunc", "Strategy-style helper registration")
+        Component(variableProviders, "template variable providers", "src/shell/templatevar", "Runtime template variable resolution")
         Component(ctxMod, "context", "src/context", "Runtime context")
         Component(stateMod, "state", "src/state", "Script state persistence")
     }
@@ -73,5 +75,8 @@ C4Component
     Rel(initPipeline, ctxMod, "Initializes runtime")
     Rel(initPipeline, configMod, "Loads and evaluates config")
     Rel(initPipeline, shellMod, "Renders output")
+    Rel(shellMod, helperProviders, "Builds template func map")
+    Rel(shellMod, variableProviders, "Builds runtime template context")
+    Rel(variableProviders, ctxMod, "Reads runtime values")
     Rel(initPipeline, stateMod, "Checks script state")
 ```

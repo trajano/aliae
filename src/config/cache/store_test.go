@@ -22,10 +22,11 @@ func TestStoreAndLoadRoundTrip(t *testing.T) {
 
 	require.NoError(t, Store(cachePath, "schema-hash", true, []string{source}, payload))
 
-	loaded, ok, err := Load(cachePath, "schema-hash", true)
+	loaded, ok, err := Load[[]byte](cachePath, "schema-hash", true)
 	require.NoError(t, err)
 	assert.True(t, ok)
-	assert.Equal(t, payload, loaded)
+	require.NotNil(t, loaded)
+	assert.Equal(t, payload, *loaded)
 }
 
 func TestLoadInvalidatesOnSourceChange(t *testing.T) {
@@ -41,7 +42,7 @@ func TestLoadInvalidatesOnSourceChange(t *testing.T) {
 	time.Sleep(2 * time.Millisecond)
 	require.NoError(t, os.WriteFile(source, []byte("alias:\n  - name: two\n"), 0o600))
 
-	loaded, ok, err := Load(cachePath, "schema-hash", false)
+	loaded, ok, err := Load[[]byte](cachePath, "schema-hash", false)
 	require.NoError(t, err)
 	assert.False(t, ok)
 	assert.Nil(t, loaded)

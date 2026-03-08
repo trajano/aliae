@@ -3,14 +3,12 @@ package shell
 import (
 	"bytes"
 	"fmt"
-	"os"
 	"os/exec"
 	"path/filepath"
 	"runtime"
 	"slices"
 	"strconv"
 	"strings"
-	"sync"
 	"sync/atomic"
 	"text/template"
 
@@ -24,9 +22,9 @@ var (
 	// Template helper caches are process-global and intentionally ephemeral.
 	// The CLI is expected to finish quickly (sub-second target), so cache
 	// lifetime is bounded to the process and tuned for startup throughput.
-	hasCommandCache sync.Map
+	hasCommandCache = map[string]bool{}
 
-	pathExistsCache sync.Map
+	pathExistsCache = map[string]pathInfo{}
 
 	templateRuntime atomic.Pointer[context.Runtime]
 )
@@ -66,7 +64,9 @@ func parse(text string, ctx any) (string, error) {
 		return text, nil
 	}
 
-	parsedTemplate, err := template.New("alias").Option("missingkey=zero").Funcs(funcMap()).Parse(text)
+	ctx = templateContext(ctx)
+
+	parsedTemplate, err := template.New("alias").Option("missingkey=zero").Funcs(shellTemplateFuncMap).Parse(text)
 	if err != nil {
 		return "", err
 	}
@@ -80,26 +80,6 @@ func parse(text string, ctx any) (string, error) {
 	}
 
 	return buffer.String(), nil
-}
-
-func funcMap() template.FuncMap {
-	funcMap := template.FuncMap{
-		"isPwshOption":      isPwshOption,
-		"isPwshScope":       isPwshScope,
-		"formatString":      formatString,
-		"formatArray":       formatArray,
-		"escapeString":      escapeString,
-		"env":               os.Getenv,
-		"match":             match,
-		"hasCommand":        hasCommand,
-		"hasCommandNoCache": hasCommandNoCache,
-		"fileExists":        fileExists,
-		"dirExists":         dirExists,
-		"isDir":             isDir,
-		"setArg":            setArg,
-		"progress":          progress,
-	}
-	return funcMap
 }
 
 func SetTemplateRuntime(current *context.Runtime) func() {
@@ -188,14 +168,14 @@ func match(variable string, values ...string) bool {
 }
 
 func hasCommand(command string) bool {
-	cached, ok := hasCommandCache.Load(command)
+	cached, ok := hasCommandCache[command]
 	if ok {
-		return cached.(bool)
+		return cached
 	}
 
 	result := hasCommandNoCache(command)
 
-	hasCommandCache.Store(command, result)
+	hasCommandCache[command] = result
 
 	return result
 }
@@ -216,8 +196,8 @@ func dirExists(path string) bool {
 }
 
 func pathExists(path string) pathInfo {
-	if cached, ok := pathExistsCache.Load(path); ok {
-		return cached.(pathInfo)
+	if cached, ok := pathExistsCache[path]; ok {
+		return cached
 	}
 
 	info, err := filesystem.StatWithTimeout(path, filesystem.StatTimeout())
@@ -226,7 +206,7 @@ func pathExists(path string) pathInfo {
 		isDir:  err == nil && info.IsDir(),
 	}
 
-	pathExistsCache.Store(path, result)
+	pathExistsCache[path] = result
 
 	return result
 }
@@ -245,17 +225,11 @@ func resolveFromHome(path string) string {
 }
 
 func clearPathExistsCache() {
-	pathExistsCache.Range(func(key, _ any) bool {
-		pathExistsCache.Delete(key)
-		return true
-	})
+	pathExistsCache = map[string]pathInfo{}
 }
 
 func clearHasCommandCache() {
-	hasCommandCache.Range(func(key, _ any) bool {
-		hasCommandCache.Delete(key)
-		return true
-	})
+	hasCommandCache = map[string]bool{}
 }
 
 // ResetTemplateCaches clears in-memory caches used by template helper functions.

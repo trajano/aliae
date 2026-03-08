@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
+	"sync/atomic"
 	"time"
 
 	"github.com/jandedobbeleer/aliae/src/context"
@@ -22,6 +23,33 @@ const (
 
 type fileState struct {
 	LastRun string `json:"lastRun"`
+}
+
+type Metrics struct {
+	ShouldRunCount int64
+	ShouldRunTime  time.Duration
+}
+
+var (
+	metricsEnabled         atomic.Bool
+	shouldRunCount         atomic.Int64
+	shouldRunDurationNanos atomic.Int64
+)
+
+func EnableMetrics(enabled bool) {
+	metricsEnabled.Store(enabled)
+}
+
+func ResetMetrics() {
+	shouldRunCount.Store(0)
+	shouldRunDurationNanos.Store(0)
+}
+
+func SnapshotMetrics() Metrics {
+	return Metrics{
+		ShouldRunCount: shouldRunCount.Load(),
+		ShouldRunTime:  time.Duration(shouldRunDurationNanos.Load()),
+	}
 }
 
 func RootDir() string {
@@ -94,25 +122,47 @@ func ReadLastRun(path string) (*time.Time, error) {
 }
 
 func ShouldRun(path string, runEvery time.Duration, now time.Time) (bool, *time.Time, error) {
-	lastRun, err := ReadLastRun(path)
+	if metricsEnabled.Load() {
+		start := time.Now()
+		run, lastRun, err := shouldRun(path, runEvery, now)
+		shouldRunCount.Add(1)
+		shouldRunDurationNanos.Add(time.Since(start).Nanoseconds())
+		return run, lastRun, err
+	}
+
+	return shouldRun(path, runEvery, now)
+}
+
+func shouldRun(path string, runEvery time.Duration, now time.Time) (bool, *time.Time, error) {
+	info, err := os.Stat(path)
+	if errors.Is(err, os.ErrNotExist) {
+		return true, nil, nil
+	}
 	if err != nil {
 		return true, nil, err
 	}
 
-	if lastRun == nil {
-		return true, nil, nil
-	}
+	lastRun := info.ModTime().UTC()
 
 	if runEvery <= 0 {
-		return false, lastRun, nil
+		return false, &lastRun, nil
 	}
 
-	return now.Sub(*lastRun) >= runEvery, lastRun, nil
+	return now.Sub(lastRun) >= runEvery, &lastRun, nil
 }
 
 func WriteLastRun(path string, now time.Time, format FileFormat) error {
 	if err := os.MkdirAll(filepath.Dir(path), 0o700); err != nil {
 		return err
+	}
+
+	writeAndStamp := func(data []byte) error {
+		if err := os.WriteFile(path, data, 0o600); err != nil {
+			return err
+		}
+
+		timestamp := now.UTC()
+		return os.Chtimes(path, timestamp, timestamp)
 	}
 
 	switch format {
@@ -121,9 +171,9 @@ func WriteLastRun(path string, now time.Time, format FileFormat) error {
 		if err != nil {
 			return err
 		}
-		return os.WriteFile(path, payload, 0o600)
+		return writeAndStamp(payload)
 	case FormatText:
-		return os.WriteFile(path, []byte(now.UTC().Format(time.RFC3339Nano)), 0o600)
+		return writeAndStamp([]byte(now.UTC().Format(time.RFC3339Nano)))
 	default:
 		return fmt.Errorf("unsupported state format: %s", format)
 	}

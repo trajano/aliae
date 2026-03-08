@@ -30,14 +30,15 @@ type Observer interface {
 type Section string
 
 const (
-	SectionExtend Section = "extends"
-	SectionVar    Section = "var"
-	SectionEnv    Section = "env"
-	SectionPath   Section = "path"
-	SectionCDPath Section = "cdpath"
-	SectionAlias  Section = "alias"
-	SectionLink   Section = "link"
-	SectionScript Section = "script"
+	SectionExtend     Section = "extends"
+	SectionVar        Section = "var"
+	SectionEnv        Section = "env"
+	SectionPath       Section = "path"
+	SectionCDPath     Section = "cdpath"
+	SectionAlias      Section = "alias"
+	SectionLink       Section = "link"
+	SectionScript     Section = "script"
+	SectionStateCheck Section = "state_check"
 )
 
 func OrderedSections() []Section {
@@ -50,6 +51,7 @@ func OrderedSections() []Section {
 		SectionAlias,
 		SectionLink,
 		SectionScript,
+		SectionStateCheck,
 	}
 }
 

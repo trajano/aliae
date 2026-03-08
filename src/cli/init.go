@@ -12,7 +12,11 @@ var (
 	printOutput bool
 	ttyOnly     bool
 
-	initCmd = &cobra.Command{
+	initCmd = newInitCommand()
+)
+
+func newInitCommand() *cobra.Command {
+	return &cobra.Command{
 		Use:   "init [bash|zsh|fish|pwsh|powershell|cmd|nu|tcsh|xonsh]",
 		Short: "Initialize your shell and config",
 		Long: `Initialize your shell and config.
@@ -39,12 +43,15 @@ This is a personal fork. For the official project and docs, see https://aliae.de
 			runInit(cmd, args[0])
 		},
 	}
-)
+}
 
-func init() {
+func registerInitCommand(root *cobra.Command) {
+	printOutput = false
+	ttyOnly = false
+	initCmd = newInitCommand()
 	initCmd.Flags().BoolVarP(&printOutput, "print", "p", false, "print the init script")
 	initCmd.Flags().BoolVar(&ttyOnly, "tty-only", true, "only print if input is a TTY (default: true)")
-	RootCmd.AddCommand(initCmd)
+	root.AddCommand(initCmd)
 }
 
 func runInit(cmd *cobra.Command, shellName string) {

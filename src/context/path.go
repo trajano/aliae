@@ -6,7 +6,6 @@ import (
 	"os/exec"
 	"slices"
 	"strings"
-	"sync"
 
 	internalcygpath "github.com/jandedobbeleer/aliae/src/cygpath"
 )
@@ -22,7 +21,7 @@ var runExternalCygpath = func(path string) (string, error) {
 	return strings.TrimSpace(string(output)), nil
 }
 
-var cleanPathCache sync.Map
+var cleanPathCache = map[string]string{}
 
 func getPath() *Path {
 	return getEnvPath("PATH")
@@ -86,8 +85,8 @@ func cleanPath(path string) string {
 	}
 
 	cacheKey := cleanPathCacheKey(path)
-	if cached, ok := cleanPathCache.Load(cacheKey); ok {
-		return cached.(string)
+	if cached, ok := cleanPathCache[cacheKey]; ok {
+		return cached
 	}
 
 	if isMSYS2Shell() {
@@ -102,7 +101,7 @@ func cleanPath(path string) string {
 	}
 
 	clean := strings.TrimRight(path, `/\`)
-	cleanPathCache.Store(cacheKey, clean)
+	cleanPathCache[cacheKey] = clean
 	return clean
 }
 
@@ -130,10 +129,7 @@ func cleanPathCacheKey(path string) string {
 }
 
 func clearCleanPathCache() {
-	cleanPathCache.Range(func(key, _ any) bool {
-		cleanPathCache.Delete(key)
-		return true
-	})
+	cleanPathCache = map[string]string{}
 }
 
 func isASCIIAlpha(value byte) bool {
