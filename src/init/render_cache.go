@@ -54,7 +54,10 @@ type renderCacheEntry struct {
 }
 
 func prepareRenderCache(configPath, sh string, aliae *cfg.Aliae) *renderCacheState {
-	if aliae == nil || hasStatefulScripts(aliae) {
+	if aliae == nil {
+		return nil
+	}
+	if !isStateCacheEligible(aliae, time.Now()) {
 		return nil
 	}
 
@@ -293,17 +296,33 @@ func hashTrackedEnv(runtime *context.Runtime, keys []string) string {
 	return hex.EncodeToString(sum.Sum(nil))
 }
 
-func hasStatefulScripts(aliae *cfg.Aliae) bool {
+func isStateCacheEligible(aliae *cfg.Aliae, now time.Time) bool {
 	if aliae == nil {
+		return true
+	}
+
+	references, err := aliae.Scripts.StateReferences()
+	if err != nil {
 		return false
 	}
-	for _, script := range aliae.Scripts {
-		if script == nil {
+	if len(references) == 0 {
+		return true
+	}
+
+	for _, reference := range references {
+		if strings.TrimSpace(reference.File) == "" {
 			continue
 		}
-		if strings.TrimSpace(string(script.State.File)) != "" {
-			return true
+
+		statePath := aliaeState.Path(reference.File)
+		shouldRun, _, checkErr := aliaeState.ShouldRun(statePath, reference.RunEvery, now)
+		if checkErr != nil {
+			return false
+		}
+		if shouldRun {
+			return false
 		}
 	}
-	return false
+
+	return true
 }
