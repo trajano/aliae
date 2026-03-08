@@ -15,13 +15,13 @@ import (
 	aliaeState "github.com/jandedobbeleer/aliae/src/state"
 )
 
-const Version = 1
+const Version = 2
 
-type Entry struct {
+type Entry[T any] struct {
+	Value        T
 	SchemaHash   string
 	CreatedAtUTC string
 	SourceFiles  []SourceFile
-	Payload      []byte
 	Version      int
 	ComputeVars  bool
 }
@@ -32,7 +32,7 @@ type SourceFile struct {
 	ModTimeNanos int64
 }
 
-func Load(cachePath, schemaHash string, computeVars bool) ([]byte, bool, error) {
+func Load[T any](cachePath, schemaHash string, computeVars bool) (*T, bool, error) {
 	file, err := os.Open(cachePath)
 	if errors.Is(err, os.ErrNotExist) {
 		return nil, false, nil
@@ -42,7 +42,7 @@ func Load(cachePath, schemaHash string, computeVars bool) ([]byte, bool, error) 
 	}
 	defer file.Close()
 
-	var entry Entry
+	var entry Entry[T]
 	if err := gob.NewDecoder(file).Decode(&entry); err != nil {
 		return nil, false, nil
 	}
@@ -55,10 +55,10 @@ func Load(cachePath, schemaHash string, computeVars bool) ([]byte, bool, error) 
 		return nil, false, nil
 	}
 
-	return entry.Payload, true, nil
+	return &entry.Value, true, nil
 }
 
-func Store(cachePath, schemaHash string, computeVars bool, inputs []string, payload []byte) error {
+func Store[T any](cachePath, schemaHash string, computeVars bool, inputs []string, value T) error {
 	sourceFiles, err := fingerprintSourceFiles(inputs)
 	if err != nil {
 		return err
@@ -74,11 +74,11 @@ func Store(cachePath, schemaHash string, computeVars bool, inputs []string, payl
 	}
 	defer file.Close()
 
-	entry := Entry{
+	entry := Entry[T]{
 		Version:      Version,
 		SchemaHash:   schemaHash,
 		ComputeVars:  computeVars,
-		Payload:      payload,
+		Value:        value,
 		SourceFiles:  sourceFiles,
 		CreatedAtUTC: time.Now().UTC().Format(time.RFC3339Nano),
 	}
