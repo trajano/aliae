@@ -24,6 +24,7 @@ func runWithObserver(configPath, sh string, observer Observer, options runOption
 	defer restoreTemplateRuntime()
 
 	var aliae *cfg.Aliae
+	var renderCache *renderCacheState
 	if err := runPhase(observer, PhaseContextInit, func() error {
 		runtime := context.NewRuntime(sh)
 		context.SetCurrent(runtime)
@@ -48,6 +49,12 @@ func runWithObserver(configPath, sh string, observer Observer, options runOption
 
 	if options.computeVars {
 		cfg.MarkInitInternalProgressConfigValidated()
+
+		renderCache = prepareRenderCache(configPath, sh, aliae)
+		if script, ok := renderCache.load(); ok {
+			cfg.MarkInitInternalProgressReadyToOutput()
+			return script, nil
+		}
 	} else {
 		if err := runPhase(observer, PhaseEvaluateVars, func() error {
 			return aliae.ComputeVars()
@@ -106,6 +113,9 @@ func runWithObserver(configPath, sh string, observer Observer, options runOption
 	if options.computeVars {
 		cfg.MarkInitInternalProgressOutputFormulated()
 		cfg.MarkInitInternalProgressReadyToOutput()
+	}
+	if options.computeVars {
+		renderCache.store(result)
 	}
 
 	return result, nil
