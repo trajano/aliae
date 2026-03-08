@@ -19,25 +19,23 @@ const (
 )
 
 type Script struct {
-	Value       Template              `yaml:"value"`
-	Type        ScriptType            `yaml:"type"`
-	If          If                    `yaml:"if"`
-	State       ScriptState           `yaml:"state"`
-	statePath   string                `yaml:"-"`
-	stateFormat aliaeState.FileFormat `yaml:"-"`
-	Weight      float64               `yaml:"weight"`
-
-	statePrepared  bool `yaml:"-"`
-	stateChecked   bool `yaml:"-"`
-	stateShouldRun bool `yaml:"-"`
-	ifFrozen       bool `yaml:"-"`
-	ifIgnoreFrozen bool `yaml:"-"`
-	ifEvaluated    bool `yaml:"-"`
-	ifIgnored      bool `yaml:"-"`
-
-	stateRunEveryParsed bool          `yaml:"-"`
-	stateRunEvery       time.Duration `yaml:"-"`
-	stateRunEveryErr    error         `yaml:"-"`
+	stateRunEveryErr    error                 `yaml:"-"`
+	State               ScriptState           `yaml:"state"`
+	Type                ScriptType            `yaml:"type"`
+	If                  If                    `yaml:"if"`
+	statePath           string                `yaml:"-"`
+	stateFormat         aliaeState.FileFormat `yaml:"-"`
+	Value               Template              `yaml:"value"`
+	stateRunEvery       time.Duration         `yaml:"-"`
+	Weight              float64               `yaml:"weight"`
+	stateChecked        bool                  `yaml:"-"`
+	ifFrozen            bool                  `yaml:"-"`
+	ifIgnoreFrozen      bool                  `yaml:"-"`
+	ifEvaluated         bool                  `yaml:"-"`
+	ifIgnored           bool                  `yaml:"-"`
+	stateRunEveryParsed bool                  `yaml:"-"`
+	stateShouldRun      bool                  `yaml:"-"`
+	statePrepared       bool                  `yaml:"-"`
 }
 
 type ScriptState struct {

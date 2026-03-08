@@ -8,8 +8,8 @@ type Provider interface {
 }
 
 type provider struct {
-	name  string
 	value func(current *context.Runtime) any
+	name  string
 }
 
 func New(name string, value func(current *context.Runtime) any) Provider {

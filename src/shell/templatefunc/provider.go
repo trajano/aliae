@@ -6,8 +6,8 @@ type Provider interface {
 }
 
 type provider struct {
-	name string
 	fn   any
+	name string
 }
 
 func New(name string, fn any) Provider {
