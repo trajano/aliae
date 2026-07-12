@@ -47,6 +47,15 @@ func NewRootCommand(version string) *cobra.Command {
 }
 
 func Execute(version string) {
+	// From https://github.com/JanDeDobbeleer/aliae/commit/5bb3245d34194a529fe62429098deb10ccbecdba
+	// Cobra's mousetrap hook walks the full Windows process table on every
+	// invocation to detect a double-click launch from Explorer, costing tens
+	// of milliseconds per shell startup. Explorer never passes arguments, so
+	// the check is only needed when there are none.
+	if len(os.Args) > 1 {
+		cobra.MousetrapHelpText = ""
+	}
+
 	if err := NewRootCommand(version).Execute(); err != nil {
 		os.Exit(1)
 	}
