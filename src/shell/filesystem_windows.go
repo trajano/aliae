@@ -19,6 +19,7 @@ func canRetryWrite(err error) bool {
 		return false
 	}
 
+	//nolint:exhaustive // only transient sharing errors are retried
 	switch errno {
 	case windows.ERROR_ACCESS_DENIED, windows.ERROR_SHARING_VIOLATION, windows.ERROR_LOCK_VIOLATION:
 		return true
