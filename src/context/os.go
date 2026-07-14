@@ -14,7 +14,7 @@ func isMSYS2Shell() bool {
 		return false
 	}
 
-	return current.OS == WINDOWS && current.Shell == "bash" && os.Getenv("MSYSTEM") != ""
+	return current.OS == WINDOWS && current.Shell == shellBash && os.Getenv("MSYSTEM") != ""
 }
 
 func PathDelimiter() string {

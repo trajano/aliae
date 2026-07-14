@@ -17,17 +17,17 @@ func TestLinkCommand(t *testing.T) {
 		OS       string
 	}{
 		{
-			Case:     "PWSH",
+			Case:     PWSH,
 			Shell:    PWSH,
 			Expected: "New-Item -Path \"foo\" -ItemType SymbolicLink -Value \"bar\" -Force | Out-Null",
 		},
 		{
-			Case:     "CMD",
+			Case:     CMD,
 			Shell:    CMD,
 			Expected: `os.execute("mklink /h foo bar > nul 2>&1")`,
 		},
 		{
-			Case:     "FISH",
+			Case:     FISH,
 			Shell:    FISH,
 			Expected: "ln -sf bar foo",
 		},
@@ -58,7 +58,7 @@ func TestLinkCommand(t *testing.T) {
 			Expected: `ln -sf bar foo`,
 		},
 		{
-			Case:     "BASH",
+			Case:     BASH,
 			Shell:    BASH,
 			Expected: `ln -sf bar foo`,
 		},
@@ -80,15 +80,15 @@ func TestLinkRender(t *testing.T) {
 		{
 			Case: "Single link",
 			Links: Links{
-				&Link{Name: "FOO", Target: "bar", force: true},
+				&Link{Name: testNameFooUpper, Target: "bar", force: true},
 			},
 			Expected: "ln -sf bar FOO",
 		},
 		{
 			Case: "Double link",
 			Links: Links{
-				&Link{Name: "FOO", Target: "bar", force: true},
-				&Link{Name: "BAR", Target: "foo", force: true},
+				&Link{Name: testNameFooUpper, Target: "bar", force: true},
+				&Link{Name: testNameBarUpper, Target: "foo", force: true},
 			},
 			Expected: `ln -sf bar FOO
 ln -sf foo BAR`,
@@ -96,7 +96,7 @@ ln -sf foo BAR`,
 		{
 			Case: "Filtered out",
 			Links: Links{
-				&Link{Name: "FOO", Target: "bar", If: `eq .Shell "fish"`, force: true},
+				&Link{Name: testNameFooUpper, Target: "bar", If: `eq .Shell "fish"`, force: true},
 			},
 		},
 	}
@@ -116,12 +116,12 @@ func TestLinkWithTemplate(t *testing.T) {
 		Expected string
 	}{
 		{
-			Case:     "No template",
+			Case:     testCaseNoTemplate,
 			Target:   "~/dotfiles/zshrc",
 			Expected: `ln -sf ~/dotfiles/zshrc /tmp/l`,
 		},
 		{
-			Case:     "Home in template",
+			Case:     testCaseHomeInTemplate,
 			Target:   "{{ .Home }}/.aliae.yaml",
 			Expected: `ln -sf /Users/jan/.aliae.yaml /tmp/l`,
 		},
@@ -134,7 +134,7 @@ func TestLinkWithTemplate(t *testing.T) {
 
 	for _, tc := range cases {
 		link := &Link{Name: "/tmp/l", Target: tc.Target, force: true}
-		useRuntime(t, &context.Runtime{Shell: BASH, Home: "/Users/jan", OS: context.WINDOWS})
+		useRuntime(t, &context.Runtime{Shell: BASH, Home: testHomeUnix, OS: context.WINDOWS})
 		assert.Equal(t, tc.Expected, link.string(), tc.Case)
 	}
 }

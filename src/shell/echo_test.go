@@ -15,7 +15,7 @@ func TestEcho(t *testing.T) {
 		Error    bool
 	}{
 		{
-			Case:  "PWSH",
+			Case:  PWSH,
 			Shell: PWSH,
 			Expected: `$message = @"
 hello
@@ -23,7 +23,7 @@ hello
 Write-Host $message`,
 		},
 		{
-			Case:  "CMD",
+			Case:  CMD,
 			Shell: CMD,
 			Expected: `message = [[
 hello
@@ -31,7 +31,7 @@ hello
 print(message)`,
 		},
 		{
-			Case:     "FISH",
+			Case:     FISH,
 			Shell:    FISH,
 			Expected: `echo "hello"`,
 		},
@@ -57,7 +57,7 @@ print(message)`,
 			Expected: `echo "hello"`,
 		},
 		{
-			Case:     "BASH",
+			Case:     BASH,
 			Shell:    BASH,
 			Expected: `echo "hello"`,
 		},

@@ -59,7 +59,7 @@ func NewRuntime(shell string) *Runtime {
 
 func isShellLike(shell string) bool {
 	switch strings.ToLower(strings.TrimSpace(shell)) {
-	case "bash", "zsh", "fish", "tcsh", "pwsh", "powershell":
+	case shellBash, shellZsh, shellFish, shellTcsh, shellPwsh, shellPowerShell:
 		return true
 	default:
 		return false

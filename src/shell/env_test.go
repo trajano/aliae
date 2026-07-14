@@ -11,7 +11,7 @@ import (
 
 func TestEnvironmentVariable(t *testing.T) {
 	envs := map[EnvType]Env{
-		String: {Name: "HELLO", Value: "world"},
+		String: {Name: testHelloEnvName, Value: "world"},
 		Array:  {Name: "ARRAY", Value: "hello array world", Type: "array"},
 	}
 	cases := []struct {
@@ -21,7 +21,7 @@ func TestEnvironmentVariable(t *testing.T) {
 		Env      Env
 	}{
 		{
-			Case:     "PWSH",
+			Case:     PWSH,
 			Shell:    PWSH,
 			Env:      envs[String],
 			Expected: `$env:HELLO = "world"`,
@@ -33,13 +33,13 @@ func TestEnvironmentVariable(t *testing.T) {
 			Expected: `$env:ARRAY = @("hello","array","world")`,
 		},
 		{
-			Case:     "CMD",
+			Case:     CMD,
 			Shell:    CMD,
 			Env:      envs[String],
 			Expected: `os.setenv("HELLO", "world")`,
 		},
 		{
-			Case:     "FISH",
+			Case:     FISH,
 			Shell:    FISH,
 			Env:      envs[String],
 			Expected: "set --global --export HELLO world",
@@ -93,7 +93,7 @@ func TestEnvironmentVariable(t *testing.T) {
 			Expected: `export ARRAY=("hello" "array" "world")`,
 		},
 		{
-			Case:     "BASH",
+			Case:     BASH,
 			Shell:    BASH,
 			Env:      envs[String],
 			Expected: `export HELLO="world"`,
@@ -124,12 +124,12 @@ func TestEnvironmentVariableWithTemplate(t *testing.T) {
 		Expected string
 	}{
 		{
-			Case:     "No template",
+			Case:     testCaseNoTemplate,
 			Value:    "~",
 			Expected: `export HELLO="~"`,
 		},
 		{
-			Case:     "Home in template",
+			Case:     testCaseHomeInTemplate,
 			Value:    "{{ .Home }}/.posh.omp.json",
 			Expected: `export HELLO="/Users/jan/.posh.omp.json"`,
 		},
@@ -141,19 +141,19 @@ func TestEnvironmentVariableWithTemplate(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		env := &Env{Name: "HELLO", Value: tc.Value}
-		useRuntime(t, &context.Runtime{Shell: BASH, Home: "/Users/jan"})
+		env := &Env{Name: testHelloEnvName, Value: tc.Value}
+		useRuntime(t, &context.Runtime{Shell: BASH, Home: testHomeUnix})
 		assert.Equal(t, tc.Expected, env.string(), tc.Case)
 	}
 }
 
 func TestEnvFilter(t *testing.T) {
 	env := Envs{
-		&Env{Name: "FOO", Value: "bar"},
-		&Env{Name: "BAR", Value: "foo"},
+		&Env{Name: testNameFooUpper, Value: "bar"},
+		&Env{Name: testNameBarUpper, Value: "foo"},
 		&Env{Name: "BAZ", Value: "baz", If: `eq .Shell "zsh"`},
 	}
-	useRuntime(t, &context.Runtime{Shell: "FISH"})
+	useRuntime(t, &context.Runtime{Shell: FISH})
 	filtered := env.filter()
 	assert.Len(t, filtered, 2)
 }
@@ -284,7 +284,7 @@ func TestEnvironmentVariablePathNormalizationOnWindows(t *testing.T) {
 
 	for _, tc := range cases {
 		env := &Env{Name: "ANDROID_SDK_ROOT", Value: tc.Value, IsPath: true}
-		useRuntime(t, &context.Runtime{Shell: PWSH, OS: context.WINDOWS, Home: `C:\Users\trajano`})
+		useRuntime(t, &context.Runtime{Shell: PWSH, OS: context.WINDOWS, Home: testHomeWindows})
 		assert.Equal(t, tc.Expected, env.string(), tc.Case)
 	}
 }
@@ -321,7 +321,7 @@ func TestEnvironmentVariableIfExists(t *testing.T) {
 	_ = os.Unsetenv("ALIAE_MISSING")
 
 	ResetRenderOutput()
-	useRuntime(t, &context.Runtime{Shell: PWSH, OS: context.LINUX, Home: "/home/trajano"})
+	useRuntime(t, &context.Runtime{Shell: PWSH, OS: context.LINUX, Home: testHomeLinux})
 	envs := Envs{
 		&Env{Name: "ALIAE_EXISTING", Value: existing, IsPath: true, IfExists: true},
 		&Env{Name: "ALIAE_MISSING", Value: missing, IsPath: true, IfExists: true},
@@ -363,13 +363,13 @@ func TestEnvironmentVariableIsPathMultilineUsesFirstExisting(t *testing.T) {
 	firstMissing := filepath.Join(t.TempDir(), "missing-first")
 	secondExisting := t.TempDir()
 	thirdExisting := t.TempDir()
-	_ = os.Unsetenv("ANDROID_HOME")
+	_ = os.Unsetenv(testAndroidHome)
 
 	ResetRenderOutput()
 	useRuntime(t, &context.Runtime{Shell: PWSH, OS: context.LINUX, Home: "/home/trajano"})
 	envs := Envs{
 		&Env{
-			Name: "ANDROID_HOME",
+			Name: testAndroidHome,
 			Value: firstMissing + "\n" +
 				secondExisting + "\n" +
 				thirdExisting,
@@ -382,39 +382,39 @@ func TestEnvironmentVariableIsPathMultilineUsesFirstExisting(t *testing.T) {
 	assert.Contains(t, RenderOutputString(), secondExisting)
 	assert.NotContains(t, RenderOutputString(), firstMissing)
 	assert.NotContains(t, RenderOutputString(), thirdExisting)
-	assert.Equal(t, secondExisting, os.Getenv("ANDROID_HOME"))
+	assert.Equal(t, secondExisting, os.Getenv(testAndroidHome))
 }
 
 func TestEnvironmentVariableIsPathMultilineSkipsWhenNoneExists(t *testing.T) {
 	firstMissing := filepath.Join(t.TempDir(), "missing-first")
 	secondMissing := filepath.Join(t.TempDir(), "missing-second")
 
-	_ = os.Unsetenv("ANDROID_HOME")
+	_ = os.Unsetenv(testAndroidHome)
 
 	ResetRenderOutput()
 	useRuntime(t, &context.Runtime{Shell: PWSH, OS: context.LINUX, Home: "/home/trajano"})
 	envs := Envs{
 		&Env{
-			Name:   "ANDROID_HOME",
+			Name:   testAndroidHome,
 			Value:  firstMissing + "\n" + secondMissing,
 			IsPath: true,
 		},
 	}
 	envs.Render()
 
-	assert.NotContains(t, RenderOutputString(), "ANDROID_HOME")
-	assert.Equal(t, "", os.Getenv("ANDROID_HOME"))
+	assert.NotContains(t, RenderOutputString(), testAndroidHome)
+	assert.Equal(t, "", os.Getenv(testAndroidHome))
 }
 
 func TestEnvironmentVariableIsPathSingleLineStillExportsByDefault(t *testing.T) {
 	missing := filepath.Join(t.TempDir(), "missing")
-	_ = os.Unsetenv("ANDROID_HOME")
+	_ = os.Unsetenv(testAndroidHome)
 
 	ResetRenderOutput()
 	useRuntime(t, &context.Runtime{Shell: PWSH, OS: context.LINUX, Home: "/home/trajano"})
 	envs := Envs{
 		&Env{
-			Name:   "ANDROID_HOME",
+			Name:   testAndroidHome,
 			Value:  missing,
 			IsPath: true,
 		},
@@ -423,5 +423,5 @@ func TestEnvironmentVariableIsPathSingleLineStillExportsByDefault(t *testing.T) 
 
 	assert.Contains(t, RenderOutputString(), `$env:ANDROID_HOME = "`)
 	assert.Contains(t, RenderOutputString(), missing)
-	assert.Equal(t, missing, os.Getenv("ANDROID_HOME"))
+	assert.Equal(t, missing, os.Getenv(testAndroidHome))
 }

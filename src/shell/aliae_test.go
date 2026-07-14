@@ -16,17 +16,17 @@ func TestAliasCommand(t *testing.T) {
 		Expected string
 	}{
 		{
-			Case:     "PWSH",
+			Case:     PWSH,
 			Shell:    PWSH,
 			Expected: `Set-Alias -Name foo -Value "bar"`,
 		},
 		{
-			Case:     "CMD",
+			Case:     CMD,
 			Shell:    CMD,
 			Expected: "macrofile:write(\"foo=bar\", \"\\n\")",
 		},
 		{
-			Case:     "FISH",
+			Case:     FISH,
 			Shell:    FISH,
 			Expected: `alias foo "bar"`,
 		},
@@ -51,7 +51,7 @@ func TestAliasCommand(t *testing.T) {
 			Expected: `alias foo="bar"`,
 		},
 		{
-			Case:     "BASH",
+			Case:     BASH,
 			Shell:    BASH,
 			Expected: `alias foo="bar"`,
 		},
@@ -180,21 +180,21 @@ func TestAliaeRender(t *testing.T) {
 		{
 			Case: "Single alias",
 			Aliae: Aliae{
-				&Alias{Name: "FOO", Value: "bar"},
+				&Alias{Name: testNameFooUpper, Value: "bar"},
 			},
 			Expected: `alias FOO="bar"`,
 		},
 		{
 			Case: "Invalid type",
 			Aliae: Aliae{
-				&Alias{Name: "FOO", Value: "bar", Type: "invalid"},
+				&Alias{Name: testNameFooUpper, Value: "bar", Type: "invalid"},
 			},
 		},
 		{
 			Case: "Double alias",
 			Aliae: Aliae{
-				&Alias{Name: "FOO", Value: "bar"},
-				&Alias{Name: "BAR", Value: "foo"},
+				&Alias{Name: testNameFooUpper, Value: "bar"},
+				&Alias{Name: testNameBarUpper, Value: "foo"},
 			},
 			Expected: `alias FOO="bar"
 alias BAR="foo"`,
@@ -202,7 +202,7 @@ alias BAR="foo"`,
 		{
 			Case: "Filtered out",
 			Aliae: Aliae{
-				&Alias{Name: "FOO", Value: "bar", If: `eq .Shell "fish"`},
+				&Alias{Name: testNameFooUpper, Value: "bar", If: `eq .Shell "fish"`},
 			},
 		},
 	}
@@ -222,12 +222,12 @@ func TestAliasWithTemplate(t *testing.T) {
 		Expected string
 	}{
 		{
-			Case:     "No template",
+			Case:     testCaseNoTemplate,
 			Value:    "cd ~",
 			Expected: `alias a="cd ~"`,
 		},
 		{
-			Case:     "Home in template",
+			Case:     testCaseHomeInTemplate,
 			Value:    "{{ .Home }}/go/bin/aliae",
 			Expected: `alias a="/Users/jan/go/bin/aliae"`,
 		},
@@ -240,7 +240,7 @@ func TestAliasWithTemplate(t *testing.T) {
 
 	for _, tc := range cases {
 		alias := &Alias{Name: "a", Value: tc.Value}
-		useRuntime(t, &context.Runtime{Shell: BASH, Home: "/Users/jan", OS: context.WINDOWS})
+		useRuntime(t, &context.Runtime{Shell: BASH, Home: testHomeUnix, OS: context.WINDOWS})
 		assert.Equal(t, tc.Expected, alias.string(), tc.Case)
 	}
 }

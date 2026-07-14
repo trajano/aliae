@@ -11,6 +11,13 @@ import (
 // getCmd represents the get command
 var getCmd = newGetCommand()
 
+const (
+	getArgBenchmark = "benchmark"
+	getArgConfig    = "config"
+	getArgShell     = "shell"
+	getArgVariables = "variables"
+)
+
 func newGetCommand() *cobra.Command {
 	return &cobra.Command{
 		Use:   "get [shell|config|variables|benchmark [shell]]",
@@ -24,27 +31,27 @@ This command is used to get the value of the following variables:
 - variables
 - benchmark [shell]`,
 		ValidArgs: []string{
-			"shell",
-			"config",
-			"variables",
-			"benchmark",
+			getArgShell,
+			getArgConfig,
+			getArgVariables,
+			getArgBenchmark,
 		},
 		Args: validateGetArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			switch args[0] {
-			case "shell":
+			case getArgShell:
 				return appcmd.GetShellCommand{Out: cmd.OutOrStdout()}.Execute()
-			case "config":
+			case getArgConfig:
 				return appcmd.GetResolvedConfigCommand{
 					ConfigPath: config,
 					Out:        cmd.OutOrStdout(),
 				}.Execute()
-			case "variables":
+			case getArgVariables:
 				return appcmd.GetVariablesCommand{
 					ConfigPath: config,
 					Out:        cmd.OutOrStdout(),
 				}.Execute()
-			case "benchmark":
+			case getArgBenchmark:
 				benchmarkShell := ""
 				if len(args) == 2 {
 					benchmarkShell = args[1]
@@ -77,12 +84,12 @@ func validateGetArgs(_ *cobra.Command, args []string) error {
 	}
 
 	switch args[0] {
-	case "shell", "config", "variables":
+	case getArgShell, getArgConfig, getArgVariables:
 		if len(args) != 1 {
 			return fmt.Errorf("%s does not accept extra arguments", args[0])
 		}
 		return nil
-	case "benchmark":
+	case getArgBenchmark:
 		if len(args) == 1 {
 			return nil
 		}

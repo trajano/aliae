@@ -15,11 +15,11 @@ func TestGit(t *testing.T) {
 	}{
 		{
 			Case:  "Known value",
-			Alias: &Alias{Name: "hello", Value: "!echo world"},
+			Alias: &Alias{Name: "hello", Value: testGitBangEchoWorld},
 		},
 		{
 			Case:  "Error",
-			Alias: &Alias{Name: "hello", Value: "!echo world"},
+			Alias: &Alias{Name: "hello", Value: testGitBangEchoWorld},
 			Error: true,
 		},
 		{
@@ -31,7 +31,7 @@ func TestGit(t *testing.T) {
 
 	for _, tc := range cases {
 		gitConfigCache = map[string]string{
-			"hello": "!echo world",
+			"hello": testGitBangEchoWorld,
 		}
 		gitError = tc.Error
 		assert.Equal(t, tc.Expected, tc.Alias.git(), tc.Case)
