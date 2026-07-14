@@ -4,6 +4,7 @@ import (
 	"os"
 
 	"github.com/jandedobbeleer/aliae/src/appcmd"
+	"github.com/jandedobbeleer/aliae/src/shell"
 	"github.com/spf13/cobra"
 	"golang.org/x/term"
 )
@@ -15,6 +16,18 @@ var (
 	initCmd = newInitCommand()
 )
 
+var initValidArgs = []string{
+	shell.BASH,
+	shell.ZSH,
+	shell.FISH,
+	shell.PWSH,
+	shell.POWERSHELL,
+	shell.CMD,
+	shell.NU,
+	shell.TCSH,
+	shell.XONSH,
+}
+
 func newInitCommand() *cobra.Command {
 	return &cobra.Command{
 		Use:   "init [bash|zsh|fish|pwsh|powershell|cmd|nu|tcsh|xonsh]",
@@ -23,18 +36,8 @@ func newInitCommand() *cobra.Command {
 
 See the documentation to initialize your shell: https://trajano.github.io/aliae/docs/setup/shell.
 This is a personal fork. For the official project and docs, see https://aliae.dev.`,
-		ValidArgs: []string{
-			"bash",
-			"zsh",
-			"fish",
-			"pwsh",
-			"powershell",
-			"cmd",
-			"nu",
-			"tcsh",
-			"xonsh",
-		},
-		Args: NoArgsOrOneValidArg,
+		ValidArgs: initValidArgs,
+		Args:      NoArgsOrOneValidArg,
 		Run: func(cmd *cobra.Command, args []string) {
 			if len(args) == 0 {
 				_ = cmd.Help()

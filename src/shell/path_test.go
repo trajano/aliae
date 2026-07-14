@@ -20,13 +20,13 @@ func TestPath(t *testing.T) {
 	}{
 		{
 			Case:  "Unknown shell",
-			Shell: "FOO",
-			Path:  &Path{Value: "/usr/local/bin"},
+			Shell: testShellUnknown,
+			Path:  &Path{Value: testUsrLocalBin},
 		},
 		{
 			Case:     "PWSH - single item",
 			Shell:    PWSH,
-			Path:     &Path{Value: "/usr/local/bin"},
+			Path:     &Path{Value: testUsrLocalBin},
 			Expected: `$env:PATH = "/usr/local/bin" + ':' + $env:PATH`,
 		},
 		{
@@ -34,14 +34,14 @@ func TestPath(t *testing.T) {
 			Shell:    PWSH,
 			OS:       context.WINDOWS,
 			Path:     &Path{Value: "C:/Users/jan/.tools/bin"},
-			Expected: `$env:PATH = "C:\Users\jan\.tools\bin" + ';' + $env:PATH`,
+			Expected: testPathPwshWindows,
 		},
 		{
 			Case:     "PWSH - Windows converts MSYS paths",
 			Shell:    PWSH,
 			OS:       context.WINDOWS,
 			Path:     &Path{Value: "/c/Users/jan/.tools/bin"},
-			Expected: `$env:PATH = "C:\Users\jan\.tools\bin" + ';' + $env:PATH`,
+			Expected: testPathPwshWindows,
 		},
 		{
 			Case:     "PWSH - single item with template",
@@ -52,47 +52,47 @@ func TestPath(t *testing.T) {
 		{
 			Case:  "PWSH - single item with blank line",
 			Shell: PWSH,
-			Path:  &Path{Value: "/usr/local/bin\n\n/usr/bin"},
+			Path:  &Path{Value: testUsrLocalBin + "\n\n" + testUsrBin},
 			Expected: `$env:PATH = "/usr/local/bin" + ':' + $env:PATH
 $env:PATH = "/usr/bin" + ':' + $env:PATH`,
 		},
 		{
 			Case:  "PWSH - multiple items",
 			Shell: PWSH,
-			Path:  &Path{Value: "/usr/local/bin\n/usr/bin"},
+			Path:  &Path{Value: testUsrLocalBinAndUsrBin},
 			Expected: `$env:PATH = "/usr/local/bin" + ':' + $env:PATH
 $env:PATH = "/usr/bin" + ':' + $env:PATH`,
 		},
 		{
 			Case:     "CMD - single item",
 			Shell:    CMD,
-			Path:     &Path{Value: "/usr/local/bin"},
+			Path:     &Path{Value: testUsrLocalBin},
 			Expected: `os.setenv("PATH", "/usr/local/bin;" .. os.getenv("PATH"))`,
 		},
 		{
 			Case:  "CMD - multiple items",
 			Shell: CMD,
-			Path:  &Path{Value: "/usr/local/bin\n/usr/bin"},
+			Path:  &Path{Value: testUsrLocalBinAndUsrBin},
 			Expected: `os.setenv("PATH", "/usr/local/bin;" .. os.getenv("PATH"))
 os.setenv("PATH", "/usr/bin;" .. os.getenv("PATH"))`,
 		},
 		{
 			Case:     "FISH - single item",
 			Shell:    FISH,
-			Path:     &Path{Value: "/usr/local/bin"},
+			Path:     &Path{Value: testUsrLocalBin},
 			Expected: `fish_add_path /usr/local/bin`,
 		},
 		{
 			Case:  "FISH - multiple items",
 			Shell: FISH,
-			Path:  &Path{Value: "/usr/local/bin\n/usr/bin"},
+			Path:  &Path{Value: testUsrLocalBinAndUsrBin},
 			Expected: `fish_add_path /usr/local/bin
 fish_add_path /usr/bin`,
 		},
 		{
 			Case:     "NU - single item",
 			Shell:    NU,
-			Path:     &Path{Value: "/usr/local/bin"},
+			Path:     &Path{Value: testUsrLocalBin},
 			Expected: `$env.PATH = ($env.PATH | prepend "/usr/local/bin")`,
 		},
 		{
@@ -104,7 +104,7 @@ fish_add_path /usr/bin`,
 		{
 			Case:  "NU - multiple items",
 			Shell: NU,
-			Path:  &Path{Value: "/usr/local/bin\n/usr/bin"},
+			Path:  &Path{Value: testUsrLocalBinAndUsrBin},
 			Expected: `$env.PATH = ($env.PATH | prepend "/usr/local/bin")
 $env.PATH = ($env.PATH | prepend "/usr/bin")`,
 		},
@@ -112,46 +112,46 @@ $env.PATH = ($env.PATH | prepend "/usr/bin")`,
 			Case:  "NU - Windows",
 			Shell: NU,
 			OS:    context.WINDOWS,
-			Path:  &Path{Value: "C:\\bin\nD:\\bin"},
+			Path:  &Path{Value: testWindowsBins},
 			Expected: `$env.Path = ($env.Path | prepend "C:\\bin")
 $env.Path = ($env.Path | prepend "D:\\bin")`,
 		},
 		{
 			Case:     "TCSH - single item",
 			Shell:    TCSH,
-			Path:     &Path{Value: "/usr/local/bin"},
+			Path:     &Path{Value: testUsrLocalBin},
 			Expected: `set path = ( /usr/local/bin $path );`,
 		},
 		{
 			Case:  "TCSH - multiple items",
 			Shell: TCSH,
-			Path:  &Path{Value: "/usr/local/bin\n/usr/bin"},
+			Path:  &Path{Value: testUsrLocalBinAndUsrBin},
 			Expected: `set path = ( /usr/local/bin $path );
 set path = ( /usr/bin $path );`,
 		},
 		{
 			Case:     "XONSH - single item",
 			Shell:    XONSH,
-			Path:     &Path{Value: "/usr/local/bin"},
+			Path:     &Path{Value: testUsrLocalBin},
 			Expected: `$PATH.add('/usr/local/bin', True, False)`,
 		},
 		{
 			Case:  "XONSH - multiple items",
 			Shell: XONSH,
-			Path:  &Path{Value: "/usr/local/bin\n/usr/bin"},
+			Path:  &Path{Value: testUsrLocalBinAndUsrBin},
 			Expected: `$PATH.add('/usr/local/bin', True, False)
 $PATH.add('/usr/bin', True, False)`,
 		},
 		{
 			Case:     "ZSH - single item",
 			Shell:    ZSH,
-			Path:     &Path{Value: "/usr/local/bin"},
+			Path:     &Path{Value: testUsrLocalBin},
 			Expected: `export PATH="/usr/local/bin:$PATH"`,
 		},
 		{
 			Case:  "ZSH - multiple items",
 			Shell: ZSH,
-			Path:  &Path{Value: "/usr/local/bin\n/usr/bin"},
+			Path:  &Path{Value: testUsrLocalBinAndUsrBin},
 			Expected: `export PATH="/usr/local/bin:$PATH"
 export PATH="/usr/bin:$PATH"`,
 		},
@@ -159,14 +159,14 @@ export PATH="/usr/bin:$PATH"`,
 			Case:     "ZSH - Windows",
 			Shell:    ZSH,
 			OS:       context.WINDOWS,
-			Path:     &Path{Value: "/usr/local/bin"},
+			Path:     &Path{Value: testUsrLocalBin},
 			Expected: `export PATH="/usr/local/bin;$PATH"`,
 		},
 		{
 			Case:     "BASH - Windows",
 			Shell:    BASH,
 			OS:       context.WINDOWS,
-			Path:     &Path{Value: "/usr/local/bin"},
+			Path:     &Path{Value: testUsrLocalBin},
 			Expected: `export PATH="/usr/local/bin:$PATH"`,
 		},
 		{
@@ -179,7 +179,7 @@ export PATH="/usr/bin:$PATH"`,
 	}
 
 	for _, tc := range cases {
-		useRuntime(t, &context.Runtime{Shell: tc.Shell, Home: "/Users/jan", OS: tc.OS, Path: &context.Path{"/usr/local/bin/src"}})
+		useRuntime(t, &context.Runtime{Shell: tc.Shell, Home: testHomeUnix, OS: tc.OS, Path: &context.Path{testUsrLocalBin + "/src"}})
 		assert.Equal(t, tc.Expected, tc.Path.string(), tc.Case)
 	}
 }
@@ -201,14 +201,14 @@ func TestPathRender(t *testing.T) {
 		{
 			Case: "PWSH - If false",
 			Paths: Paths{
-				&Path{Value: "/usr/bin", If: `eq .Shell "fish"`},
+				&Path{Value: testUsrBin, If: `eq .Shell "fish"`},
 			},
 			Shell: PWSH,
 		},
 		{
 			Case: "PWSH - If true",
 			Paths: Paths{
-				&Path{Value: "/usr/bin", If: `eq .Shell "pwsh"`},
+				&Path{Value: testUsrBin, If: `eq .Shell "pwsh"`},
 			},
 			Shell:    PWSH,
 			Expected: `$env:PATH = "/usr/bin" + ':' + $env:PATH`,
@@ -225,7 +225,7 @@ func TestPathRender(t *testing.T) {
 		{
 			Case: "PWSH - 1 PATH definition",
 			Paths: Paths{
-				&Path{Value: "/usr/bin"},
+				&Path{Value: testUsrBin},
 			},
 			Shell:    PWSH,
 			Expected: `$env:PATH = "/usr/bin" + ':' + $env:PATH`,
@@ -233,7 +233,7 @@ func TestPathRender(t *testing.T) {
 		{
 			Case: "PWSH - Single PATH, non empty",
 			Paths: Paths{
-				&Path{Value: "/usr/bin"},
+				&Path{Value: testUsrBin},
 			},
 			Shell:          PWSH,
 			NonEmptyScript: true,
@@ -244,8 +244,8 @@ $env:PATH = "/usr/bin" + ':' + $env:PATH`,
 		{
 			Case: "PWSH - 2 PATH definitions",
 			Paths: Paths{
-				&Path{Value: "/usr/bin"},
-				&Path{Value: "/Users/jan/.tools/bin"},
+				&Path{Value: testUsrBin},
+				&Path{Value: testHomeUnix + "/.tools/bin"},
 			},
 			Shell: PWSH,
 			Expected: `$env:PATH = "/usr/bin" + ':' + $env:PATH
@@ -254,8 +254,8 @@ $env:PATH = "/Users/jan/.tools/bin" + ':' + $env:PATH`,
 		{
 			Case: "PWSH - 2 PATH definitions with conditional",
 			Paths: Paths{
-				&Path{Value: "/usr/bin", If: `eq .Shell "fish"`},
-				&Path{Value: "/Users/jan/.tools/bin"},
+				&Path{Value: testUsrBin, If: `eq .Shell "fish"`},
+				&Path{Value: testHomeUnix + "/.tools/bin"},
 			},
 			Shell:    PWSH,
 			Expected: `$env:PATH = "/Users/jan/.tools/bin" + ':' + $env:PATH`,
@@ -283,62 +283,62 @@ func TestPathForce(t *testing.T) {
 	}{
 		{
 			Case:  "Unknown shell",
-			Shell: "FOO",
-			Path:  &Path{Value: "/usr/local/bin"},
+			Shell: testShellUnknown,
+			Path:  &Path{Value: testUsrLocalBin},
 		},
 		{
 			Case:     "PWSH - Force",
 			Shell:    PWSH,
-			Path:     &Path{Value: "/usr/local/bin", Force: true},
+			Path:     &Path{Value: testUsrLocalBin, Force: true},
 			Expected: `$env:PATH = "/usr/local/bin" + ':' + $env:PATH`,
 		},
 		{
 			Case:     "PWSH - Not Force",
 			Shell:    PWSH,
-			Path:     &Path{Value: "/usr/local/bin"},
+			Path:     &Path{Value: testUsrLocalBin},
 			Expected: ``,
 		},
 		{
 			Case:     "CMD - Force",
 			Shell:    CMD,
-			Path:     &Path{Value: "/usr/local/bin", Force: true},
+			Path:     &Path{Value: testUsrLocalBin, Force: true},
 			Expected: `os.setenv("PATH", "/usr/local/bin;" .. os.getenv("PATH"))`,
 		},
 		{
 			Case:     "CMD - Not Force",
 			Shell:    CMD,
-			Path:     &Path{Value: "/usr/local/bin"},
+			Path:     &Path{Value: testUsrLocalBin},
 			Expected: ``,
 		},
 		{
 			Case:     "FISH - Force",
 			Shell:    FISH,
-			Path:     &Path{Value: "/usr/local/bin", Force: true},
+			Path:     &Path{Value: testUsrLocalBin, Force: true},
 			Expected: `fish_add_path /usr/local/bin`,
 		},
 		{
 			Case:     "FISH - Not Force",
 			Shell:    FISH,
-			Path:     &Path{Value: "/usr/local/bin"},
+			Path:     &Path{Value: testUsrLocalBin},
 			Expected: ``,
 		},
 		{
 			Case:     "NU - Force",
 			Shell:    NU,
-			Path:     &Path{Value: "/usr/local/bin", Force: true},
+			Path:     &Path{Value: testUsrLocalBin, Force: true},
 			Expected: `$env.PATH = ($env.PATH | prepend "/usr/local/bin")`,
 		},
 		{
 			Case:     "NU - Not Force",
 			Shell:    NU,
-			Path:     &Path{Value: "/usr/local/bin"},
+			Path:     &Path{Value: testUsrLocalBin},
 			Expected: ``,
 		},
 		{
 			Case:  "NU - Windows Force",
 			Shell: NU,
 			OS:    context.WINDOWS,
-			Path:  &Path{Value: "C:\\bin\nD:\\bin", Force: true},
+			Path:  &Path{Value: testWindowsBins, Force: true},
 			Expected: `$env.Path = ($env.Path | prepend "C:\\bin")
 $env.Path = ($env.Path | prepend "D:\\bin")`,
 		},
@@ -346,70 +346,70 @@ $env.Path = ($env.Path | prepend "D:\\bin")`,
 			Case:     "NU - Windows Not Force",
 			Shell:    NU,
 			OS:       context.WINDOWS,
-			Path:     &Path{Value: "C:\\bin\nD:\\bin"},
+			Path:     &Path{Value: testWindowsBins},
 			Expected: ``,
 		},
 		{
 			Case:     "TCSH - Force",
 			Shell:    TCSH,
-			Path:     &Path{Value: "/usr/local/bin", Force: true},
+			Path:     &Path{Value: testUsrLocalBin, Force: true},
 			Expected: `set path = ( /usr/local/bin $path );`,
 		},
 		{
 			Case:     "TCSH - Not Force",
 			Shell:    TCSH,
-			Path:     &Path{Value: "/usr/local/bin"},
+			Path:     &Path{Value: testUsrLocalBin},
 			Expected: ``,
 		},
 		{
 			Case:     "XONSH - Force",
 			Shell:    XONSH,
-			Path:     &Path{Value: "/usr/local/bin", Force: true},
+			Path:     &Path{Value: testUsrLocalBin, Force: true},
 			Expected: `$PATH.add('/usr/local/bin', True, False)`,
 		},
 		{
 			Case:     "XONSH - Not Force",
 			Shell:    XONSH,
-			Path:     &Path{Value: "/usr/local/bin"},
+			Path:     &Path{Value: testUsrLocalBin},
 			Expected: ``,
 		},
 		{
 			Case:     "ZSH - Force",
 			Shell:    ZSH,
-			Path:     &Path{Value: "/usr/local/bin", Force: true},
+			Path:     &Path{Value: testUsrLocalBin, Force: true},
 			Expected: `export PATH="/usr/local/bin:$PATH"`,
 		},
 		{
 			Case:     "ZSH - Not Force",
 			Shell:    ZSH,
-			Path:     &Path{Value: "/usr/local/bin"},
+			Path:     &Path{Value: testUsrLocalBin},
 			Expected: ``,
 		},
 		{
 			Case:     "ZSH - Windows Force",
 			Shell:    ZSH,
 			OS:       context.WINDOWS,
-			Path:     &Path{Value: "/usr/local/bin", Force: true},
+			Path:     &Path{Value: testUsrLocalBin, Force: true},
 			Expected: `export PATH="/usr/local/bin;$PATH"`,
 		},
 		{
 			Case:     "BASH - Windows Force",
 			Shell:    BASH,
 			OS:       context.WINDOWS,
-			Path:     &Path{Value: "/usr/local/bin", Force: true},
+			Path:     &Path{Value: testUsrLocalBin, Force: true},
 			Expected: `export PATH="/usr/local/bin:$PATH"`,
 		},
 		{
 			Case:     "ZSH - Windows Not Force",
 			Shell:    ZSH,
 			OS:       context.WINDOWS,
-			Path:     &Path{Value: "/usr/local/bin"},
+			Path:     &Path{Value: testUsrLocalBin},
 			Expected: ``,
 		},
 	}
 
 	for _, tc := range cases {
-		useRuntime(t, &context.Runtime{Shell: tc.Shell, Home: "/Users/jan", OS: tc.OS, Path: &context.Path{"/usr/local/bin", "C:\\bin", "D:\\bin"}})
+		useRuntime(t, &context.Runtime{Shell: tc.Shell, Home: testHomeUnix, OS: tc.OS, Path: &context.Path{testUsrLocalBin, "C:\\bin", "D:\\bin"}})
 		assert.Equal(t, tc.Expected, tc.Path.string(), tc.Case)
 	}
 }
@@ -460,7 +460,7 @@ func TestPathWindowsMSYS2Normalization(t *testing.T) {
 	useRuntime(t, &context.Runtime{
 		Shell: BASH,
 		OS:    context.WINDOWS,
-		Home:  `C:\Users\trajano`,
+		Home:  testHomeWindows,
 		Path:  &context.Path{},
 	})
 
@@ -475,7 +475,7 @@ func TestPathWindowsWithoutMSYS2Normalization(t *testing.T) {
 	useRuntime(t, &context.Runtime{
 		Shell: BASH,
 		OS:    context.WINDOWS,
-		Home:  `C:\Users\trajano`,
+		Home:  testHomeWindows,
 		Path:  &context.Path{},
 	})
 

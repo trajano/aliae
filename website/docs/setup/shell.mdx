@@ -84,33 +84,21 @@ exec fish
 <TabItem value="nu">
 
 :::caution
-aliae requires Nushell v0.78.0 or higher.
+aliae requires Nushell v0.104.0 or higher.
 :::
 
-Add the following line to the Nushell env file (`$nu.env-path`):
+Add the following line at the bottom of the Nushell config file (`$nu.config-path`):
 
 ```bash
 aliae init nu
 ```
 
-This saves the initialization script to `~/.aliae.nu`.
-Now, edit the Nushell config file (`$nu.config-path`) and add the following line at the bottom:
+This writes the initialization script to Nushell's vendor autoload directory
+(`$nu.data-dir/vendor/autoload/aliae.nu`). Nushell loads vendor autoload scripts
+after `config.nu`, so the freshly written script is picked up in the same session.
 
-```bash
-source ~/.aliae.nu
-```
-
-If you want to save the initialization script elsewhere, you can change the first line to something like this:
-
-```bash
-aliae init nu --print | save /mylocation/myscript.nu --force
-```
-
-And change the `source` line to:
-
-```bash
-source /mylocation/myscript.nu
-```
+If you previously sourced `~/.aliae.nu`, remove that line from `config.nu` and
+move any existing `aliae init nu` line out of `env.nu`.
 
 Once added, restart Nushell for the changes to take effect.
 

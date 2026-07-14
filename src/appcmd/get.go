@@ -54,6 +54,14 @@ type BenchmarkCommand struct {
 	NoCache        bool
 }
 
+const (
+	yamlKeyForce    = "force"
+	yamlKeyIfExists = "ifExists"
+	yamlKeyName     = "name"
+	yamlKeyType     = "type"
+	yamlKeyValue    = "value"
+)
+
 func (c BenchmarkCommand) Execute() error {
 	return printBenchmark(c.Out, c.ConfigPath, c.BenchmarkShell, c.NoCache)
 }
@@ -108,16 +116,16 @@ func toAliasOutput(items shell.Aliae) []yaml.MapSlice {
 			continue
 		}
 
-		item := yaml.MapSlice{{Key: "name", Value: alias.Name}}
+		item := yaml.MapSlice{{Key: yamlKeyName, Value: alias.Name}}
 		if len(alias.Type) > 0 {
-			item = append(item, yaml.MapItem{Key: "type", Value: alias.Type})
+			item = append(item, yaml.MapItem{Key: yamlKeyType, Value: alias.Type})
 		}
-		item = append(item, yaml.MapItem{Key: "value", Value: alias.Value})
+		item = append(item, yaml.MapItem{Key: yamlKeyValue, Value: alias.Value})
 		if len(alias.Description) > 0 {
 			item = append(item, yaml.MapItem{Key: "description", Value: alias.Description})
 		}
 		if alias.Force {
-			item = append(item, yaml.MapItem{Key: "force", Value: true})
+			item = append(item, yaml.MapItem{Key: yamlKeyForce, Value: true})
 		}
 		if len(alias.If) > 0 {
 			item = append(item, yaml.MapItem{Key: "if", Value: alias.If})
@@ -142,11 +150,11 @@ func toEnvOutput(items shell.Envs) []yaml.MapSlice {
 			continue
 		}
 
-		item := yaml.MapSlice{{Key: "name", Value: env.Name}}
+		item := yaml.MapSlice{{Key: yamlKeyName, Value: env.Name}}
 		if len(env.Type) > 0 {
-			item = append(item, yaml.MapItem{Key: "type", Value: env.Type})
+			item = append(item, yaml.MapItem{Key: yamlKeyType, Value: env.Type})
 		}
-		item = append(item, yaml.MapItem{Key: "value", Value: env.Value})
+		item = append(item, yaml.MapItem{Key: yamlKeyValue, Value: env.Value})
 		if len(env.Delimiter) > 0 {
 			item = append(item, yaml.MapItem{Key: "delimiter", Value: env.Delimiter})
 		}
@@ -154,7 +162,7 @@ func toEnvOutput(items shell.Envs) []yaml.MapSlice {
 			item = append(item, yaml.MapItem{Key: "if", Value: env.If})
 		}
 		if env.IfExists {
-			item = append(item, yaml.MapItem{Key: "ifExists", Value: true})
+			item = append(item, yaml.MapItem{Key: yamlKeyIfExists, Value: true})
 		}
 		if env.IsPath {
 			item = append(item, yaml.MapItem{Key: "isPath", Value: true})
@@ -177,8 +185,8 @@ func toVarOutput(items cfg.Vars) []yaml.MapSlice {
 		}
 
 		item := yaml.MapSlice{
-			{Key: "name", Value: variable.Name},
-			{Key: "value", Value: variable.Value},
+			{Key: yamlKeyName, Value: variable.Name},
+			{Key: yamlKeyValue, Value: variable.Value},
 		}
 		if len(variable.If) > 0 {
 			item = append(item, yaml.MapItem{Key: "if", Value: variable.If})
@@ -197,15 +205,15 @@ func toPathOutput(items shell.Paths) []yaml.MapSlice {
 			continue
 		}
 
-		entry := yaml.MapSlice{{Key: "value", Value: item.Value}}
+		entry := yaml.MapSlice{{Key: yamlKeyValue, Value: item.Value}}
 		if item.Force {
-			entry = append(entry, yaml.MapItem{Key: "force", Value: true})
+			entry = append(entry, yaml.MapItem{Key: yamlKeyForce, Value: true})
 		}
 		if len(item.If) > 0 {
 			entry = append(entry, yaml.MapItem{Key: "if", Value: item.If})
 		}
 		if item.IfExists {
-			entry = append(entry, yaml.MapItem{Key: "ifExists", Value: true})
+			entry = append(entry, yaml.MapItem{Key: yamlKeyIfExists, Value: true})
 		}
 		if item.Persist {
 			entry = append(entry, yaml.MapItem{Key: "persist", Value: true})
@@ -224,15 +232,15 @@ func toCDPathOutput(items shell.CDPaths) []yaml.MapSlice {
 			continue
 		}
 
-		entry := yaml.MapSlice{{Key: "value", Value: item.Value}}
+		entry := yaml.MapSlice{{Key: yamlKeyValue, Value: item.Value}}
 		if item.Force {
-			entry = append(entry, yaml.MapItem{Key: "force", Value: true})
+			entry = append(entry, yaml.MapItem{Key: yamlKeyForce, Value: true})
 		}
 		if len(item.If) > 0 {
 			entry = append(entry, yaml.MapItem{Key: "if", Value: item.If})
 		}
 		if item.IfExists {
-			entry = append(entry, yaml.MapItem{Key: "ifExists", Value: true})
+			entry = append(entry, yaml.MapItem{Key: yamlKeyIfExists, Value: true})
 		}
 
 		output = append(output, entry)
@@ -248,9 +256,9 @@ func toScriptOutput(items shell.Scripts) []yaml.MapSlice {
 			continue
 		}
 
-		entry := yaml.MapSlice{{Key: "value", Value: script.Value}}
+		entry := yaml.MapSlice{{Key: yamlKeyValue, Value: script.Value}}
 		if len(script.Type) > 0 {
-			entry = append(entry, yaml.MapItem{Key: "type", Value: script.Type})
+			entry = append(entry, yaml.MapItem{Key: yamlKeyType, Value: script.Type})
 		}
 		if len(script.If) > 0 {
 			entry = append(entry, yaml.MapItem{Key: "if", Value: script.If})
@@ -283,7 +291,7 @@ func toLinkOutput(items shell.Links) []yaml.MapSlice {
 		}
 
 		entry := yaml.MapSlice{
-			{Key: "name", Value: item.Name},
+			{Key: yamlKeyName, Value: item.Name},
 			{Key: "target", Value: item.Target},
 		}
 		if len(item.If) > 0 {

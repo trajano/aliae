@@ -16,6 +16,11 @@ type schemaBuilder struct {
 	links   []map[string]any
 }
 
+const (
+	schemaKeyName  = "name"
+	schemaKeyValue = "value"
+)
+
 func buildSchemaDocument(aliae *Aliae) map[string]any {
 	document := make(map[string]any)
 	if aliae == nil {
@@ -99,8 +104,8 @@ func buildSchemaDocument(aliae *Aliae) map[string]any {
 
 func varSchemaItem(variable *Var) map[string]any {
 	item := map[string]any{
-		"name":  variable.Name,
-		"value": string(variable.Value),
+		schemaKeyName:  variable.Name,
+		schemaKeyValue: string(variable.Value),
 	}
 	if len(variable.If) > 0 {
 		item["if"] = string(variable.If)
@@ -110,8 +115,8 @@ func varSchemaItem(variable *Var) map[string]any {
 
 func aliasSchemaItem(alias *shell.Alias) map[string]any {
 	item := map[string]any{
-		"name":  alias.Name,
-		"value": string(alias.Value),
+		schemaKeyName:  alias.Name,
+		schemaKeyValue: string(alias.Value),
 	}
 	if len(alias.Type) > 0 {
 		item["type"] = string(alias.Type)
@@ -124,8 +129,8 @@ func aliasSchemaItem(alias *shell.Alias) map[string]any {
 
 func envSchemaItem(env *shell.Env) map[string]any {
 	item := map[string]any{
-		"name":  env.Name,
-		"value": env.Value,
+		schemaKeyName:  env.Name,
+		schemaKeyValue: env.Value,
 	}
 	if len(env.Delimiter) > 0 {
 		item["delimiter"] = string(env.Delimiter)
@@ -150,7 +155,7 @@ func envSchemaItem(env *shell.Env) map[string]any {
 
 func pathSchemaItem(path *shell.Path) map[string]any {
 	item := map[string]any{
-		"value": string(path.Value),
+		schemaKeyValue: string(path.Value),
 	}
 	if len(path.If) > 0 {
 		item["if"] = string(path.If)
@@ -169,7 +174,7 @@ func pathSchemaItem(path *shell.Path) map[string]any {
 
 func cdpathSchemaItem(path *shell.CDPath) map[string]any {
 	item := map[string]any{
-		"value": string(path.Value),
+		schemaKeyValue: string(path.Value),
 	}
 	if len(path.If) > 0 {
 		item["if"] = string(path.If)
@@ -185,7 +190,7 @@ func cdpathSchemaItem(path *shell.CDPath) map[string]any {
 
 func scriptSchemaItem(script *shell.Script) map[string]any {
 	item := map[string]any{
-		"value": string(script.Value),
+		schemaKeyValue: string(script.Value),
 	}
 	if len(script.Type) > 0 {
 		item["type"] = string(script.Type)
@@ -213,8 +218,8 @@ func scriptSchemaItem(script *shell.Script) map[string]any {
 
 func linkSchemaItem(link *shell.Link) map[string]any {
 	item := map[string]any{
-		"name":   string(link.Name),
-		"target": string(link.Target),
+		schemaKeyName: string(link.Name),
+		"target":      string(link.Target),
 	}
 	if len(link.If) > 0 {
 		item["if"] = string(link.If)

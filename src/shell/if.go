@@ -8,6 +8,8 @@ import (
 
 type If string
 
+const booleanTrue = "true"
+
 func (i If) Ignore() bool {
 	if len(i) == 0 {
 		return false
@@ -18,7 +20,7 @@ func (i If) Ignore() bool {
 		return false
 	}
 
-	return got == "true"
+	return got == booleanTrue
 }
 
 func (i If) Validate() error {

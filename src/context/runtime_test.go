@@ -2,8 +2,6 @@ package context
 
 import "testing"
 
-const testShellBash = "bash"
-
 func TestIsWSL(t *testing.T) {
 	originalGOOS := runtimeGOOS
 	t.Cleanup(func() {
@@ -49,11 +47,12 @@ func TestIsWSL(t *testing.T) {
 
 func TestInitLoadsEnvironmentMap(t *testing.T) {
 	t.Setenv("ALIAE_ENV_TEST", "test-value")
-	Init(testShellBash)
+	Init(shellBash)
 	current := GetCurrent()
 
 	if current == nil {
 		t.Fatalf("expected runtime context to be initialized")
+		return
 	}
 
 	if current.Env["ALIAE_ENV_TEST"] != "test-value" {
@@ -74,13 +73,14 @@ func TestNewRuntimeBuildsRuntimeWithoutMutatingCurrent(t *testing.T) {
 	t.Cleanup(func() { SetCurrent(original) })
 
 	SetCurrent(nil)
-	current := NewRuntime(testShellBash)
+	current := NewRuntime(shellBash)
 
 	if current == nil {
 		t.Fatalf("expected runtime context")
+		return
 	}
-	if current.Shell != testShellBash {
-		t.Fatalf("expected shell to be %s, got %s", testShellBash, current.Shell)
+	if current.Shell != shellBash {
+		t.Fatalf("expected shell to be %s, got %s", shellBash, current.Shell)
 	}
 	if GetCurrent() != nil {
 		t.Fatalf("expected current runtime to remain unchanged")
@@ -93,12 +93,12 @@ func TestIsShellLike(t *testing.T) {
 		shell    string
 		expected bool
 	}{
-		{name: "bash", shell: "bash", expected: true},
-		{name: "zsh", shell: "zsh", expected: true},
-		{name: "fish", shell: "fish", expected: true},
-		{name: "tcsh", shell: "tcsh", expected: true},
-		{name: "pwsh", shell: "pwsh", expected: true},
-		{name: "powershell", shell: "powershell", expected: true},
+		{name: shellBash, shell: shellBash, expected: true},
+		{name: shellZsh, shell: shellZsh, expected: true},
+		{name: shellFish, shell: shellFish, expected: true},
+		{name: shellTcsh, shell: shellTcsh, expected: true},
+		{name: shellPwsh, shell: shellPwsh, expected: true},
+		{name: shellPowerShell, shell: shellPowerShell, expected: true},
 		{name: "nu", shell: "nu", expected: false},
 		{name: "cmd", shell: "cmd", expected: false},
 		{name: "xonsh", shell: "xonsh", expected: false},
