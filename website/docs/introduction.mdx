@@ -43,11 +43,11 @@ with emphasis on Git Bash compatibility and fork-owned release/documentation flo
   - `hasCommand` caching with `hasCommandNoCache` for uncached checks.
   - `setArg` helper for shell-agnostic positional argument assignment.
   - `progress` helper for OSC progress output and reset.
-  - `.ConfigPath` and `.ConfigDir` template variables.
+  - Refined configuration-location variables: `.ConfigPath` resolves the config file and
+    `.ConfigDir` resolves its directory.
   - `.Env` template map for environment variable access like `{{ .Env.DOTFILES }}`.
   - Top-level `var` entries with precomputed values, available as `.Var.<Name>`.
   - `.ShellLike` template variable for bash/zsh/fish/tcsh/pwsh/powershell checks.
-  - `.Hostname` template variable that exposes the system hostname.
   - `.WSL` template variable that indicates Windows Subsystem for Linux runtime.
 - PATH capabilities:
   - `ifExists` option to include only existing path entries.
