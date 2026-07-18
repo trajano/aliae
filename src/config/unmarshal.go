@@ -88,7 +88,17 @@ func includeUnmarshaler(b []byte) ([]byte, error) {
 				return nil, fmt.Errorf("invalid %s directive: \n%s", f.Name, line)
 			}
 
-			folder := string(bytes.Join(parts[2:][0:], []byte(" ")))
+			pathParts, condition, hasCondition := splitIncludeCondition(parts)
+			if len(pathParts) < 3 {
+				return nil, fmt.Errorf("invalid %s directive: \n%s", f.Name, line)
+			}
+
+			if hasCondition && shell.If(condition).Ignore() {
+				s[i] = skippedIncludeLine(pathParts[0])
+				break
+			}
+
+			folder := string(bytes.Join(pathParts[2:], []byte(" ")))
 			path, err := validatePath(folder)
 			if err != nil {
 				return nil, err
@@ -106,7 +116,7 @@ func includeUnmarshaler(b []byte) ([]byte, error) {
 
 			indented := bytes.Join(splitted, newline)
 
-			result := parts[0][0:]
+			result := pathParts[0][0:]
 
 			switch string(result) {
 			case "-":
@@ -130,6 +140,37 @@ func includeUnmarshaler(b []byte) ([]byte, error) {
 	}
 
 	return includeUnmarshaler(data)
+}
+
+// splitIncludeCondition separates a trailing if="..." condition from an include directive.
+// The path remains whitespace-preserving so quoted paths containing spaces continue to work.
+func splitIncludeCondition(parts [][]byte) (pathParts [][]byte, condition string, ok bool) {
+	ifPrefix := []byte("if=")
+
+	for index := 2; index < len(parts); index++ {
+		if !bytes.HasPrefix(parts[index], ifPrefix) {
+			continue
+		}
+
+		raw := string(bytes.Join(parts[index:], []byte(" ")))
+		raw = strings.TrimPrefix(raw, "if=")
+		raw = strings.ReplaceAll(raw, `\"`, `"`)
+		return parts[:index], trimQuotes(raw), true
+	}
+
+	return parts, "", false
+}
+
+// skippedIncludeLine turns a skipped map include into a YAML null value and
+// removes a skipped list include entirely.
+func skippedIncludeLine(key []byte) []byte {
+	if string(key) == "-" {
+		return []byte{}
+	}
+
+	result := key[0:]
+	result = append(result, []byte(" null")...)
+	return result
 }
 
 func trimQuotes(s string) string {

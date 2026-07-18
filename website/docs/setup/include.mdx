@@ -63,6 +63,21 @@ aliae:
   value: kubectl get --watch -f
 ```
 
+## Conditional include
+
+Both `!include` and `!include_dir` accept an optional trailing `if="..."`
+condition. The condition uses the same [template expression][if] syntax as an
+`if` field. When it evaluates to false, aliae skips the include without reading
+the target file or directory.
+
+```yaml title=".aliae.yaml"
+env: !include "{{ .Home }}/.aliae/kubernetes-env.yaml" if="hasCommand \"kubectl\""
+alias:
+  - !include "{{ .Home }}/.aliae/kubernetes.yaml" if="hasCommand \"kubectl\""
+  - name: g
+    value: git
+```
+
 ## Extends
 
 The `extends` key allows you to extend an existing configuration.
@@ -115,3 +130,4 @@ extends:
 - Extends nesting depth is limited to `10` levels.
 
 [templates]: templates.mdx
+[if]: if.mdx
