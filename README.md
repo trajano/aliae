@@ -49,11 +49,11 @@ focused on Git Bash support and fork-specific distribution.
   - Added `hasCommand` result caching and `hasCommandNoCache` for uncached checks.
   - Added `setArg` helper for shell-agnostic positional argument assignment.
   - Added `progress` template helper for OSC progress output and reset.
-  - Added `.ConfigPath` and `.ConfigDir` template variables.
+  - Refined configuration-location variables: `.ConfigPath` resolves the config file and
+    `.ConfigDir` resolves its directory.
   - Added `.Env` template map for environment variable access like `{{ .Env.DOTFILES }}`.
   - Added top-level `var` entries with precomputed values and `.Var` template map access.
   - Added `.ShellLike` template variable for bash/zsh/fish/tcsh/pwsh/powershell checks.
-  - Added `.Hostname` template variable to expose the system hostname.
   - Added `.WSL` template variable to indicate Windows Subsystem for Linux runtime.
 - PATH features:
   - Added `ifExists` option to include only existing path entries.
