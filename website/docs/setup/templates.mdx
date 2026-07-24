@@ -63,7 +63,7 @@ Use `hasCommandNoCache` when you need a fresh check after mutating `PATH` in the
 
 `wslPath` uses WSL's `wslpath` binary to convert a Windows path. Outside WSL, or when conversion
 fails, it returns the original path unchanged, so it is safe in configurations shared across
-machines. In WSL Bash, path entries in `path` and `cdpath` are converted automatically as well.
+machines. In WSL, path entries in `path` and `cdpath` are converted automatically as well.
 
 `var` entries are computed before other config sections render.
 You can use `.Var.<Name>` in other template values and `if` expressions.

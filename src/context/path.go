@@ -98,7 +98,7 @@ func cleanPath(path string) string {
 		return cached
 	}
 
-	if isWSLPathShell() && isWindowsStylePath(path) {
+	if isWSLRuntime() && isWindowsStylePath(path) {
 		path = WSLPath(path)
 	} else if isMSYS2Shell() {
 		switch cygpathMode() {

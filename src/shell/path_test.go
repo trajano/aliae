@@ -184,25 +184,49 @@ export PATH="/usr/bin:$PATH"`,
 	}
 }
 
-func TestWSLBashConvertsPathAndCDPathEntries(t *testing.T) {
+func TestWSLConvertsPathAndCDPathEntries(t *testing.T) {
 	originalPath := os.Getenv("PATH")
 	dir := writeFakeWslpath(t, "/mnt/c/Users/jan/.tools/bin", 0)
 	assert.NoError(t, os.Setenv("PATH", dir+string(os.PathListSeparator)+originalPath))
 	t.Cleanup(func() { _ = os.Setenv("PATH", originalPath) })
 
-	useRuntime(t, &context.Runtime{
-		Shell:  BASH,
-		OS:     context.LINUX,
-		WSL:    true,
-		Path:   &context.Path{},
-		CDPath: &context.Path{},
-	})
+	cases := []struct {
+		shell          string
+		expectedPath   string
+		expectedCDPath string
+	}{
+		{
+			shell:          BASH,
+			expectedPath:   `export PATH="/mnt/c/Users/jan/.tools/bin:$PATH"`,
+			expectedCDPath: `export CDPATH="${CDPATH:+$CDPATH:}/mnt/c/Users/jan/.tools/bin"`,
+		},
+		{
+			shell:          ZSH,
+			expectedPath:   `export PATH="/mnt/c/Users/jan/.tools/bin:$PATH"`,
+			expectedCDPath: `cdpath=( $cdpath /mnt/c/Users/jan/.tools/bin )`,
+		},
+		{
+			shell:          FISH,
+			expectedPath:   `fish_add_path /mnt/c/Users/jan/.tools/bin`,
+			expectedCDPath: `set -g cdpath $cdpath /mnt/c/Users/jan/.tools/bin`,
+		},
+	}
 
-	path := &Path{Value: `C:\Users\jan\.tools\bin`}
-	assert.Equal(t, `export PATH="/mnt/c/Users/jan/.tools/bin:$PATH"`, path.string())
+	for _, tc := range cases {
+		useRuntime(t, &context.Runtime{
+			Shell:  tc.shell,
+			OS:     context.LINUX,
+			WSL:    true,
+			Path:   &context.Path{},
+			CDPath: &context.Path{},
+		})
 
-	cdpath := &CDPath{Value: `C:\Users\jan\.tools\bin`}
-	assert.Equal(t, `export CDPATH="${CDPATH:+$CDPATH:}/mnt/c/Users/jan/.tools/bin"`, cdpath.string())
+		path := &Path{Value: `C:\Users\jan\.tools\bin`}
+		assert.Equal(t, tc.expectedPath, path.string(), tc.shell)
+
+		cdpath := &CDPath{Value: `C:\Users\jan\.tools\bin`}
+		assert.Equal(t, tc.expectedCDPath, cdpath.string(), tc.shell)
+	}
 }
 
 func TestPathRender(t *testing.T) {
