@@ -21,6 +21,15 @@ var runExternalCygpath = func(path string) (string, error) {
 	return strings.TrimSpace(string(output)), nil
 }
 
+var runWslpath = func(path string) (string, error) {
+	output, err := exec.Command("wslpath", "-a", path).Output()
+	if err != nil {
+		return "", err
+	}
+
+	return strings.TrimSpace(string(output)), nil
+}
+
 var cleanPathCache = map[string]string{}
 
 func getPath() *Path {
@@ -89,7 +98,9 @@ func cleanPath(path string) string {
 		return cached
 	}
 
-	if isMSYS2Shell() {
+	if isWSLPathShell() && isWindowsStylePath(path) {
+		path = WSLPath(path)
+	} else if isMSYS2Shell() {
 		switch cygpathMode() {
 		case CygpathExternal:
 			if normalized, err := runExternalCygpath(path); err == nil && normalized != "" {
@@ -103,6 +114,22 @@ func cleanPath(path string) string {
 	clean := strings.TrimRight(path, `/\`)
 	cleanPathCache[cacheKey] = clean
 	return clean
+}
+
+// WSLPath converts a Windows path through WSL's wslpath command. It preserves
+// the input when wslpath is unavailable or cannot convert the supplied path.
+func WSLPath(path string) string {
+	normalized, err := runWslpath(path)
+	if err != nil || normalized == "" {
+		return path
+	}
+
+	return normalized
+}
+
+// CleanPath normalizes a path for the current runtime.
+func CleanPath(path string) string {
+	return cleanPath(path)
 }
 
 func cygpathMode() string {
@@ -125,7 +152,7 @@ func cleanPathCacheKey(path string) string {
 		return "|:" + os.Getenv("MSYSTEM") + ":" + path
 	}
 
-	return current.OS + "|" + current.Shell + "|" + cygpathMode() + ":" + os.Getenv("MSYSTEM") + ":" + path
+	return fmt.Sprintf("%s|%s|%t|%s:%s:%s", current.OS, current.Shell, current.WSL, cygpathMode(), os.Getenv("MSYSTEM"), path)
 }
 
 func clearCleanPathCache() {
@@ -134,6 +161,14 @@ func clearCleanPathCache() {
 
 func isASCIIAlpha(value byte) bool {
 	return (value >= 'a' && value <= 'z') || (value >= 'A' && value <= 'Z')
+}
+
+func isWindowsStylePath(path string) bool {
+	if strings.HasPrefix(path, `\\`) {
+		return true
+	}
+
+	return len(path) >= 3 && isASCIIAlpha(path[0]) && path[1] == ':' && (path[2] == '\\' || path[2] == '/')
 }
 
 func splitPathEntries(paths string) []string {

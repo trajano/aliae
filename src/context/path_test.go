@@ -135,3 +135,34 @@ func TestCleanPathUsesInternalCygpathByDefault(t *testing.T) {
 
 	assert.Equal(t, "/c/Users/trajano/bin", cleanPath(`C:\Users\trajano\bin\`))
 }
+
+func TestCleanPathUsesWslpathForWSLBash(t *testing.T) {
+	SetCurrent(&Runtime{OS: LINUX, Shell: shellBash, WSL: true})
+	clearCleanPathCache()
+	t.Cleanup(clearCleanPathCache)
+
+	originalRunWslpath := runWslpath
+	t.Cleanup(func() { runWslpath = originalRunWslpath })
+
+	runWslpath = func(path string) (string, error) {
+		assert.Equal(t, `C:\Users\trajano\bin\`, path)
+		return "/mnt/c/Users/trajano/bin", nil
+	}
+
+	assert.Equal(t, "/mnt/c/Users/trajano/bin", cleanPath(`C:\Users\trajano\bin\`))
+}
+
+func TestCleanPathKeepsWindowsPathWhenWslpathFails(t *testing.T) {
+	SetCurrent(&Runtime{OS: LINUX, Shell: shellBash, WSL: true})
+	clearCleanPathCache()
+	t.Cleanup(clearCleanPathCache)
+
+	originalRunWslpath := runWslpath
+	t.Cleanup(func() { runWslpath = originalRunWslpath })
+
+	runWslpath = func(_ string) (string, error) {
+		return "", assert.AnError
+	}
+
+	assert.Equal(t, `C:\Users\trajano\bin`, cleanPath(`C:\Users\trajano\bin\`))
+}

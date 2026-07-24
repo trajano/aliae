@@ -184,6 +184,27 @@ export PATH="/usr/bin:$PATH"`,
 	}
 }
 
+func TestWSLBashConvertsPathAndCDPathEntries(t *testing.T) {
+	originalPath := os.Getenv("PATH")
+	dir := writeFakeWslpath(t, "/mnt/c/Users/jan/.tools/bin", 0)
+	assert.NoError(t, os.Setenv("PATH", dir+string(os.PathListSeparator)+originalPath))
+	t.Cleanup(func() { _ = os.Setenv("PATH", originalPath) })
+
+	useRuntime(t, &context.Runtime{
+		Shell:  BASH,
+		OS:     context.LINUX,
+		WSL:    true,
+		Path:   &context.Path{},
+		CDPath: &context.Path{},
+	})
+
+	path := &Path{Value: `C:\Users\jan\.tools\bin`}
+	assert.Equal(t, `export PATH="/mnt/c/Users/jan/.tools/bin:$PATH"`, path.string())
+
+	cdpath := &CDPath{Value: `C:\Users\jan\.tools\bin`}
+	assert.Equal(t, `export CDPATH="${CDPATH:+$CDPATH:}/mnt/c/Users/jan/.tools/bin"`, cdpath.string())
+}
+
 func TestPathRender(t *testing.T) {
 	cases := []struct {
 		Case           string

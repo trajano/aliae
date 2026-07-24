@@ -1,6 +1,7 @@
 package shell
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -394,6 +395,59 @@ func TestHasCommandNoCacheBypassesCache(t *testing.T) {
 	foundNoCache, err := parse(`{{ hasCommandNoCache .Command }}`, struct{ Command string }{Command: commandName})
 	assert.NoError(t, err)
 	assert.Equal(t, "true", foundNoCache)
+}
+
+// writeFakeWslpath drops a script named "wslpath" (plus a Windows-executable
+// extension when needed) into a temporary directory. The script prints output
+// and exits with exitCode.
+func writeFakeWslpath(t *testing.T, output string, exitCode int) string {
+	t.Helper()
+
+	dir := t.TempDir()
+	if runtime.GOOS == "windows" {
+		script := "@echo off\r\n"
+		if output != "" {
+			script += "echo " + output + "\r\n"
+		}
+		script += fmt.Sprintf("exit /b %d\r\n", exitCode)
+		assert.NoError(t, os.WriteFile(filepath.Join(dir, "wslpath.cmd"), []byte(script), 0o755))
+
+		return dir
+	}
+
+	script := "#!/bin/sh\n"
+	if output != "" {
+		script += "echo " + output + "\n"
+	}
+	script += fmt.Sprintf("exit %d\n", exitCode)
+	assert.NoError(t, os.WriteFile(filepath.Join(dir, "wslpath"), []byte(script), 0o755))
+
+	return dir
+}
+
+func TestWslPath(t *testing.T) {
+	originalPath := os.Getenv("PATH")
+	t.Cleanup(func() { _ = os.Setenv("PATH", originalPath) })
+
+	t.Run("wslpath not on PATH returns the input unchanged", func(t *testing.T) {
+		assert.NoError(t, os.Setenv("PATH", t.TempDir()))
+
+		assert.Equal(t, `C:\Documents\theme.omp.yml`, wslPath(`C:\Documents\theme.omp.yml`))
+	})
+
+	t.Run("wslpath converts the path", func(t *testing.T) {
+		dir := writeFakeWslpath(t, "/mnt/c/Documents/theme.omp.yml", 0)
+		assert.NoError(t, os.Setenv("PATH", dir+string(os.PathListSeparator)+originalPath))
+
+		assert.Equal(t, "/mnt/c/Documents/theme.omp.yml", wslPath(`C:\Documents\theme.omp.yml`))
+	})
+
+	t.Run("wslpath failure returns the input unchanged", func(t *testing.T) {
+		dir := writeFakeWslpath(t, "", 1)
+		assert.NoError(t, os.Setenv("PATH", dir+string(os.PathListSeparator)+originalPath))
+
+		assert.Equal(t, `C:\Documents\theme.omp.yml`, wslPath(`C:\Documents\theme.omp.yml`))
+	})
 }
 
 func TestFileExists(t *testing.T) {

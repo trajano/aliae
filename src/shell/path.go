@@ -123,13 +123,24 @@ func pathEntryExists(entry string) bool {
 			resolved = windowsPath
 		}
 	}
+	if runtime != nil && runtime.WSL && runtime.Shell == BASH {
+		resolved = context.CleanPath(resolved)
+	}
 
 	return pathExists(resolved).exists
 }
 
 func normalizePathEntry(entry string) string {
 	runtime := currentRuntime()
-	if runtime == nil || runtime.OS != context.WINDOWS {
+	if runtime == nil {
+		return entry
+	}
+
+	if runtime.WSL && runtime.Shell == BASH {
+		return context.CleanPath(entry)
+	}
+
+	if runtime.OS != context.WINDOWS {
 		return entry
 	}
 
