@@ -18,6 +18,7 @@ var shellTemplateFuncProviders = []templatefunc.Provider{
 	templatefunc.Match(match),
 	templatefunc.HasCommand(hasCommand),
 	templatefunc.HasCommandNoCache(hasCommandNoCache),
+	templatefunc.WslPath(wslPath),
 	templatefunc.FileExists(fileExists),
 	templatefunc.DirExists(dirExists),
 	templatefunc.IsDir(isDir),

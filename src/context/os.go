@@ -17,6 +17,15 @@ func isMSYS2Shell() bool {
 	return current.OS == WINDOWS && current.Shell == shellBash && os.Getenv("MSYSTEM") != ""
 }
 
+func isWSLPathShell() bool {
+	current := GetCurrent()
+	if current == nil {
+		return false
+	}
+
+	return current.WSL && current.Shell == shellBash
+}
+
 func PathDelimiter() string {
 	current := GetCurrent()
 	if current == nil {

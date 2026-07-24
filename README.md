@@ -49,6 +49,8 @@ focused on Git Bash support and fork-specific distribution.
   - Added `hasCommand` result caching and `hasCommandNoCache` for uncached checks.
   - Added `setArg` helper for shell-agnostic positional argument assignment.
   - Added `progress` template helper for OSC progress output and reset.
+  - Added automatic WSL `wslpath` conversion for Bash `path` and `cdpath` entries, plus a
+    `wslPath` template helper for other template values.
   - Refined configuration-location variables: `.ConfigPath` resolves the config file and
     `.ConfigDir` resolves its directory.
   - Added `.Env` template map for environment variable access like `{{ .Env.DOTFILES }}`.

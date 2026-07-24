@@ -185,6 +185,14 @@ func hasCommandNoCache(command string) bool {
 	return err == nil
 }
 
+// wslPath converts a Windows path to its WSL equivalent via the wslpath binary.
+// wslpath only exists inside WSL's interop layer, so its presence on PATH is
+// itself the WSL signal; path is returned unchanged when the binary isn't found
+// or fails to convert it.
+func wslPath(path string) string {
+	return context.WSLPath(path)
+}
+
 func fileExists(path string) bool {
 	info := pathExists(resolveFromHome(path))
 	return info.exists && !info.isDir
